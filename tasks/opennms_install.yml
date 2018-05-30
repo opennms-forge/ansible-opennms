@@ -1,0 +1,33 @@
+---
+# tasks file for roles/opennms
+
+
+- name: Stop OpenNMS
+  systemd:
+    name: opennms.service
+    state: stop
+    enabled: yes
+    daemon_reload: yes
+  when: mode == 'upgrade'
+
+
+- name: Install OpeNMS
+  yum:
+    name: '{{ item }}'
+    state: present
+    enablerepo: opennms-repo-stable-common,opennms-repo-stable-rhel7
+  with_items:
+    - '{{ opennms_install_packages }}'
+  when: mode == 'install' or 
+        mode == 'upgrade'
+
+
+- name: Install related packages
+  yum:
+    name: '{{ item }}'
+    state: latest
+    enablerepo: opennms-repo-stable-common,opennms-repo-stable-rhel7
+  with_items:
+    - '{{ opennms_install_related }}'
+  when: mode == 'install' or 
+        mode == 'upgrade'

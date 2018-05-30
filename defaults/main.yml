@@ -1,0 +1,101 @@
+---
+# defaults file for roles/opennms
+
+
+# Avail modes 'install', 'upgrade', 'restart_opennms', 'restart_all'.
+# Running without a specified mode will just update configuration files.
+mode: ''
+
+# Feature switches
+opennms_enable_ldap: false
+opennms_enable_grafana: false
+opennms_enable_custom_logos: false
+
+
+# Misc default vars
+opennms_ldap_servers:
+  - {addr: ldap.example.com, port: 389}
+
+opennms_ldap_bind_user: uid=opennms_bind,dc=example,dc=com
+opennms_ldap_bind_pass: bind_password
+opennms_ldap_search_base: ou=user,dc=example,dc=com
+
+
+opennms_grafana_host: x.x.x.x
+opennms_grafana_port: 3000
+opennms_grafana_apiKey: enter_key_here
+opennms_grafana_protocol: http
+
+
+sys_timezone: Etc/UTC
+
+opennms_package_version: ''
+
+opennms_install_packages:
+    - opennms{{ opennms_package_version }}
+    - opennms-webapp-remoting{{ opennms_package_version }}
+    - opennms-remote-poller{{ opennms_package_version }}
+
+opennms_install_related:
+    - rrdtool
+    - jrrd
+    - jrrd2
+    - postgresql-libs
+    - postgresql-contrib
+    - python-psycopg2
+
+
+# OpenNMS core vars
+opennms_web_base_url: http://%x%c/
+
+opennms_java_path_method: runjava
+opennms_java_path: ''
+
+opennms_from_email: opennms@server.example.com
+
+opennms_java_heap_size: 512
+
+opennms_java_PermGen_space: 128
+
+opennms_ldap_user_group: opennms-users
+opennms_ldap_admin_group: opennms-admins
+
+# PostgreSQL core vars
+postgresql_user: postgres
+postgresql_pass: replace-me
+postgresql_group: postgres
+
+opennms_db_user: opennms
+opennms_db_pass: replace-me
+
+
+postgresql_hba_entries:
+  - { type: local, database: all, user: postgres, auth_method: peer }
+  - { type: local, database: all, user: all, auth_method: peer }
+  - { type: host, database: all, user: all, address: '127.0.0.1/32', auth_method: md5 }
+  - { type: host, database: all, user: all, address: '::1/128', auth_method: md5 }
+
+# Define to add additional access lines
+postgresql_hba_entries_addtl:
+  - { type: '', database: '', user: '', address: '', auth_method: '' }
+
+
+postgresql_listen_address: 'localhost'
+
+postgresql_shared_buffers: 32MB
+postgresql_work_mem: 4MB
+postgresql_maintenance_work_mem: 64MB
+postgresql_vacuum_cost_delay: 0ms
+postgresql_checkpoint_segments: 20
+postgresql_checkpoint_timeout: 5min
+postgresql_wal_buffers: 32kB
+
+postgresql_stats_start_collector: 'on'
+postgresql_stats_row_level: 'on'
+postgresql_autovacuum: 'on'
+
+
+postgresql_data_dir: "/var/lib/pgsql/data"
+postgresql_bin_path: "/usr/bin"
+postgresql_config_path: "/var/lib/pgsql/data"
+postgresql_daemon: postgresql

@@ -1,0 +1,41 @@
+# {{ ansible_managed }}
+
+#START_TIMEOUT=0
+JAVA_HEAP_SIZE={{ opennms_java_heap_size }}
+#MAXIMUM_FILE_DESCRIPTORS=204800
+
+ADDITIONAL_MANAGER_OPTIONS="-XX:MaxPermSize={{ opennms_java_PermGen_space }}m"
+
+# To speed up the start phase of the java virtual machine you might want to add
+ADDITIONAL_MANAGER_OPTIONS="-Xms"$JAVA_HEAP_SIZE"m"
+
+# If you use a JAVA_HEAP_SIZE greater than 4GB, you are recommended to use the G1 Garbage Collector (G1GC).
+ADDITIONAL_MANAGER_OPTIONS="${ADDITIONAL_MANAGER_OPTIONS} -verbose:gc -XX:+UseG1GC -XX:+UseStringDeduplication -XX:MaxGCPauseMillis=200 -XX:InitiatingHeapOccupancyPercent=45 -XX:+UseCompressedOops -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -XX:+PrintGCDetails -Xloggc:/var/log/opennms/gc.log"
+
+#ADDITIONAL_MANAGER_OPTIONS="${ADDITIONAL_MANAGER_OPTIONS} -d64 -XX:+UseStringDeduplication"
+
+# Garbage Collection
+#ADDITIONAL_MANAGER_OPTIONS="${ADDITIONAL_MANAGER_OPTIONS} -XX:+PrintGCTimeStamps -XX:+PrintGCDetails"
+#ADDITIONAL_MANAGER_OPTIONS="${ADDITIONAL_MANAGER_OPTIONS} -XX:+UseG1GC"
+#ADDITIONAL_MANAGER_OPTIONS="${ADDITIONAL_MANAGER_OPTIONS} -Xloggc:/opt/opennms/logs/gc.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=4 -XX:GCLogFileSize=20M"
+
+# Configure Remote JMX
+#ADDITIONAL_MANAGER_OPTIONS="${ADDITIONAL_MANAGER_OPTIONS} -Dcom.sun.management.jmxremote.port=18980"
+#ADDITIONAL_MANAGER_OPTIONS="${ADDITIONAL_MANAGER_OPTIONS} -Dcom.sun.management.jmxremote.local.only=false"
+#ADDITIONAL_MANAGER_OPTIONS="${ADDITIONAL_MANAGER_OPTIONS} -Dcom.sun.management.jmxremote.ssl=false"
+#ADDITIONAL_MANAGER_OPTIONS="${ADDITIONAL_MANAGER_OPTIONS} -Dcom.sun.management.jmxremote.authenticate=true"
+
+# Listen on all interfaces (for JMX)
+#ADDITIONAL_MANAGER_OPTIONS="${ADDITIONAL_MANAGER_OPTIONS} -Dopennms.poller.server.serverHost=0.0.0.0"
+
+# Accept remote RMI connections on this interface (for JMX)
+#ADDITIONAL_MANAGER_OPTIONS="${ADDITIONAL_MANAGER_OPTIONS} -Djava.rmi.server.hostname=<onms-server-ip-address-here>"
+
+# Configure SSL Keystore (required only when com.sun.management.jmxremote.ssl=true)
+#ADDITIONAL_MANAGER_OPTIONS="${ADDITIONAL_MANAGER_OPTIONS} -Djavax.net.ssl.keyStore=/opt/opennms/etc/opennms.keystore"
+#ADDITIONAL_MANAGER_OPTIONS="${ADDITIONAL_MANAGER_OPTIONS} -Djavax.net.ssl.keyStorePassword=changeit"
+
+# If you enable Flight Recorder, be aware of the implications since it is a commercial feature of the Oracle JVM.
+#ADDITIONAL_MANAGER_OPTIONS="${ADDITIONAL_MANAGER_OPTIONS} -XX:+UnlockCommercialFeatures -XX:+FlightRecorder"
+#ADDITIONAL_MANAGER_OPTIONS="${ADDITIONAL_MANAGER_OPTIONS} -XX:StartFlightRecording=duration=600s,filename=opennms.jfr,delay=1h"
+

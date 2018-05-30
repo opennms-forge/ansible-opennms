@@ -1,0 +1,14 @@
+# {{ ansible_managed }}
+
+# ###### Grafana Dashboards ######
+# Added by Bill Nelson 10/2/17
+
+org.opennms.grafanaBox.show=true
+org.opennms.grafanaBox.hostname={{ opennms_grafana_host }}
+org.opennms.grafanaBox.port={{ opennms_grafana_port }}
+org.opennms.grafanaBox.apiKey={{ opennms_grafana_apiKey }}
+org.opennms.grafanaBox.tag=
+org.opennms.grafanaBox.protocol={{ opennms_grafana_protocol }}
+org.opennms.grafanaBox.connectionTimeout=500
+org.opennms.grafanaBox.soTimeout=500
+org.opennms.grafanaBox.dashboardLimit=0

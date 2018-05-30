@@ -1,0 +1,16 @@
+# Ignore custom logos
+files/horizon_logo_small.png
+files/reports_logo.gif
+
+# Ignore local files
+#files/local/etc/snmp-graph.properties.d/*
+#files/local/etc/datacollection/*
+#files/local/etc/*
+
+files/local/etc/*
+!files/local/etc/.gitkeep
+files/local/etc_datacollection/*
+!files/local/etc_datacollection/.gitkeep
+files/local/etc_snmp-graph.properties.d/*
+!files/local/etc_snmp-graph.properties.d/.gitkeep
+

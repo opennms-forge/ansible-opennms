@@ -1,0 +1,42 @@
+---
+# tasks file for roles/opennms
+
+
+- name: Get firewalld status
+  command: 'systemctl is-active firewalld'
+  register: firewalld_state
+  ignore_errors: yes
+
+
+- name: Install packages
+  include_tasks: opennms_install.yml
+  when: mode == 'install' or 
+        mode == 'upgrade'
+
+
+# Configure OpenNMS
+- name: Update OpenNMS core configuration options
+  include_tasks: opennms_core.yml
+
+- name: OpenNMS in/out connections
+  include_tasks: opennms_externals.yml
+
+- name: Update OpenNMS logos/images
+  include_tasks: opennms_images.yml
+  when: opennms_enable_custom_logos
+
+- name: Add local configuration files
+  include_tasks: opennms_local.yml
+
+
+# Configure PostgreSQL
+- name: Update PostgreSQL core configuration options
+  include_tasks: postgres_core.yml
+
+- name: Update PostgreSQL users/create OpenNMS db
+  include_tasks: postgres_user_db.yml
+
+
+# Initialize/upgrade the OpenNMS DB
+- name: Initialize OpenNMS db/(re)start OpenNMS/PostgreSQL
+  include_tasks: opennms_initialize_(re)start.yml

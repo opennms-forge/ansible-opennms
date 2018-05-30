@@ -1,0 +1,51 @@
+---
+# tasks file for roles/opennms
+
+
+# Web interface logo
+- name: Check to see if opennms .svg logo has been backed up
+  stat: 
+    path: /opt/opennms/jetty-webapps/opennms/images/horizon_logo.svg.orig
+  register: horizon_logo_svg_orig
+
+- name: Backup original opennms .svg logo
+  copy:
+    src: /opt/opennms/jetty-webapps/opennms/images/horizon_logo.svg
+    dest: /opt/opennms/jetty-webapps/opennms/images/horizon_logo.svg.orig
+    remote_src: yes
+  when: horizon_logo_svg_orig.stat.exists == False
+
+- name: Delete OpenNMS .svg logo
+  file:
+    path: /opt/opennms/jetty-webapps/opennms/images/horizon_logo.svg
+    state: absent
+
+- name: Replace web interface logo
+  copy:
+    src: horizon_logo_small.png
+    dest: /opt/opennms/jetty-webapps/opennms/images/
+    owner: root
+    group: admins
+    mode: 0644
+
+
+# Default reports logo
+- name: Check to see if opennms reports logo has been backed up
+  stat: 
+    path: /opt/opennms/etc/reports/logo.gif.orig
+  register: logo_gif_orig
+
+- name: Backup original opennms reports logo
+  copy:
+    src: /opt/opennms/etc/reports/logo.gif
+    dest: /opt/opennms/etc/reports/logo.gif.orig
+    remote_src: yes
+  when: logo_gif_orig.stat.exists == False
+
+- name: Replace reports logo
+  copy:
+    src: reports_logo.gif
+    dest: /opt/opennms/etc/reports/logo.gif
+    owner: root
+    group: admins
+    mode: 0644

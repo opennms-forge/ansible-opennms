@@ -1,0 +1,43 @@
+---
+# tasks file for roles/opennms
+
+
+# Initialize/upgrade the database
+- name: Check to see if OpenNMS has been configured
+  stat: 
+    path: /opt/opennms/etc/configured
+  register: configured
+
+
+- name: Initialize OpenNMS
+  command: /opt/opennms/bin/install -dis
+  when: configured.stat.exists == False
+
+
+- name: Stop OpenNMS
+  systemd:
+    name: opennms.service
+    state: stopped
+    enabled: yes
+  when: mode == 'restart_all' or
+        mode == 'restart_opennms'
+
+
+- name: Restart Postgresql
+  systemd:
+    name: postgresql.service
+    state: restarted
+    enabled: yes
+  when: mode == 'restart_all'
+
+
+- name: Start OpenNMS
+  systemd:
+    name: opennms.service
+    state: started
+    enabled: yes
+    daemon_reload: yes
+  when: mode == 'upgrade' or
+        mode == 'install' or
+        mode == 'restart_all' or
+        mode == 'restart_opennms'

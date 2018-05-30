@@ -1,0 +1,64 @@
+---
+# 
+
+
+- name: Connect to Grafana
+  template:
+    src: grafana.properties.j2
+    dest: /opt/opennms/etc/opennms.properties.d/grafana.properties
+    owner: root
+    group: admins
+    mode: 0664
+  when: opennms_enable_grafana
+
+- name: Update javamail configuration
+  template:
+    src: javamail-configuration.properties.j2
+    dest: /opt/opennms/etc/javamail-configuration.properties
+    owner: root
+    group: admins
+    mode: 0664
+
+- name: Config LDAP authentication
+  template:
+    src: ldap.xml.j2
+    dest: /opt/opennms/jetty-webapps/opennms/WEB-INF/spring-security.d/ldap.xml
+    owner: root
+    group: admins
+    mode: 0664
+  when: opennms_enable_ldap
+
+- name: Enable LDAP authentication
+  copy:
+    src: applicationContext-spring-security.xml
+    dest: /opt/opennms/jetty-webapps/opennms/WEB-INF/
+    owner: root
+    group: admins
+    mode: 0644
+  when: opennms_enable_ldap
+
+- name: Firewall rule to allow OpenNMS jetty
+  firewalld:
+    zone: public
+    immediate: yes
+    port: 8980/tcp
+    permanent: true
+    state: enabled
+  when: firewalld_state.stdout == 'active'
+
+- name: Allow Jetty to work behind an Apache/SSL proxy
+  template:
+    src: web_base-url.properties.j2
+    dest: /opt/opennms/etc/opennms.properties.d/web_base-url.properties
+    owner: root
+    group: admins
+    mode: 0644
+
+- name: Firewall rule to allow http
+  firewalld:
+    zone: public
+    immediate: yes
+    service: http
+    permanent: true
+    state: enabled
+  when: firewalld_state.stdout == 'active'

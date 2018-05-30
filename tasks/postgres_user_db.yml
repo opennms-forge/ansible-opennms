@@ -1,0 +1,28 @@
+---
+# tasks file for roles/opennms
+
+- name: Create/update OpenNMS postgres user
+  postgresql_user:
+    name: "{{ opennms_db_user }}"
+    password: "{{ opennms_db_pass }}"
+    state: present
+  become: yes
+  become_user: "{{ postgresql_user }}"
+
+
+- name: Create opennms database
+  postgresql_db:
+    name: opennms
+    owner: opennms
+    state: present
+  become: yes
+  become_user: "{{ postgresql_user }}"
+
+
+- name: Update postgres user password
+  postgresql_user:
+    name: "{{ postgresql_user }}"
+    password: "{{ postgresql_pass }}"
+    state: present
+  become: yes
+  become_user: "{{ postgresql_user }}"

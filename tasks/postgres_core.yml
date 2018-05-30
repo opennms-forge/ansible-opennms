@@ -1,0 +1,47 @@
+---
+# tasks file for roles/opennms
+
+
+- name: Check if PostgreSQL database is initialized
+  stat:
+    path: "{{ postgresql_data_dir }}/PG_VERSION"
+  register: pgdata_dir_version
+
+- name: Ensure PostgreSQL database is initialized.
+  command: "{{ postgresql_bin_path }}/initdb -D {{ postgresql_data_dir }}"
+  become: yes
+  become_user: "{{ postgresql_user }}"
+  when: not pgdata_dir_version.stat.exists
+
+- name: Update postgres options
+  template:
+    src: postgresql.conf.j2
+    dest: /var/lib/pgsql/data/postgresql.conf
+    owner: root
+    group: admins
+    mode: 0664
+
+- name: Update host based authentication
+  template:
+    src: "templates/pg_hba.conf.j2"
+    dest: "{{ postgresql_config_path }}/pg_hba.conf"
+    owner: "{{ postgresql_user }}"
+    group: "{{ postgresql_group }}"
+    mode: 0600
+  when: postgresql_hba_entries
+
+- name: Firewall rule to allow off box PostgreSQL
+  firewalld:
+    zone: public
+    immediate: yes
+    service: postgresql
+    permanent: true
+    state: enabled
+  when: firewalld_state.stdout == 'active'
+
+- name: Start PostgreSQL
+  systemd:
+    name: postgresql.service
+    state: started
+    enabled: yes
+    daemon_reload: yes

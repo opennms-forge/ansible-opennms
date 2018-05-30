@@ -1,0 +1,33 @@
+---
+# tasks file for roles/opennms
+
+
+- name: Upload files into /opt/opennms/etc
+  copy:
+    src: '{{ item }}'
+    dest: /opt/opennms/etc/
+    owner: root
+    group: admins
+    mode: 0644
+  with_fileglob:
+    - 'local/etc/*'
+
+- name: Upload files into /opt/opennms/etc/snmp-graph.properties.d
+  copy:
+    src: '{{ item }}'
+    dest: /opt/opennms/etc/snmp-graph.properties.d/
+    owner: root
+    group: admins
+    mode: 0644
+  with_fileglob:
+    - 'local/etc_snmp-graph.properties.d/*'
+
+- name: Upload files into /opt/opennms/etc/datacollection
+  copy:
+    src: '{{ item }}'
+    dest: /opt/opennms/etc/datacollection/
+    owner: root
+    group: admins
+    mode: 0644
+  with_fileglob:
+    - 'local/etc_datacollection/*'

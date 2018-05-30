@@ -1,0 +1,7 @@
+---
+# 
+
+- name: Base playbook for opennms_config
+  hosts: '{{ variable_host | default("none") }}'
+  roles:
+  - roles/opennms

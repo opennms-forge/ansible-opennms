@@ -1,0 +1,62 @@
+---
+# tasks file for roles/opennms
+
+
+- name: Update logging configuration
+  copy:
+    src: log4j2.xml
+    dest: /opt/opennms/etc/
+    owner: root
+    group: admins
+    mode: 0644
+
+- name: Update opennms options
+  template:
+    src: opennms.conf.j2
+    dest: /opt/opennms/etc/opennms.conf
+    owner: root
+    group: admins
+    mode: 0664
+
+- name: Install opennms-datasources.xml
+  template:
+    src: opennms-datasources.xml.j2
+    dest: /opt/opennms/etc/opennms-datasources.xml
+    owner: root
+    group: admins
+    mode: 0664
+
+- name: Initialize OpenNMS
+  command: /opt/opennms/bin/runjava -s
+  when: (mode == 'install' or 
+        mode == 'upgrade') and
+        opennms_java_path_method == 'runjava'
+
+- name: Install java.conf file
+  template:
+    src: java.conf
+    dest: /opt/opennms/etc/
+    owner: root
+    group: admins
+    mode: 0664
+  when: (mode == 'install' or 
+        mode == 'upgrade') and
+        opennms_java_path_method == 'custom'
+
+- name: Upload files into opennms.properties.d
+  copy:
+    src: '{{ item }}'
+    dest: /opt/opennms/etc/opennms.properties.d/
+    owner: root
+    group: admins
+    mode: 0644
+  with_fileglob:
+    - 'opennms.properties.d/*'
+
+- name: Use RRDtool instead of JRobin
+  copy:
+    src: rrd-configuration.properties
+    dest: /opt/opennms/etc/
+    owner: root
+    group: admins
+    mode: 0644
