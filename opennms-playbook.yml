@@ -1,0 +1,13 @@
+# file: opennms-playbook.yml
+
+- hosts: opennms-core
+  roles:
+    - opennms_core
+
+- hosts: opennms-minion
+  roles:
+    - opennms_minion
+
+- hosts: opennms-sentinel
+  roles:
+    - opennms_sentinel

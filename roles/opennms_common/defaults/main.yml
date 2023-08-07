@@ -1,0 +1,7 @@
+---
+openjdk_version: 17*
+opennms_key_url: https://debian.opennms.org/OPENNMS-GPG-KEY
+opennms_key_ring_file: /usr/share/keyrings/opennms-keyring.gpg
+opennms_repo_url: https://debian.opennms.org
+arch: amd64
+release_train: stable

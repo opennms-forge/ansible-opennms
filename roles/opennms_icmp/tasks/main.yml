@@ -1,0 +1,19 @@
+---
+- ansible.builtin.include_role:
+    name: opennms_common
+
+- name: Installing JICMP
+  ansible.builtin.apt:
+    name: jicmp={{ jicmp_version }}
+    state: present
+  tags:
+    - opennms
+    - icmp
+
+- name: Installing JICMP6
+  ansible.builtin.apt:
+    name: jicmp6={{ jicmp6_version }}
+    state: present
+  tags:
+    - opennms
+    - icmp

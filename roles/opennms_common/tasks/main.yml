@@ -1,0 +1,25 @@
+---
+- name: Add OpenNMS key to a keyring file
+  ansible.builtin.apt_key:
+    url: "{{ opennms_key_url }}"
+    keyring: "{{ opennms_key_ring_file }}"
+  tags:
+    - opennms
+    - repository
+
+- name: Install OpenNMS APT repository
+  ansible.builtin.apt_repository:
+    repo: "deb [arch={{ arch }} signed-by={{ opennms_key_ring_file }}] {{ opennms_repo_url }} {{ release_train }} main"
+    state: present
+  tags:
+    - opennms
+    - repository
+
+- name: Installing OpenJDK development kit
+  ansible.builtin.apt:
+    name: "openjdk-17-jdk-headless={{ openjdk_version }}"
+    state: present
+    install_recommends: false
+  tags:
+    - opennms
+    - java

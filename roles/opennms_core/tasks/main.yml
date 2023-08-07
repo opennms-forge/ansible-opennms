@@ -1,0 +1,42 @@
+---
+- ansible.builtin.include_role:
+    name: opennms_common
+
+- ansible.builtin.include_role:
+    name: opennms_icmp
+
+- name: Installing OpenNMS core system
+  ansible.builtin.apt:
+    name: "opennms={{ opennms_version }}"
+    state: present
+  tags:
+    - opennms
+    - core
+
+- name: Installing OpenNMS Hawtio
+  ansible.builtin.apt:
+    name: "opennms-webapp-hawtio={{ opennms_version }}"
+    state: present
+    install_recommends: false
+  tags:
+    - opennms
+    - core
+    - web
+
+- name: Installing RRDtool
+  ansible.builtin.apt:
+    name: "rrdtool={{ rrdtool_version }}"
+    state: present
+    install_recommends: false
+  tags:
+    - opennms
+    - rrd
+
+- name: Installing JRRD2
+  ansible.builtin.apt:
+    name: "jrrd2={{ jrrd2_version }}"
+    state: present
+    install_recommends: false
+  tags:
+    - opennms
+    - rrd
