@@ -2,7 +2,7 @@
 opennms_core:
   hosts:
     opennms-core:
-      ansible_host: 192.168.10.85
+      ansible_host: 192.168.10.12
 #    opennms-minion:
 #     ansible_host: 192.168.10.85
 #    opennms-sentinel:

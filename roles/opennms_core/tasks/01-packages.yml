@@ -1,0 +1,42 @@
+---
+- name: Installing OpenNMS {{ opennms_distribution }} tooling
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+    install_recommends: false
+  with_items: "{{ opennms_tool_deps }}"
+  tags:
+    - opennms
+    - tools
+    - dependencies
+
+- name: Installing OpenNMS {{ opennms_distribution }} Perl dependencies
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+    install_recommends: false
+  with_items: "{{ opennms_perl_deps }}"
+  tags:
+    - opennms
+    - perl
+    - dependencies
+
+- name: Installing OpenNMS {{ opennms_distribution }} {{ opennms_version }} core system
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+    install_recommends: false
+  with_items: "{{ opennms_pkgs }}"
+  tags:
+    - opennms
+    - core
+    - web
+
+- name: Installing OpenNMS JRRD2
+  ansible.builtin.apt:
+    name: "jrrd2={{ jrrd2_pkg_version }}"
+    state: present
+    install_recommends: false
+  tags:
+    - opennms
+    - rrd

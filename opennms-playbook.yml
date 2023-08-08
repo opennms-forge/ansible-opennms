@@ -1,13 +1,17 @@
 # file: opennms-playbook.yml
 
 - hosts: opennms-core
+  become: true
   roles:
+    - opennms-pgsql
     - opennms_core
 
 - hosts: opennms-minion
+  become: true
   roles:
     - opennms_minion
 
 - hosts: opennms-sentinel
+  become: true
   roles:
     - opennms_sentinel

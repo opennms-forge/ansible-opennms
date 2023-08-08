@@ -7,19 +7,25 @@
     - opennms
     - repository
 
-- name: Install OpenNMS APT repository
+- name: Install OpenNMS APT repository for release train {{ release_train }}
   ansible.builtin.apt_repository:
     repo: "deb [arch={{ arch }} signed-by={{ opennms_key_ring_file }}] {{ opennms_repo_url }} {{ release_train }} main"
     state: present
+    update_cache: true
   tags:
     - opennms
     - repository
 
-- name: Installing OpenJDK development kit
+- name: Installing OpenJDK {{ openjdk_version }} development kit
   ansible.builtin.apt:
-    name: "openjdk-17-jdk-headless={{ openjdk_version }}"
+    name: "openjdk-{{ openjdk_version }}-jdk-headless={{ openjdk_pkg_version }}"
     state: present
     install_recommends: false
   tags:
     - opennms
     - java
+
+- name: Set java version to OpenJDK {{ openjdk_version }} JDK
+  community.general.alternatives:
+    name: java
+    path: /usr/lib/jvm/java-{{ openjdk_version }}-openjdk-amd64/bin/java

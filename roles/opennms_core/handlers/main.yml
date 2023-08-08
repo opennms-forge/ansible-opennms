@@ -1,0 +1,8 @@
+---
+- name: restart opennms
+  ansible.builtin.service:
+    name: opennms.service
+    state: restarted
+  tags:
+    - opennms
+    - systemd

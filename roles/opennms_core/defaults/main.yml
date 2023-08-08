@@ -1,4 +1,66 @@
 ---
-opennms_version: 32*
-jrrd2_version: 2*
-rrdtool_version: 1*
+pg_version: 15
+
+opennms_distribution: Horizon
+opennms_version: 32.0.1
+opennms_pkg_version: "{{ opennms_version }}*"
+
+opennms_plugin_cloud_version: 1.0.6
+opennms_plugin_cloud_pkg_version: "{{ opennms_plugin_cloud_version }}*"
+opennms_home: /usr/share/opennms
+
+jrrd2_version: 2
+jrrd2_pkg_version: "{{ jrrd2_version }}*"
+
+rrdtool_version: 1
+rrdtool_pkg_version: "{{ rrdtool_version }}*"
+
+iplike_version: 2.3.0
+iplike_pkg_version: "{{ iplike_version }}*"
+
+opennms_pkgs:
+  - "iplike-pgsql{{ pg_version }}={{ iplike_pkg_version }}"
+  - "jrrd2={{ jrrd2_pkg_version }}"
+  - "opennms-common={{ opennms_pkg_version }}"
+  - "opennms-server={{ opennms_pkg_version }}"
+  - "opennms-webapp-jetty={{ opennms_pkg_version }}"
+  - "opennms-webapp-hawtio={{ opennms_pkg_version }}"
+  - "opennms-plugin-cloud={{ opennms_plugin_cloud_pkg_version }}"
+
+opennms_tool_deps:
+  - haveged
+  - "rrdtool={{ rrdtool_pkg_version }}"
+
+opennms_perl_deps:
+  - libnet-snmp-perl
+  - libxml2-utils
+  - libwww-perl
+  - libxml-twig-perl
+
+opennms_datasource_db_host: localhost
+opennms_datasource_db_port: 5432
+opennms_datasource_db_name: opennms_horizon
+
+# TODO: Need to go into a secure vault
+opennms_datasource_db_user: opennms
+opennms_datasource_db_password: p4a55word!
+
+# TODO: Need to go into a secure vault
+postgres_user: postgres
+postgres_password: oth3rP455w0rd!
+
+opennms_datasources_connection_pool_idleTimeout: 600
+opennms_datasources_connection_pool_loginTimeout: 3
+opennms_datasources_connection_pool_minPool: 25
+opennms_datasources_connection_pool_maxPool: 50
+opennms_datasources_connection_pool_maxSize: 50
+
+opennms_conf_file:
+  ADDITIONAL_MANAGER_OPTIONS: -Djdk.util.zip.disableZip64ExtraFieldValidation=true
+
+opennms_properties_timeseries:
+  org.opennms.rrd.strategyClass: org.opennms.netmgt.rrd.rrdtool.MultithreadedJniRrdStrategy
+  org.opennms.rrd.interfaceJar: /usr/share/java/jrrd2.jar
+  opennms.library.jrrd2: /usr/lib/jni/libjrrd2.so
+  org.opennms.web.graphs.engine: rrdtool
+  rrd.binary: /usr/bin/rrdtool

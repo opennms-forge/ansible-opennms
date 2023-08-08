@@ -1,7 +1,13 @@
 ---
-openjdk_version: 17*
+# OpenJDK is a required for every component OpenNMS is running on and should be the same JDK version
+openjdk_version: 17
+openjdk_pkg_version: "{{ openjdk_version }}*"
+
+# Specify the OpenNMS version.
+# Pick a very specific version cause we can't handle updates automatically.
+arch: amd64
+release_train: stable
+
 opennms_key_url: https://debian.opennms.org/OPENNMS-GPG-KEY
 opennms_key_ring_file: /usr/share/keyrings/opennms-keyring.gpg
 opennms_repo_url: https://debian.opennms.org
-arch: amd64
-release_train: stable
