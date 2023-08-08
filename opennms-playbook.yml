@@ -4,14 +4,14 @@
   become: true
   roles:
     - opennms-pgsql
-    - opennms_core
+    - opennms-core
 
 - hosts: opennms-minion
   become: true
   roles:
-    - opennms_minion
+    - opennms-minion
 
 - hosts: opennms-sentinel
   become: true
   roles:
-    - opennms_sentinel
+    - opennms-sentinel

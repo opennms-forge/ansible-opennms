@@ -1,9 +1,9 @@
 ---
 - ansible.builtin.include_role:
-    name: opennms_common
+    name: opennms-common
 
 - ansible.builtin.include_role:
-    name: opennms_icmp
+    name: opennms-icmp
 
 - include_tasks: 01-packages.yml
 

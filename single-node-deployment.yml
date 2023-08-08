@@ -1,0 +1,7 @@
+---
+- hosts: all
+  user: ubuntu
+  become: true
+  roles:
+    - opennms-pgsql
+    - opennms-core
