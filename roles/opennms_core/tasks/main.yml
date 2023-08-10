@@ -1,22 +1,33 @@
 ---
-- ansible.builtin.include_role:
+- name: Include OpenNMS Common roles
+  ansible.builtin.include_role:
     name: opennms_common
 
-- ansible.builtin.include_role:
+- name: Include OpenNMS ICMP setup roles
+  ansible.builtin.include_role:
     name: opennms_icmp
 
-- include_tasks: 01-packages.yml
+- name: Include tasks to install packages
+  ansible.builtin.include_tasks: 01-packages.yml
+
+- name: Verify if Java configuration exists
+  ansible.builtin.stat:
+    path: "{{ opennms_home }}/etc/java.conf"
+  register: java_conf
 
 - name: Configure Java runtime environment
   become_user: opennms
-  command: "{{ opennms_home }}/bin/runjava -s"
+  ansible.builtin.command: "{{ opennms_home }}/bin/runjava -s"
+  changed_when: java_conf
   tags:
     - opennms
     - initialize
 
-- include_tasks: 10-database-setup.yml
+- name: Include tasks to setup the database
+  ansible.builtin.include_tasks: 10-database-setup.yml
 
-- include_tasks: 20-config.yml
+- name: Include tasks configuring the core system
+  ansible.builtin.include_tasks: 20-config.yml
 
 - name: Enable systemd unit for OpenNMS {{ opennms_distribution }}
   ansible.builtin.service:
@@ -36,4 +47,5 @@
     - opennms
     - systemd
 
-- include_tasks: 50-firewall.yml
+- name: Include tasks to configure Firewall rules
+  ansible.builtin.include_tasks: 50-firewall.yml

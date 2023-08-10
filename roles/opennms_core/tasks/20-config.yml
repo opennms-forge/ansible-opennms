@@ -1,13 +1,14 @@
 ---
 - name: Configure time series backend for OpenNMS {{ opennms_distribution }}
-  template:
+  ansible.builtin.template:
     src: etc/opennms.properties.d/_ansible.timeseries.properties.j2
     dest: "{{ opennms_home }}/etc/opennms.properties.d/_ansible.timeseries.properties"
     owner: opennms
     group: opennms
+    mode: "0640"
   with_dict: "{{ opennms_properties_timeseries }}"
   notify:
-    - restart opennms
+    - Restart opennms
   tags:
     - opennms
     - configuration

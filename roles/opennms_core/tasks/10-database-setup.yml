@@ -1,17 +1,20 @@
 ---
 - name: Configure OpenNMS data base connection
-  template:
+  ansible.builtin.template:
     src: etc/opennms-datasources.xml.j2
     dest: "{{ opennms_home }}/etc/opennms-datasources.xml"
     owner: opennms
     group: opennms
+    mode: "0640"
   tags:
     - opennms
     - initialize
 
 - name: Initialize secure vault with database postgres credentials
   become_user: opennms
-  command: "{{ opennms_home }}/bin/scvcli set postgres-admin {{ postgres_user }} {{ postgres_password }}"
+  ansible.builtin.command: "{{ opennms_home }}/bin/scvcli set postgres-admin {{ postgres_user }} {{ postgres_password }}"
+  register: scv_postgres_admin
+  changed_when: scv_postgres_admin.rc != 0
   tags:
     - opennms
     - initialize
@@ -19,15 +22,25 @@
 
 - name: Initialize secure vault with database OpenNMS credentials
   become_user: opennms
-  command: "{{ opennms_home }}/bin/scvcli set postgres {{ opennms_datasource_db_user }} {{ opennms_datasource_db_password }}"
+  ansible.builtin.command: "{{ opennms_home }}/bin/scvcli set postgres {{ opennms_datasource_db_user }} {{ opennms_datasource_db_password }}"
+  register: scv_postgres_opennms
+  changed_when: scv_postgres_opennms.rc != 0
   tags:
     - opennms
     - initialize
     - credentials
 
-- name: Initialize OpenNMS {{ opennms_distribution }} database schema
+- name: Verify if database is already initialized
+  ansible.builtin.stat:
+    path: "{{ opennms_home }}/etc/configured"
+  register: initialized_schema
+
+- name: Initialize database schema
   become_user: opennms
-  command: "{{ opennms_home }}/bin/install -dis"
+  ansible.builtin.command: "{{ opennms_home }}/bin/install -dis"
+  register: database_init
+  when: not initialized_schema.stat.exists
+  changed_when: database_init.rc != 0
   tags:
     - opennms
     - initialize

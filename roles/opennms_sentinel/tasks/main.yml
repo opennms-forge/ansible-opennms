@@ -1,3 +1,4 @@
 ---
-- ansible.builtin.include_role:
-    name: opennms_common
+- name: Include OpenNMS Common roles
+  ansible.builtin.include_role:
+      name: opennms_common

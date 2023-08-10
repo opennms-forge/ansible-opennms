@@ -1,5 +1,6 @@
 ---
-- hosts: all
+- name: Run a single node deployment in a local run
+  hosts: all
   user: ubuntu
   become: true
   roles:

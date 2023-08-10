@@ -1,5 +1,6 @@
 ---
-- ansible.builtin.include_role:
+- name: Include OpenNMS Common roles
+  ansible.builtin.include_role:
     name: opennms_common
 
 - name: Installing JICMP
