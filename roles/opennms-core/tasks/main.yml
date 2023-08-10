@@ -30,9 +30,10 @@
   ansible.builtin.service:
     name: opennms.service
     state: started
+  when:
+    - skip_startup | default("false") == "false"
   tags:
     - opennms
     - systemd
-    - startup
 
 - include_tasks: 50-firewall.yml

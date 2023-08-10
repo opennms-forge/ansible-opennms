@@ -10,13 +10,13 @@ opennms_plugin_cloud_pkg_version: "{{ opennms_plugin_cloud_version }}*"
 opennms_home: /usr/share/opennms
 
 jrrd2_version: 2
-jrrd2_pkg_version: "{{ jrrd2_version }}*"
+jrrd2_pkg_version: "{{ jrrd2_version }}.*"
 
 rrdtool_version: 1
-rrdtool_pkg_version: "{{ rrdtool_version }}*"
+rrdtool_pkg_version: "{{ rrdtool_version }}.*"
 
-iplike_version: 2.3.0
-iplike_pkg_version: "{{ iplike_version }}*"
+iplike_version: 2
+iplike_pkg_version: "{{ iplike_version }}.*"
 
 opennms_pkgs:
   - "iplike-pgsql{{ pg_version }}={{ iplike_pkg_version }}"

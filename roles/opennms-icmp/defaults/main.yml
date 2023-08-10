@@ -1,3 +1,3 @@
 ---
-jicmp_version: 3*
-jicmp6_version: 3*
+jicmp_version: 3.*
+jicmp6_version: 3.*

@@ -3,6 +3,8 @@
   ansible.builtin.service:
     name: opennms.service
     state: restarted
+  when:
+    - skip_startup | default("false") == "false"
   tags:
     - opennms
     - systemd
