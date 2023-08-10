@@ -18,13 +18,21 @@
 
 - include_tasks: 20-config.yml
 
-- name: Enable and start systemd unit for OpenNMS {{ opennms_distribution }}
+- name: Enable systemd unit for OpenNMS {{ opennms_distribution }}
   ansible.builtin.service:
     name: opennms.service
-    state: started
     enabled: true
   tags:
     - opennms
     - systemd
+
+- name: Start systemd unit for OpenNMS {{ opennms_distribution }}
+  ansible.builtin.service:
+    name: opennms.service
+    state: started
+  tags:
+    - opennms
+    - systemd
+    - startup
 
 - include_tasks: 50-firewall.yml
