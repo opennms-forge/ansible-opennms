@@ -1,3 +1,0 @@
----
-- ansible.builtin.include_role:
-    name: opennms-common

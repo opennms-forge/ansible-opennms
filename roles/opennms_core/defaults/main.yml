@@ -49,11 +49,11 @@ opennms_datasource_db_password: p4a55word!
 postgres_user: postgres
 postgres_password: oth3rP455w0rd!
 
-opennms_datasources_connection_pool_idleTimeout: 600
-opennms_datasources_connection_pool_loginTimeout: 3
-opennms_datasources_connection_pool_minPool: 25
-opennms_datasources_connection_pool_maxPool: 50
-opennms_datasources_connection_pool_maxSize: 50
+opennms_datasources_connection_pool_idle_timeout: 600
+opennms_datasources_connection_pool_login_timeout: 3
+opennms_datasources_connection_pool_min_pool: 25
+opennms_datasources_connection_pool_max_pool: 50
+opennms_datasources_connection_pool_max_size: 50
 
 opennms_conf_file:
   ADDITIONAL_MANAGER_OPTIONS: -Djdk.util.zip.disableZip64ExtraFieldValidation=true

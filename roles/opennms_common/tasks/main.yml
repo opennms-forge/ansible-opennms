@@ -33,7 +33,7 @@
     - opennms
     - repository
 
-- name: Installing OpenJDK {{ openjdk_version }} development kit
+- name: Installing OpenJDK {{ openjdk_version }}
   ansible.builtin.apt:
     name: "openjdk-{{ openjdk_version }}-jdk-headless={{ openjdk_pkg_version }}"
     state: present
@@ -42,7 +42,7 @@
     - opennms
     - java
 
-- name: Set java version to OpenJDK {{ openjdk_version }} JDK
+- name: Set java version to OpenJDK {{ openjdk_version }}
   community.general.alternatives:
     name: java
     path: /usr/lib/jvm/java-{{ openjdk_version }}-openjdk-amd64/bin/java

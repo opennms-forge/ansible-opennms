@@ -1,7 +1,8 @@
 ---
-- hosts: all
+- name: Run a single node deployment in a local run
+  hosts: all
   user: ubuntu
   become: true
   roles:
-    - opennms-pgsql
-    - opennms-core
+    - opennms_pgsql
+    - opennms_core

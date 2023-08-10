@@ -1,17 +1,20 @@
 # file: opennms-playbook.yml
 
-- hosts: opennms-core
+- name: Manage OpenNMS Horizon Core system
+  hosts: opennms-core
   become: true
   roles:
-    - opennms-pgsql
-    - opennms-core
+    - opennms_pgsql
+    - opennms_core
 
-- hosts: opennms-minion
+- name: Manage OpenNMS Horizon Minion
+  hosts: opennms-minion
   become: true
   roles:
-    - opennms-minion
+    - opennms_minion
 
-- hosts: opennms-sentinel
+- name: Manage OpenNMS Horizon Sentinel
+  hosts: opennms-sentinel
   become: true
   roles:
-    - opennms-sentinel
+    - opennms_sentinel

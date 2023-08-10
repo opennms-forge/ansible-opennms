@@ -1,5 +1,5 @@
 ---
-- name: Installing OpenNMS {{ opennms_distribution }} tooling
+- name: Installing tooling
   ansible.builtin.apt:
     name: "{{ item }}"
     state: present
@@ -10,7 +10,7 @@
     - tools
     - dependencies
 
-- name: Installing OpenNMS {{ opennms_distribution }} Perl dependencies
+- name: Installing Perl dependencies
   ansible.builtin.apt:
     name: "{{ item }}"
     state: present
@@ -21,7 +21,7 @@
     - perl
     - dependencies
 
-- name: Installing OpenNMS {{ opennms_distribution }} {{ opennms_version }} core system
+- name: Installing OpenNMS core system {{ opennms_version }}
   ansible.builtin.apt:
     name: "{{ item }}"
     state: present
