@@ -6,8 +6,11 @@ openjdk_pkg_version: "{{ openjdk_version }}*"
 # Specify the OpenNMS version.
 # Pick a very specific version cause we can't handle updates automatically.
 arch: amd64
-release_train: stable
 
-opennms_key_url: https://debian.opennms.org/OPENNMS-GPG-KEY
-opennms_key_ring_file: /usr/share/keyrings/opennms-keyring.gpg
-opennms_repo_url: https://debian.opennms.org
+opennms_key_url: https://packages.opennms.com/public/stable/gpg.697677243260D071.key
+opennms_key_ring_file: /usr/share/keyrings/opennms-stable-archive-keyring.gpg
+opennms_repo_url: https://packages.opennms.com/public/stable/deb/ubuntu
+
+opennms_common_key_url: https://packages.opennms.com/public/common/gpg.697677243260D071.key
+opennms_common_key_ring_file: /usr/share/keyrings/opennms-common-archive-keyring.gpg
+opennms_common_repo_url: https://packages.opennms.com/public/common/deb/ubuntu

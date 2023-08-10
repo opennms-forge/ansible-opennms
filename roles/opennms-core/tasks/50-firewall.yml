@@ -17,7 +17,7 @@
     - opennms
     - firewall
 
-- name: Allow all receiving NetFlow protocols on single-port listener
+- name: Allow all receiving NetFlow protocols on single-port listener on port 9999/udp
   community.general.ufw:
     rule: allow
     port: '9999'

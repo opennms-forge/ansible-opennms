@@ -1,4 +1,4 @@
 ---
 opennms_distribution: Horizon
-opennms_version: 32.0.1
+opennms_version: 32.0.2
 opennms_pkg_version: "{{ opennms_version }}*"
