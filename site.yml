@@ -1,3 +1,4 @@
 # file: site.yml
 
-- import_playbook: opennms-playbook.yml
+- name: Local testing playbook
+  import_playbook: opennms-playbook.yml

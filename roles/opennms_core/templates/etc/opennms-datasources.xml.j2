@@ -9,11 +9,11 @@
   http://www.opennms.org/xsd/config/opennms-datasources.xsd ">
 
   <connection-pool factory="org.opennms.core.db.HikariCPConnectionFactory"
-    idleTimeout="{{ opennms_datasources_connection_pool_idleTimeout }}"
-    loginTimeout="{{ opennms_datasources_connection_pool_loginTimeout }}"
-    minPool="{{ opennms_datasources_connection_pool_minPool }}"
-    maxPool="{{ opennms_datasources_connection_pool_maxPool }}"
-    maxSize="{{ opennms_datasources_connection_pool_maxSize }}" />
+    idleTimeout="{{ opennms_datasources_connection_pool_idle_timeout }}"
+    loginTimeout="{{ opennms_datasources_connection_pool_login_timeout }}"
+    minPool="{{ opennms_datasources_connection_pool_min_pool }}"
+    maxPool="{{ opennms_datasources_connection_pool_max_pool }}"
+    maxSize="{{ opennms_datasources_connection_pool_max_size }}" />
 
   <jdbc-data-source name="opennms"
                     database-name="{{ opennms_datasource_db_name }}"

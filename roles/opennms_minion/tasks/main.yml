@@ -1,6 +1,6 @@
 ---
 - ansible.builtin.include_role:
-    name: opennms-common
+    name: opennms_common
 
 - ansible.builtin.include_role:
-      name: opennms-icmp
+      name: opennms_icmp

@@ -1,0 +1,22 @@
+---
+version: 2.1
+
+executors:
+  build-executor:
+    docker:
+      - image: quay.io/labmonkeys/vmbuilder:1.9.3.b66
+
+workflows:
+  build-workflow:
+    jobs:
+      - validation
+
+jobs:
+  validation:
+    executor: build-executor
+    steps:
+      - checkout
+      - run:
+          name: Validate with Ansible lint
+          command: |
+            ansible-lint
