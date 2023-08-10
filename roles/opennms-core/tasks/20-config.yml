@@ -1,17 +1,4 @@
 ---
-- name: Workaround for NMS-16034 disabling Zip64ExtraFieldValidation
-  template:
-    src: etc/opennms.conf.j2
-    dest: "{{ opennms_home }}/etc/opennms.conf"
-    owner: opennms
-    group: opennms
-  with_dict: "{{ opennms_conf_file }}"
-  notify:
-    - restart opennms
-  tags:
-    - opennms
-    - configuration
-
 - name: Configure time series backend for OpenNMS {{ opennms_distribution }}
   template:
     src: etc/opennms.properties.d/_ansible.timeseries.properties.j2
