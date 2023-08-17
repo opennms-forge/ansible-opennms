@@ -6,3 +6,36 @@
 - name: Include OpenNMS ICMP setup roles
   ansible.builtin.include_role:
     name: opennms_icmp
+
+- name: Installing OpenNMS Minion {{ opennms_version }}
+  ansible.builtin.apt:
+    name: "opennms-minion={{ opennms_pkg_version }}"
+    state: present
+    install_recommends: false
+  tags:
+    - opennms
+    - minion
+    - package
+
+- name: Enable systemd unit for OpenNMS Minion {{ opennms_distribution }}
+  ansible.builtin.service:
+    name: minion.service
+    enabled: true
+  tags:
+    - opennms
+    - minion
+    - systemd
+
+- name: Start systemd unit for OpenNMS Minion {{ opennms_distribution }}
+  ansible.builtin.service:
+    name: minion.service
+    state: started
+  when:
+    - skip_minion_startup | default("false") == "false"
+  tags:
+    - opennms
+    - minion
+    - systemd
+
+- name: Include tasks to configure Firewall rules
+  ansible.builtin.include_tasks: 50-firewall.yml

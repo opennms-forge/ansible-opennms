@@ -1,13 +1,4 @@
 ---
-- name: Allow all access to OpenNMS web application on port 8980/tcp
-  community.general.ufw:
-    rule: allow
-    port: '8980'
-    proto: tcp
-  tags:
-    - opennms
-    - firewall
-
 - name: Allow all receiving SNMP traps on port 10162/udp
   community.general.ufw:
     rule: allow
