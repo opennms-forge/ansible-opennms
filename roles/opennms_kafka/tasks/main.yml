@@ -48,15 +48,28 @@
     owner: kafka
     group: kafka
 
-- name: Set Kafka log directory
-  ansible.builtin.lineinfile:
-    path: "{{ kafka_home }}/config/kraft/server.properties"
-    search_string: log.dirs=/tmp/kafka-logs
-    line: log.dirs=/var/log/kafka
+- name: Create Kafka log directory
+  ansible.builtin.file:
+    path: /var/log/kafka/combined-logs
+    state: directory
+    mode: '0755'
+    owner: kafka
+    group: kafka
+
+- name: Configure the Kafka message broker
+  ansible.builtin.template:
+    src: server.properties.j2
+    dest: "{{ kafka_home }}/config/kraft/server.properties"
+    owner: kafka
+    group: kafka
+    mode: "0640"
+  with_dict: "{{ kafka_server_properties }}"
   tags:
     - opennms
     - kafka
     - config
+  notify:
+    - Restart kafka
 
 - name: Verify if Kafka Cluster UUID exists
   ansible.builtin.stat:

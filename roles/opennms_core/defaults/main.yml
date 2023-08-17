@@ -64,3 +64,9 @@ opennms_properties_timeseries:
   opennms.library.jrrd2: /usr/lib/jni/libjrrd2.so
   org.opennms.web.graphs.engine: rrdtool
   rrd.binary: /usr/bin/rrdtool
+
+opennms_properties_message_broker:
+  org.opennms.activemq.broker.disable: true
+  org.opennms.core.ipc.strategy: kafka
+  org.opennms.core.ipc.sink.initialSleepTime: 60000
+  org.opennms.core.ipc.kafka.bootstrap.servers: localhost:9092

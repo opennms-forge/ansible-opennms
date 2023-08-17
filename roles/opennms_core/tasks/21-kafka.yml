@@ -1,0 +1,16 @@
+---
+- name: Configure message broker OpenNMS {{ opennms_distribution }}
+  ansible.builtin.template:
+    src: etc/opennms.properties.d/_ansible.message-broker.properties.j2
+    dest: "{{ opennms_home }}/etc/opennms.properties.d/_ansible.message-broker.properties"
+    owner: opennms
+    group: opennms
+    mode: "0640"
+  with_dict: "{{ opennms_properties_message_broker }}"
+  notify:
+    - Restart opennms
+  tags:
+    - opennms
+    - configuration
+    - message-broker
+    - kafka

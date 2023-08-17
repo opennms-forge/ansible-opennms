@@ -29,6 +29,10 @@
 - name: Include tasks configuring the core system
   ansible.builtin.include_tasks: 20-config.yml
 
+# TODO: We need to run the specific role depending on the message broker
+- name: Configure Kafka as message broker
+  ansible.builtin.include_tasks: 21-kafka.yml
+
 - name: Enable systemd unit for OpenNMS {{ opennms_distribution }}
   ansible.builtin.service:
     name: opennms.service

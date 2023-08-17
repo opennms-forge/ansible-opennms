@@ -3,8 +3,32 @@ kafka_version: 3.5.1
 scala_version: 2.13
 kafka_url: https://dlcdn.apache.org/kafka/{{ kafka_version }}/kafka_{{ scala_version }}-{{ kafka_version }}.tgz
 kafka_home: /opt/kafka_{{ scala_version }}-{{ kafka_version }}
-kafka_process_roles: 'controller, broker'
+kafka_advertised_listener: PLAINTEXT://localhost:9092
 
 # Kafka requires an OpenJDK 8+
 openjdk_version: 17
 openjdk_pkg_version: "{{ openjdk_version }}*"
+
+kafka_server_properties:
+  "process.roles": broker,controller
+  "node.id": 1
+  "controller.quorum.voters": 1@localhost:9093
+  listeners: PLAINTEXT://:9092,CONTROLLER://:9093
+  "inter.broker.listener.name": PLAINTEXT
+  "advertised.listeners": PLAINTEXT://localhost:9092
+  "controller.listener.names": CONTROLLER
+  "listener.security.protocol.map": CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,SSL:SSL,SASL_PLAINTEXT:SASL_PLAINTEXT,SASL_SSL:SASL_SSL
+  "num.network.threads": 3
+  "num.io.threads": 8
+  "socket.send.buffer.bytes": 102400
+  "socket.receive.buffer.bytes": 102400
+  "socket.request.max.bytes": 104857600
+  "num.partitions": 1
+  "num.recovery.threads.per.data.dir": 1
+  "offsets.topic.replication.factor": 1
+  "transaction.state.log.replication.factor": 1
+  "transaction.state.log.min.isr": 1
+  "log.retention.hours": 168
+  "log.segment.bytes": 1073741824
+  "log.retention.check.interval.ms": 300000
+  "log.dirs": /var/log/kafka/combined-logs
