@@ -1,0 +1,110 @@
+---
+- name: Installing OpenJDK {{ openjdk_version }}
+  ansible.builtin.apt:
+    name: "openjdk-{{ openjdk_version }}-jdk-headless={{ openjdk_pkg_version }}"
+    state: present
+    install_recommends: false
+  tags:
+    - opennms
+    - kafka
+    - java
+
+- name: Set java version to OpenJDK {{ openjdk_version }}
+  community.general.alternatives:
+    name: java
+    path: /usr/lib/jvm/java-{{ openjdk_version }}-openjdk-amd64/bin/java
+  tags:
+    - opennms
+    - kafka
+    - java
+
+- name: Create Kafka system user
+  ansible.builtin.user:
+    comment: Ansible managed system account for Kafka
+    name: kafka
+    home: "{{ kafka_home }}"
+    system: true
+    state: present
+    shell: /bin/false
+
+- name: Extract Kafka binary
+  ansible.builtin.unarchive:
+    src: "{{ kafka_url }}"
+    dest: /opt
+    creates: /opt/kafka_{{ scala_version }}-{{ kafka_version }}/bin
+    remote_src: yes
+    owner: kafka
+    group: kafka
+  tags:
+    - opennms
+    - kafka
+    - package
+
+- name: Create Kafka log directory
+  ansible.builtin.file:
+    path: /var/log/kafka
+    state: directory
+    owner: kafka
+    group: kafka
+
+- name: Set Kafka log directory
+  ansible.builtin.lineinfile:
+    path: "{{ kafka_home }}/config/kraft/server.properties"
+    search_string: log.dirs=/tmp/kafka-logs
+    line: log.dirs=/var/log/kafka
+  tags:
+    - opennms
+    - kafka
+    - config
+
+- name: Verify if Kafka Cluster UUID exists
+  ansible.builtin.stat:
+    path: "{{ kafka_home }}/ansible_cluster_id"
+  register: initialized_cluster_uuid
+  tags:
+    - opennms
+    - kafka
+    - config
+
+- name: Generate Cluster UUID
+  ansible.builtin.shell: |
+    cd {{ kafka_home }}
+    bin/kafka-storage.sh random-uuid > ansible_cluster_id
+    chown kafka:kafka ansible_cluster_id
+    bin/kafka-storage.sh format --ignore-formatted -t $(cat ansible_cluster_id) -c config/kraft/server.properties
+  when: not initialized_cluster_uuid.stat.exists
+  tags:
+    - opennms
+    - kafka
+    - confiig
+
+- name: Install Kafka Systemd unit
+  ansible.builtin.template:
+    src: kafka.service.j2
+    dest: /etc/systemd/system/kafka.service
+  notify:
+    - Reload systemd
+  tags:
+    - opennms
+    - kafka
+    - systemd
+
+- name: Enable systemd unit for Kafka
+  ansible.builtin.service:
+    name: kafka.service
+    enabled: true
+  tags:
+    - opennms
+    - kafka
+    - systemd
+
+- name: Start systemd unit for Kafka
+  ansible.builtin.service:
+    name: kafka.service
+    state: started
+  when:
+    - skip_kafka_startup | default("false") == "false"
+  tags:
+    - opennms
+    - kafka
+    - systemd

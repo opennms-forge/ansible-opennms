@@ -1,0 +1,17 @@
+---
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+  tags:
+    - opennms
+    - kafka
+    - systemd
+
+- name: Restart kafka
+  ansible.builtin.service:
+    name: kafka.service.j2
+    state: restarted
+  tags:
+    - opennms
+    - kafka
+    - systemd
