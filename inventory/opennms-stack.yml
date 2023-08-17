@@ -23,3 +23,4 @@ all:
           hosts:
             sentinel-01:
               ansible_host: 192.168.10.21
+              opennms_datasource_db_host: 192.168.10.22
