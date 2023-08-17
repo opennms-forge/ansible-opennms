@@ -32,7 +32,7 @@
     src: "{{ kafka_url }}"
     dest: /opt
     creates: /opt/kafka_{{ scala_version }}-{{ kafka_version }}/bin
-    remote_src: yes
+    remote_src: true
     owner: kafka
     group: kafka
   tags:
@@ -44,6 +44,7 @@
   ansible.builtin.file:
     path: /var/log/kafka
     state: directory
+    mode: '0755'
     owner: kafka
     group: kafka
 
@@ -73,6 +74,8 @@
     chown kafka:kafka ansible_cluster_id
     bin/kafka-storage.sh format --ignore-formatted -t $(cat ansible_cluster_id) -c config/kraft/server.properties
   when: not initialized_cluster_uuid.stat.exists
+  register: cluster_uuid_output
+  changed_when: cluster_uuid_output.rc != 0
   tags:
     - opennms
     - kafka
@@ -82,6 +85,7 @@
   ansible.builtin.template:
     src: kafka.service.j2
     dest: /etc/systemd/system/kafka.service
+    mode: '0644'
   notify:
     - Reload systemd
   tags:

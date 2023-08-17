@@ -5,30 +5,30 @@
 
 - name: Installing OpenNMS Sentinel {{ opennms_version }}
   ansible.builtin.apt:
-    name: "opennms-sentinel={{ opennms_pkg_version }}"
-    state: present
-    install_recommends: false
+      name: "opennms-sentinel={{ opennms_pkg_version }}"
+      state: present
+      install_recommends: false
   tags:
-    - opennms
-    - sentinel
-    - package
+      - opennms
+      - sentinel
+      - package
 
 - name: Enable systemd unit for OpenNMS Sentinel {{ opennms_distribution }}
   ansible.builtin.service:
-    name: sentinel.service
-    enabled: true
+      name: sentinel.service
+      enabled: true
   tags:
-    - opennms
-    - sentinel
-    - systemd
+      - opennms
+      - sentinel
+      - systemd
 
 - name: Start systemd unit for OpenNMS Sentinel {{ opennms_distribution }}
   ansible.builtin.service:
-    name: minion.service
-    state: started
+      name: minion.service
+      state: started
   when:
-    - skip_startup | default("false") == "false"
+      - skip_startup | default("false") == "false"
   tags:
-    - opennms
-    - sentinel
-    - systemd
+      - opennms
+      - sentinel
+      - systemd

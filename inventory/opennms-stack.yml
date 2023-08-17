@@ -1,9 +1,25 @@
 ---
-opennms_core:
-  hosts:
-    opennms-core:
-      ansible_host: 192.168.10.12
-#    opennms-minion:
-#     ansible_host: 192.168.10.85
-#    opennms-sentinel:
-#      ansible_host: 192.168.10.85
+all:
+  children:
+    opennms-stack:
+      children:
+        database:
+          hosts:
+            database-srv:
+              ansible_host: 192.168.10.22
+        message-broker:
+          hosts:
+            message-broker-01:
+              ansible_host: 192.168.10.17
+        core:
+          hosts:
+            core-srv:
+              ansible_host: 192.168.10.22
+        minion:
+          hosts:
+            minion-01:
+              ansible_host: 192.168.10.10
+        sentinel:
+          hosts:
+            sentinel-01:
+              ansible_host: 192.168.10.21

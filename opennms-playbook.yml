@@ -1,20 +1,31 @@
-# file: opennms-playbook.yml
+## file: opennms-playbook.yml
 
-- name: Manage OpenNMS Horizon Core system
-  hosts: opennms-core
+- name: Install OpenNMS database
+  hosts: database
   become: true
   roles:
     - opennms_pgsql
+
+- name: Manage Message broker
+  hosts: message-broker
+  become: true
+  roles:
+    - opennms_kafka
+
+- name: Manage OpenNMS Horizon Core system
+  hosts: core
+  become: true
+  roles:
     - opennms_core
 
 - name: Manage OpenNMS Horizon Minion
-  hosts: opennms-minion
+  hosts: minion
   become: true
   roles:
     - opennms_minion
 
 - name: Manage OpenNMS Horizon Sentinel
-  hosts: opennms-sentinel
+  hosts: sentinel
   become: true
   roles:
     - opennms_sentinel
