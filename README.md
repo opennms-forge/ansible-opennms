@@ -7,6 +7,8 @@ This repository provides the roles to deploy OpenNMS Horizon components such as:
 * OpenNMS Minion for monitoring isolated network segments
 * OpenNMS Sentinel for scaling workloads in the storage backend
 
+I have started this project recently and is in an early stage and not ready for production use yet.
+
 ## 🎯 Scope
 
 * Gives users the possibility to deploy the components following best-practices
@@ -15,10 +17,12 @@ This repository provides the roles to deploy OpenNMS Horizon components such as:
 We are open and welcome constructive contribution.
 
 ## 🗺 Design principle
+
 * Only allow configuration of system configuration files which can't be modified from the web user interface or external API's
-* function > variation, better having one happy with Ubuntu as a base OS, than 5 unhappy with support for 5 other operating systems
+* function > variation, better having a smaller crowd with happy people using Debian/Ubuntu as a base OS, than a larger unhappy crowd with support for many other operating systems
 
 ## 👋 Say hello
+
 You are are very welcome to join us to make this repo a better place.
 You can find us in:
 
