@@ -3,7 +3,7 @@
 opennms_version: 32.0.2
 opennms_pkg_version: "{{ opennms_version }}*"
 
-opennms_datasource_db_host: localhost
+opennms_datasource_db_host: 192.168.10.22
 opennms_datasource_db_port: 5432
 postgres_listen_addresses: '*'
 postgres_hba_permissions_v4: "192.168.10.0/24"

@@ -18,4 +18,3 @@ postgres_hba_auth_method: scram-sha-256
 opennms_datasource_db_user: opennms
 opennms_datasource_db_password: p4a55word!
 opennms_datasource_db_name: opennms_horizon
-
