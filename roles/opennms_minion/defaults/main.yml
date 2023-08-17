@@ -2,3 +2,11 @@
 opennms_distribution: Horizon
 opennms_version: 32.0.2
 opennms_pkg_version: "{{ opennms_version }}*"
+opennms_minion_home: "/usr/share/minion"
+
+opennms_minion_controller:
+  id: "{{ ansible_facts['machine_id'] if ansible_facts['machine_id'] is defined else inventory_hostname }}"
+  location: ANSIBLE_UNSET_MINION_LOCATION
+
+opennms_minion_kafka:
+  "bootstrap.servers": localhost:9092

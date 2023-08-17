@@ -1,0 +1,69 @@
+---
+- name: Disable ActiveMQ features
+  ansible.builtin.copy:
+    src: featuresBoot.d/disable-activemq.boot
+    dest: "{{ opennms_minion_home }}/etc/featuresBoot.d"
+    owner: minion
+    group: minion
+    mode: '0640'
+  register: restart_required
+  tags:
+    - opennms
+    - minion
+    - configuration
+
+- name: Enable Kafka as a message broker
+  ansible.builtin.copy:
+    src: featuresBoot.d/message-broker.boot
+    dest: "{{ opennms_minion_home }}/etc/featuresBoot.d"
+    owner: minion
+    group: minion
+    mode: '0640'
+  register: restart_required
+  tags:
+    - opennms
+    - minion
+    - configuration
+    - kafka
+
+- name: Configure the minion controller
+  ansible.builtin.template:
+    src: org.opennms.minion.controller.cfg.j2
+    dest: "{{ opennms_minion_home }}/etc/org.opennms.minion.controller.cfg"
+    owner: minion
+    group: minion
+    mode: "0640"
+  with_dict: "{{ opennms_minion_controller }}"
+  register: restart_required
+  tags:
+    - opennms
+    - minion
+    - configuration
+    - kafka
+
+- name: Configure the Kafka message broker
+  ansible.builtin.template:
+    src: org.opennms.core.ipc.kafka.cfg.j2
+    dest: "{{ opennms_minion_home }}/etc/org.opennms.core.ipc.kafka.cfg"
+    owner: minion
+    group: minion
+    mode: "0640"
+  with_dict: "{{ opennms_minion_kafka }}"
+  register: restart_required
+  tags:
+    - opennms
+    - minion
+    - configuration
+    - kafka
+
+- name: Verify if changes require a Minion restart
+  ansible.builtin.service:
+    name: minion.service
+    state: restarted
+  when:
+    - restart_required.changed
+    - skip_minion_startup | default("false") == "false"
+  tags:
+    - opennms
+    - minion
+    - systemd

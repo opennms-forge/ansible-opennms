@@ -5,16 +5,16 @@ all:
       children:
         database:
           hosts:
-            database-srv:
+            core-srv:
+              ansible_host: 192.168.10.22
+        core:
+          hosts:
+            core-srv:
               ansible_host: 192.168.10.22
         message-broker:
           hosts:
             message-broker-01:
               ansible_host: 192.168.10.17
-        core:
-          hosts:
-            core-srv:
-              ansible_host: 192.168.10.22
         minion:
           hosts:
             minion-01:

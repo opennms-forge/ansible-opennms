@@ -1,0 +1,11 @@
+---
+- name: Restart minion
+  ansible.builtin.service:
+    name: minion.service
+    state: restarted
+  when:
+    - skip_minion_startup | default("false") == "false"
+  tags:
+    - opennms
+    - minion
+    - systemd

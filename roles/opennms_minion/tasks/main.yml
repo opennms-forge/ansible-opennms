@@ -17,7 +17,11 @@
     - minion
     - package
 
-- name: Enable systemd unit for OpenNMS Minion {{ opennms_distribution }}
+# TODO: We need to run the specific role depending on the message broker
+- name: Configure Kafka as message broker
+  ansible.builtin.include_tasks: 21-kafka.yml
+
+- name: Enable systemd unit for OpenNMS Minion
   ansible.builtin.service:
     name: minion.service
     enabled: true
@@ -26,7 +30,7 @@
     - minion
     - systemd
 
-- name: Start systemd unit for OpenNMS Minion {{ opennms_distribution }}
+- name: Start systemd unit for OpenNMS Minion
   ansible.builtin.service:
     name: minion.service
     state: started
@@ -36,6 +40,3 @@
     - opennms
     - minion
     - systemd
-
-- name: Include tasks to configure Firewall rules
-  ansible.builtin.include_tasks: 50-firewall.yml
