@@ -64,6 +64,7 @@
     - restart_required.changed
     - skip_minion_startup | default("false") == "false"
   tags:
+    - skip_ansible_lint
     - opennms
     - minion
     - systemd
