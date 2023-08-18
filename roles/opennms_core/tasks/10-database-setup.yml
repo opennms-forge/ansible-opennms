@@ -6,6 +6,8 @@
     owner: opennms
     group: opennms
     mode: "0640"
+  notify:
+    - Restart opennms
   tags:
     - opennms
     - initialize

@@ -6,7 +6,8 @@
     owner: minion
     group: minion
     mode: '0640'
-  register: restart_required
+  notify:
+    - Restart minion
   tags:
     - opennms
     - minion
@@ -19,7 +20,8 @@
     owner: minion
     group: minion
     mode: '0640'
-  register: restart_required
+  notify:
+    - Restart minion
   tags:
     - opennms
     - minion
@@ -34,7 +36,8 @@
     group: minion
     mode: "0640"
   with_dict: "{{ opennms_minion_controller }}"
-  register: restart_required
+  notify:
+    - Restart minion
   tags:
     - opennms
     - minion
@@ -49,22 +52,10 @@
     group: minion
     mode: "0640"
   with_dict: "{{ opennms_minion_kafka }}"
-  register: restart_required
+  notify:
+    - Restart minion
   tags:
     - opennms
     - minion
     - configuration
     - kafka
-
-- name: Verify if changes require a Minion restart
-  ansible.builtin.service:
-    name: minion.service
-    state: restarted
-  when:
-    - restart_required.changed
-    - skip_minion_startup | default("false") == "false"
-  tags:
-    - skip_ansible_lint
-    - opennms
-    - minion
-    - systemd

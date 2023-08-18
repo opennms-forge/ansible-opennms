@@ -1,0 +1,11 @@
+---
+- name: Restart sentinel
+  ansible.builtin.service:
+    name: sentinel.service
+    state: restarted
+  when:
+    - skip_sentinel_startup | default("false") == "false"
+  tags:
+    - opennms
+    - sentinel
+    - systemd

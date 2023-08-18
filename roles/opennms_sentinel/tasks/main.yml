@@ -1,34 +1,124 @@
 ---
 - name: Include OpenNMS Common roles
   ansible.builtin.include_role:
-      name: opennms_common
+    name: opennms_common
 
 - name: Installing OpenNMS Sentinel
   ansible.builtin.apt:
-      name: "opennms-sentinel={{ opennms_pkg_version }}"
-      state: present
-      install_recommends: false
+    name: "opennms-sentinel={{ opennms_pkg_version }}"
+    state: present
+    install_recommends: false
   tags:
-      - opennms
-      - sentinel
-      - package
+    - opennms
+    - sentinel
+    - package
+
+- name: Enable Kafka as and flow persistence
+  ansible.builtin.copy:
+    src: featuresBoot.d/flows.boot
+    dest: "{{ opennms_sentinel_home }}/etc/featuresBoot.d"
+    owner: sentinel
+    group: sentinel
+    mode: '0640'
+  notify:
+    - Restart sentinel
+  tags:
+    - opennms
+    - sentinel
+    - kafka
+    - flows
+
+- name: Configure the distributed data sources
+  ansible.builtin.template:
+    src: org.opennms.netmgt.distributed.datasource.cfg.j2
+    dest: "{{ opennms_sentinel_home }}/etc/org.opennms.netmgt.distributed.datasource.cfg"
+    owner: sentinel
+    group: sentinel
+    mode: "0640"
+  with_dict: "{{ opennms_sentinel_distributed_datasource }}"
+  notify:
+    - Restart sentinel
+  tags:
+    - opennms
+    - sentinel
+    - configuration
+
+- name: Configure the Elasticsearch flow persistence
+  ansible.builtin.template:
+    src: org.opennms.features.flows.persistence.elastic.cfg.j2
+    dest: "{{ opennms_sentinel_home }}/etc/org.opennms.features.flows.persistence.elastic.cfg"
+    owner: sentinel
+    group: sentinel
+    mode: "0640"
+  with_dict: "{{ opennms_sentinel_flow_persistence }}"
+  notify:
+    - Restart sentinel
+  tags:
+    - opennms
+    - sentinel
+    - configuration
+
+- name: Configure the Sentinel controller
+  ansible.builtin.template:
+    src: org.opennms.sentinel.controller.cfg.j2
+    dest: "{{ opennms_sentinel_home }}/etc/org.opennms.sentinel.controller.cfg"
+    owner: sentinel
+    group: sentinel
+    mode: "0640"
+  with_dict: "{{ opennms_sentinel_controller }}"
+  notify:
+    - Restart sentinel
+  tags:
+    - opennms
+    - sentinel
+    - configuration
+
+- name: Configure the Sentinel consumer for Kafka message broker
+  ansible.builtin.template:
+    src: org.opennms.core.ipc.sink.kafka.consumer.cfg.j2
+    dest: "{{ opennms_sentinel_home }}/etc/org.opennms.core.ipc.sink.kafka.consumer.cfg"
+    owner: sentinel
+    group: sentinel
+    mode: "0640"
+  with_dict: "{{ opennms_sentinel_kafka }}"
+  notify:
+    - Restart sentinel
+  tags:
+    - opennms
+    - sentinel
+    - kafka
+
+- name: Configure the Sentinel sink for Kafka message broker
+  ansible.builtin.template:
+    src: org.opennms.core.ipc.sink.kafka.cfg.j2
+    dest: "{{ opennms_sentinel_home }}/etc/org.opennms.core.ipc.sink.kafka.cfg"
+    owner: sentinel
+    group: sentinel
+    mode: "0640"
+  with_dict: "{{ opennms_sentinel_kafka }}"
+  notify:
+    - Restart sentinel
+  tags:
+    - opennms
+    - sentinel
+    - kafka
 
 - name: Enable systemd unit for OpenNMS Sentinel
   ansible.builtin.service:
-      name: sentinel.service
-      enabled: true
+    name: sentinel.service
+    enabled: true
   tags:
-      - opennms
-      - sentinel
-      - systemd
+    - opennms
+    - sentinel
+    - systemd
 
 - name: Start systemd unit for OpenNMS Sentinel
   ansible.builtin.service:
-      name: sentinel.service
-      state: started
+    name: sentinel.service
+    state: started
   when:
-      - skip_startup | default("false") == "false"
+    - skip_sentinel_startup | default("false") == "false"
   tags:
-      - opennms
-      - sentinel
-      - systemd
+    - opennms
+    - sentinel
+    - systemd

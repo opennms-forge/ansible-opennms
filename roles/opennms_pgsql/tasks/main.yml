@@ -26,6 +26,30 @@
     - opennms
     - postgresql
 
+- name: Configure PostgreSQL Server interface listening
+  ansible.builtin.lineinfile:
+    dest: /etc/postgresql/15/main/postgresql.conf
+    search_string: "#listen_addresses = 'localhost'"
+    line: "listen_addresses = '{{ postgres_listen_addresses }}'"
+  notify:
+    - Restart postgresql
+  tags:
+    - opennms
+    - postgresql
+
+- name: Configure PostgreSQL authentication and access
+  ansible.builtin.template:
+    src: pg_hba.conf.j2
+    dest: /etc/postgresql/15/main/pg_hba.conf
+    owner: postgres
+    group: postgres
+    mode: '0640'
+  notify:
+    - Restart postgresql
+  tags:
+    - opennms
+    - postgresql
+
 - name: Enable and start systemd unit for PostgreSQL
   ansible.builtin.service:
     name: postgresql@{{ pg_version }}-main.service
@@ -51,7 +75,7 @@
     name: password_encryption
     value: scram-sha-256
   notify:
-    - restart postgresql
+    - Restart postgresql
   tags:
     - opennms
     - postgresql

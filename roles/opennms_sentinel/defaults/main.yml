@@ -2,3 +2,25 @@
 opennms_distribution: Horizon
 opennms_version: 32.0.2
 opennms_pkg_version: "{{ opennms_version }}*"
+opennms_sentinel_home: /usr/share/sentinel
+
+opennms_sentinel_distributed_datasource:
+  "datasource.url": "jdbc:postgresql://{{ opennms_datasource_db_host }}:{{ opennms_datasource_db_port }}/{{ opennms_datasource_db_name }}"
+  "datasource.username": "{{ opennms_datasource_db_user }}"
+  "datasource.password": "{{ opennms_datasource_db_password }}"
+  "datasource.databaseName": "{{ opennms_datasource_db_name }}"
+
+opennms_sentinel_flow_persistence:
+  elasticUrl: http://elastic-ip:9200
+  elasticIndexStrategy: hourly
+  "settings.index.number_of_replicas": 0
+  connTimeout: 30000
+  readTimeout: 60000
+
+opennms_sentinel_controller:
+  id: "{{ ansible_facts['machine_id'] if ansible_facts['machine_id'] is defined else inventory_hostname }}"
+  location: ANSIBLE_UNSET_SENTINEL_LOCATION
+
+opennms_sentinel_kafka:
+  "bootstrap.servers": localhost:9092
+  "group.id": OpenNMS

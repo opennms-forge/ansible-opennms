@@ -3,6 +3,11 @@
 opennms_version: 32.0.2
 opennms_pkg_version: "{{ opennms_version }}*"
 
+opennms_datasource_db_host: 192.168.10.22
+opennms_datasource_db_port: 5432
+postgres_listen_addresses: '*'
+postgres_hba_permissions_v4: "192.168.10.0/24"
+
 postgres_user: postgres
 postgres_password: oth3rP455w0rd!
 
@@ -25,6 +30,10 @@ opennms_minion_controller:
 
 opennms_minion_kafka:
   "bootstrap.servers": "{{ kafka_bootstrap_servers }}"
+
+opennms_sentinel_kafka:
+  "bootstrap.servers": "{{ kafka_bootstrap_servers }}"
+  "group.id": OpenNMS
 
 # TODO: Figure out if we can combine the dictionaries with host and group vars. We just define the same as group vars here for now.
 kafka_server_properties:
