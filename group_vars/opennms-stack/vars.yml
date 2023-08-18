@@ -1,61 +1,73 @@
 ---
-# TODO: Need to go into a secure vault
-opennms_version: 32.0.2
-opennms_pkg_version: "{{ opennms_version }}*"
+# opennms_datasource_db_host: 192.168.10.22
+# opennms_datasource_db_port: 5432
+# postgres_listen_addresses: '*'
+# postgres_hba_permissions_v4: "192.168.10.0/24"
+#
+# TODO: Use a secure vault here
+# postgres_user: postgres
+# postgres_password: oth3rP455w0rd!
+#
+# TODO: Use a secure vault here
+# opennms_datasource_db_user: opennms
+# opennms_datasource_db_password: p4a55word!
+# opennms_datasource_db_name: opennms_horizon
+#
+# kafka_bootstrap_servers: 192.168.10.17:9092
+#
+# If you need set any of these settings here, you need to pull the whole dictionary from the opennms_kafka defaults
+# We don't combine the dictionary here with the defaults
+# See: https://github.com/opennms-forge/ansible-opennms/issues/4
+# opennms_properties_message_broker:
+#  org.opennms.activemq.broker.disable: true
+#  org.opennms.core.ipc.strategy: kafka
+#  org.opennms.core.ipc.sink.initialSleepTime: 60000
+#  org.opennms.core.ipc.kafka.bootstrap.servers: "{{ kafka_bootstrap_servers }}"
+#
+# If you need set any of these settings here, you need to pull the whole dictionary from the opennms_kafka defaults
+# We don't combine the dictionary here with the defaults
+# See: https://github.com/opennms-forge/ansible-opennms/issues/4
+# opennms_minion_controller:
+#  id: "{{ ansible_facts['machine_id'] if ansible_facts['machine_id'] is defined else inventory_hostname }}"
+#  location: chaos-engine
 
-opennms_datasource_db_host: 192.168.10.22
-opennms_datasource_db_port: 5432
-postgres_listen_addresses: '*'
-postgres_hba_permissions_v4: "192.168.10.0/24"
+# If you need set any of these settings here, you need to pull the whole dictionary from the opennms_kafka defaults
+# We don't combine the dictionary here with the defaults
+# See: https://github.com/opennms-forge/ansible-opennms/issues/4
+# opennms_minion_kafka:
+#  "bootstrap.servers": "{{ kafka_bootstrap_servers }}"
 
-postgres_user: postgres
-postgres_password: oth3rP455w0rd!
+# If you need set any of these settings here, you need to pull the whole dictionary from the opennms_kafka defaults
+# We don't combine the dictionary here with the defaults
+# See: https://github.com/opennms-forge/ansible-opennms/issues/4
+# opennms_sentinel_kafka:
+#  "bootstrap.servers": "{{ kafka_bootstrap_servers }}"
+#  "group.id": OpenNMS
+#
 
-# TODO: Need to go into a secure vault
-opennms_datasource_db_user: opennms
-opennms_datasource_db_password: p4a55word!
-opennms_datasource_db_name: opennms_horizon
-
-kafka_bootstrap_servers: 192.168.10.17:9092
-
-opennms_properties_message_broker:
-  org.opennms.activemq.broker.disable: true
-  org.opennms.core.ipc.strategy: kafka
-  org.opennms.core.ipc.sink.initialSleepTime: 60000
-  org.opennms.core.ipc.kafka.bootstrap.servers: "{{ kafka_bootstrap_servers }}"
-
-opennms_minion_controller:
-  id: "{{ ansible_facts['machine_id'] if ansible_facts['machine_id'] is defined else inventory_hostname }}"
-  location: chaos-engine
-
-opennms_minion_kafka:
-  "bootstrap.servers": "{{ kafka_bootstrap_servers }}"
-
-opennms_sentinel_kafka:
-  "bootstrap.servers": "{{ kafka_bootstrap_servers }}"
-  "group.id": OpenNMS
-
-# TODO: Figure out if we can combine the dictionaries with host and group vars. We just define the same as group vars here for now.
-kafka_server_properties:
-  "process.roles": broker,controller
-  "node.id": 1
-  "controller.quorum.voters": 1@localhost:9093
-  listeners: PLAINTEXT://:9092,CONTROLLER://:9093
-  "inter.broker.listener.name": PLAINTEXT
-  "advertised.listeners": PLAINTEXT://192.168.10.17:9092
-  "controller.listener.names": CONTROLLER
-  "listener.security.protocol.map": CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,SSL:SSL,SASL_PLAINTEXT:SASL_PLAINTEXT,SASL_SSL:SASL_SSL
-  "num.network.threads": 3
-  "num.io.threads": 8
-  "socket.send.buffer.bytes": 102400
-  "socket.receive.buffer.bytes": 102400
-  "socket.request.max.bytes": 104857600
-  "num.partitions": 1
-  "num.recovery.threads.per.data.dir": 1
-  "offsets.topic.replication.factor": 1
-  "transaction.state.log.replication.factor": 1
-  "transaction.state.log.min.isr": 1
-  "log.retention.hours": 168
-  "log.segment.bytes": 1073741824
-  "log.retention.check.interval.ms": 300000
-  "log.dirs": /var/log/kafka/combined-logs
+# If you need set any of these settings here, you need to pull the whole dictionary from the opennms_kafka defaults
+# We don't combine the dictionary here with the defaults
+# See: https://github.com/opennms-forge/ansible-opennms/issues/4
+# kafka_server_properties:
+#  "process.roles": broker,controller
+#  "node.id": 1
+#  "controller.quorum.voters": 1@localhost:9093
+#  listeners: PLAINTEXT://:9092,CONTROLLER://:9093
+#  "inter.broker.listener.name": PLAINTEXT
+#  "advertised.listeners": PLAINTEXT://192.168.10.17:9092
+#  "controller.listener.names": CONTROLLER
+#  "listener.security.protocol.map": CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,SSL:SSL,SASL_PLAINTEXT:SASL_PLAINTEXT,SASL_SSL:SASL_SSL
+#  "num.network.threads": 3
+#  "num.io.threads": 8
+#  "socket.send.buffer.bytes": 102400
+#  "socket.receive.buffer.bytes": 102400
+#  "socket.request.max.bytes": 104857600
+#  "num.partitions": 1
+#  "num.recovery.threads.per.data.dir": 1
+#  "offsets.topic.replication.factor": 1
+#  "transaction.state.log.replication.factor": 1
+#  "transaction.state.log.min.isr": 1
+#  "log.retention.hours": 168
+#  "log.segment.bytes": 1073741824
+#  "log.retention.check.interval.ms": 300000
+#  "log.dirs": /var/log/kafka/combined-logs

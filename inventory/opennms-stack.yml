@@ -6,21 +6,20 @@ all:
         database:
           hosts:
             core-srv:
-              ansible_host: 192.168.10.22
+              ansible_host: 192.168.10.17
         core:
           hosts:
             core-srv:
-              ansible_host: 192.168.10.22
+              ansible_host: 192.168.10.17
         message-broker:
           hosts:
-            message-broker-01:
+            core-srv:
               ansible_host: 192.168.10.17
         minion:
           hosts:
-            minion-01:
-              ansible_host: 192.168.10.10
+            core-srv:
+              ansible_host: 192.168.10.17
         sentinel:
           hosts:
-            sentinel-01:
-              ansible_host: 192.168.10.21
-              opennms_datasource_db_host: 192.168.10.22
+            core-srv:
+              ansible_host: 192.168.10.17

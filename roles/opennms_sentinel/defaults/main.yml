@@ -4,6 +4,14 @@ opennms_version: 32.0.2
 opennms_pkg_version: "{{ opennms_version }}*"
 opennms_sentinel_home: /usr/share/sentinel
 
+opennms_datasource_db_host: localhost
+opennms_datasource_db_port: 5432
+opennms_datasource_db_name: opennms_horizon
+
+# TODO: Need to go into a secure vault
+opennms_datasource_db_user: opennms
+opennms_datasource_db_password: p4a55word!
+
 opennms_sentinel_distributed_datasource:
   "datasource.url": "jdbc:postgresql://{{ opennms_datasource_db_host }}:{{ opennms_datasource_db_port }}/{{ opennms_datasource_db_name }}"
   "datasource.username": "{{ opennms_datasource_db_user }}"

@@ -9,7 +9,7 @@
 
 - name: Restart kafka
   ansible.builtin.service:
-    name: kafka.service.j2
+    name: kafka.service
     state: restarted
   tags:
     - opennms
