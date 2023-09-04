@@ -1,5 +1,5 @@
 ---
-- name: Allow all access to OpenNMS web application on port 8980/tcp
+- name: Allow access to OpenNMS web application on port 8980/tcp
   community.general.ufw:
     rule: allow
     port: '8980'
@@ -8,7 +8,7 @@
     - opennms
     - firewall
 
-- name: Allow all receiving SNMP traps on port 10162/udp
+- name: Allow SNMP traps on port 10162/udp
   community.general.ufw:
     rule: allow
     port: '10162'
@@ -17,7 +17,7 @@
     - opennms
     - firewall
 
-- name: Allow all receiving NetFlow protocols on single-port listener on port 9999/udp
+- name: Allow NetFlow protocols on single-port listener on port 9999/udp
   community.general.ufw:
     rule: allow
     port: '9999'
