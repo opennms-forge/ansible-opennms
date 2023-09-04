@@ -28,7 +28,7 @@
 
 - name: Configure PostgreSQL Server interface listening
   ansible.builtin.lineinfile:
-    dest: /etc/postgresql/15/main/postgresql.conf
+    path: /etc/postgresql/15/main/postgresql.conf
     search_string: "#listen_addresses = 'localhost'"
     line: "listen_addresses = '{{ postgres_listen_addresses }}'"
   notify:
