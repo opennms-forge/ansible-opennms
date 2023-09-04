@@ -1,5 +1,5 @@
 ---
-- name: Run a single node deployment in a local run
+- name: Run a Core and PostgreSQL deployment in a local run
   hosts: all
   user: ubuntu
   become: true
