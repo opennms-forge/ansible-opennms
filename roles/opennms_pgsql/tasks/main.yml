@@ -8,6 +8,9 @@
     - dependency
     - ansible
 
+- name: Install community.postgres collection
+  command: ansible-galaxy collection install community.postgresql
+
 - name: Add PostgreSQL signing key to a keyring file
   ansible.builtin.apt_key:
     url: "{{ pgsql_key_url }}"
