@@ -1,10 +1,10 @@
 ---
 pgsql_key_url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
 pgsql_key_ring_file: /usr/share/keyrings/pgsql-keyring.gpg
-pgsql_repo_url: https://apt-archive.postgresql.org/pub/repos/apt
+pgsql_repo_url: https://apt.postgresql.org/pub/repos/apt
 arch: amd64
 pg_version: 15
-pg_pkg_version: "{{ pg_version }}.3*"
+pg_pkg_version: "{{ pg_version }}.*"
 
 # TODO: Need to go into a secure vault
 postgres_user: postgres

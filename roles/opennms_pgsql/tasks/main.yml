@@ -8,9 +8,18 @@
     - dependency
     - ansible
 
+- name: Add PostgreSQL signing key to a keyring file
+  ansible.builtin.apt_key:
+    url: "{{ pgsql_key_url }}"
+    keyring: "{{ pgsql_key_ring_file }}"
+  tags:
+    - opennms
+    - postgresql
+    - repository
+
 - name: Add PostgreSQL repo to sources list
   ansible.builtin.apt_repository:
-    repo: deb [arch={{ arch }} signed-by={{ pgsql_key_ring_file }}] {{ pgsql_repo_url }} {{ ansible_distribution_release }}-pgdg-archive main
+    repo: deb [arch={{ arch }} signed-by={{ pgsql_key_ring_file }}] {{ pgsql_repo_url }} {{ ansible_distribution_release }}-pgdg main
     state: present
     update_cache: true
   tags:
