@@ -1,8 +1,4 @@
 ---
-# OpenJDK is a required for every component OpenNMS is running on and should be the same JDK version
-openjdk_version: 17
-openjdk_pkg_version: "{{ openjdk_version }}*"
-
 # Specify the OpenNMS version.
 # Pick a very specific version cause we can't handle updates automatically.
 arch: amd64

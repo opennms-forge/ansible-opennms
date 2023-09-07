@@ -1,13 +1,7 @@
 ---
-- name: Installing OpenJDK {{ openjdk_version }}
-  ansible.builtin.apt:
-    name: "openjdk-{{ openjdk_version }}-jdk-headless={{ openjdk_pkg_version }}"
-    state: present
-    install_recommends: false
-  tags:
-    - opennms
-    - kafka
-    - java
+- name: Include OpenNMS OpenJDK roles
+  ansible.builtin.include_role:
+    name: opennms_openjdk
 
 - name: Set java version to OpenJDK {{ openjdk_version }}
   community.general.alternatives:

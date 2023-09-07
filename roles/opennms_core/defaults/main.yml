@@ -1,6 +1,4 @@
 ---
-pg_version: 15
-
 opennms_distribution: Horizon
 opennms_version: 32.0.2
 opennms_pkg_version: "{{ opennms_version }}*"
@@ -19,7 +17,6 @@ iplike_version: 2
 iplike_pkg_version: "{{ iplike_version }}.*"
 
 opennms_pkgs:
-  - "iplike-pgsql{{ pg_version }}={{ iplike_pkg_version }}"
   - "jrrd2={{ jrrd2_pkg_version }}"
   - "opennms-common={{ opennms_pkg_version }}"
   - "opennms-server={{ opennms_pkg_version }}"

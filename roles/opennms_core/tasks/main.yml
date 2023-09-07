@@ -1,7 +1,11 @@
 ---
-- name: Include OpenNMS Common roles
+- name: Include OpenNMS repository roles
   ansible.builtin.include_role:
-    name: opennms_common
+    name: opennms_repositories
+
+- name: Include OpenNMS OpenJDK roles
+  ansible.builtin.include_role:
+    name: opennms_openjdk
 
 - name: Include OpenNMS ICMP setup roles
   ansible.builtin.include_role:
