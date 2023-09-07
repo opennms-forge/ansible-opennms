@@ -12,3 +12,18 @@
   tags:
     - opennms
     - configuration
+
+- name: Configure OpenNMS Java Virtual Machine
+  ansible.builtin.template:
+    src: etc/opennms.conf.j2
+    dest: "{{ opennms_home }}/etc/opennms.conf"
+    owner: opennms
+    group: opennms
+    mode: "0640"
+  with_dict: "{{ opennms_jvm_conf }}"
+  notify:
+    - Restart opennms
+  tags:
+    - opennms
+    - openjdk
+    - configuration
