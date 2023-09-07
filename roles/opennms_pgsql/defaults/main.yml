@@ -3,6 +3,7 @@ pgsql_key_url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
 pgsql_key_ring_file: /usr/share/keyrings/pgsql-keyring.gpg
 pgsql_repo_url: https://apt.postgresql.org/pub/repos/apt
 arch: amd64
+# Just the major version for PostgreSQL, used also for iplike installation and setup
 pg_version: 15
 pg_pkg_version: "{{ pg_version }}.*"
 

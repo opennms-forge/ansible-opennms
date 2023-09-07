@@ -8,6 +8,10 @@
     - dependency
     - ansible
 
+- name: Include OpenNMS repository roles
+  ansible.builtin.include_role:
+    name: opennms_repositories
+
 - name: Add PostgreSQL signing key to a keyring file
   ansible.builtin.apt_key:
     url: "{{ pgsql_key_url }}"
@@ -78,6 +82,14 @@
     - postgresql
     - ansible
 
+- name: Install OpenNMS iplike store package
+  ansible.builtin.apt:
+    name: iplike-pgsql{{ pg_version }}
+    state: present
+  tags:
+    - opennms
+    - postgresql
+
 - name: Set SCRAM-SHA-256 password encryption
   become_user: postgres
   community.postgresql.postgresql_set:
@@ -124,3 +136,15 @@
     - postgresql
     - initialize
     - database
+
+- name: Install iplike stored procedure in OpenNMS database
+  become_user: postgres
+  community.postgresql.postgresql_query:
+    db: "{{ opennms_datasource_db_name }}"
+    # yamllint disable-line rule:line-length
+    query: "CREATE OR REPLACE FUNCTION iplike(i_ipaddress text,i_rule text) RETURNS bool AS '/usr/lib/postgresql/{{ pg_version }}/lib/iplike.so' LANGUAGE 'c' RETURNS NULL ON NULL INPUT;"
+  tags:
+    - opennms
+    - postgresql
+    - iplike
+    - credentials
