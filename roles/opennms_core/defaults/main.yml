@@ -52,8 +52,10 @@ opennms_datasources_connection_pool_min_pool: 25
 opennms_datasources_connection_pool_max_pool: 50
 opennms_datasources_connection_pool_max_size: 50
 
-opennms_conf_file:
-  ADDITIONAL_MANAGER_OPTIONS: -Djdk.util.zip.disableZip64ExtraFieldValidation=true
+opennms_jvm_conf:
+  JAVA_INITIAL_HEAP_SIZE: 2048
+  JAVA_HEAP_SIZE: 4096
+  PYROSCOPE_AGENT_ENABLED: 0
 
 opennms_properties_timeseries:
   org.opennms.rrd.strategyClass: org.opennms.netmgt.rrd.rrdtool.MultithreadedJniRrdStrategy
