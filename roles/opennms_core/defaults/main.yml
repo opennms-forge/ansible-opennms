@@ -3,8 +3,8 @@ opennms_distribution: Horizon
 opennms_version: 32.0.2
 opennms_pkg_version: "{{ opennms_version }}*"
 
-opennms_plugin_cloud_version: 1.0.6
-opennms_plugin_cloud_pkg_version: "{{ opennms_plugin_cloud_version }}*"
+opennms_plugin_cloud_version: 1
+opennms_plugin_cloud_pkg_version: "{{ opennms_plugin_cloud_version }}.*"
 opennms_home: /usr/share/opennms
 
 jrrd2_version: 2
@@ -56,6 +56,8 @@ opennms_jvm_conf:
   JAVA_INITIAL_HEAP_SIZE: 2048
   JAVA_HEAP_SIZE: 4096
   PYROSCOPE_AGENT_ENABLED: 0
+  PYROSCOPE_APPLICATION_NAME: Horizon-Core-32.0.2
+  PYROSCOPE_SERVER_ADDRESS: http://localhost:4040
 
 opennms_properties_timeseries:
   org.opennms.rrd.strategyClass: org.opennms.netmgt.rrd.rrdtool.MultithreadedJniRrdStrategy
