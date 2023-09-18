@@ -4,13 +4,13 @@
   hosts: database
   become: true
   roles:
-    - opennms_pgsql
+    - stub_pgsql
 
 - name: Manage Message broker
   hosts: message-broker
   become: true
   roles:
-    - opennms_kafka
+    - stub_kafka
 
 - name: Manage OpenNMS Horizon Core system
   hosts: core
