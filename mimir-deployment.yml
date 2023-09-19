@@ -1,0 +1,7 @@
+---
+- name: Deploy Elasticsearch
+  hosts: all
+  user: ubuntu
+  become: true
+  roles:
+    - stub_elasticsearch
