@@ -14,8 +14,8 @@ es_configuration:
   cluster.max_shards_per_node: 6000
   cluster.name: opennms-flows
   discovery.type: single-node
-  #discovery.seed_hosts: '["host1", "host2"]'
-  #discovery.zen.minimum_master_nodes: 1
+  # discovery.seed_hosts: '["host1", "host2"]'
+  # discovery.zen.minimum_master_nodes: 1
   http.port: 9200
   network.host: 0.0.0.0
   node.attr.rack: r1
