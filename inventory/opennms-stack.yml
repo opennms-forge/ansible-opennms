@@ -6,20 +6,32 @@ all:
         database:
           hosts:
             core-srv:
-              ansible_host: 192.168.10.17
+              ansible_host: 192.168.10.38
+        elasticsearch:
+          hosts:
+            es-srv:
+              ansible_host: 192.168.10.38
+        mimir:
+          hosts:
+            mimir-srv:
+              ansible_host: 192.168.10.38
+        grafana:
+          hosts:
+            grafana-srv:
+              ansible_host: 192.168.10.38
         core:
           hosts:
             core-srv:
-              ansible_host: 192.168.10.17
+              ansible_host: 192.168.10.38
         message-broker:
           hosts:
             core-srv:
-              ansible_host: 192.168.10.17
+              ansible_host: 192.168.10.38
         minion:
           hosts:
             core-srv:
-              ansible_host: 192.168.10.17
+              ansible_host: 192.168.10.38
         sentinel:
           hosts:
             core-srv:
-              ansible_host: 192.168.10.17
+              ansible_host: 192.168.10.38
