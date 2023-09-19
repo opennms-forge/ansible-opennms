@@ -1,6 +1,6 @@
 ---
 - name: Verify Ansible version
-  assert:
+  ansible.builtin.assert:
     that:
       - "'{{ ansible_version.full }}' is version('2.11.0', '>=', version_type='semver')"
     fail_msg: "You need at least Ansible 2.11 or greater to run these tasks. Your Ansible version is {{ ansible_version.full }}."
