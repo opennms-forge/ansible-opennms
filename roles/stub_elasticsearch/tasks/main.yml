@@ -23,6 +23,13 @@
   tags:
     - elasticsearch
 
+- name: Install unzip for OpenNMS Drift plugin
+  ansible.builtin.package:
+    name: unzip
+    state: present
+  tags:
+    - elasticsearch
+
 - name: Create Elasticsearch plugin directory for OpenNMS Drift
   ansible.builtin.file:
     path: '{{ onms_drift_plugin_dir }}'
