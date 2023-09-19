@@ -1,0 +1,10 @@
+---
+- name: Restart elasticsearch
+  ansible.builtin.service:
+    name: elasticsearch.service
+    state: restarted
+  when:
+    - skip_startup | default("false") == "false"
+  tags:
+    - elasticsearch
+    - systemd

@@ -4,5 +4,5 @@
   user: ubuntu
   become: true
   roles:
-    - opennms_pgsql
+    - stub_pgsql
     - opennms_core

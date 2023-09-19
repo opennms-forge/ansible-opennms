@@ -1,6 +1,6 @@
 ## file: opennms-playbook.yml
 
-- name: Install OpenNMS database
+- name: Manage PostgreSQL database
   hosts: database
   become: true
   roles:
@@ -11,6 +11,12 @@
   become: true
   roles:
     - stub_kafka
+
+- name: Manage Elasticsearch
+  hosts: elasticsearch
+  become: true
+  roles:
+    - stub_elasticsearch
 
 - name: Manage OpenNMS Horizon Core system
   hosts: core
