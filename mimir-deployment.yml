@@ -1,7 +1,0 @@
----
-- name: Deploy Grafana Mimir
-  hosts: all
-  user: ubuntu
-  become: true
-  roles:
-    - stub_mimir

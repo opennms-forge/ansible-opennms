@@ -18,6 +18,18 @@
   roles:
     - stub_elasticsearch
 
+- name: Manage Mimir
+  hosts: mimir
+  become: true
+  roles:
+    - stub_mimir
+
+- name: Manage Grafana
+  hosts: grafana
+  become: true
+  roles:
+    - stub_grafana
+
 - name: Manage OpenNMS Horizon Core system
   hosts: core
   become: true

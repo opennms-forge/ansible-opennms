@@ -15,6 +15,10 @@ all:
           hosts:
             mimir-srv:
               ansible_host: 192.168.10.38
+        grafana:
+          hosts:
+            grafana-srv:
+              ansible_host: 192.168.10.38
         core:
           hosts:
             core-srv:

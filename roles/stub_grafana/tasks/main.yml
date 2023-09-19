@@ -1,0 +1,64 @@
+---
+- name: Add Grafana signing key to a keyring file
+  ansible.builtin.apt_key:
+    url: "{{ grafana_key_url }}"
+    keyring: "{{ grafana_key_ring_file }}"
+  tags:
+    - grafana
+    - repository
+
+- name: Add Grafana repo to sources list
+  ansible.builtin.apt_repository:
+    repo: deb [arch={{ arch }} signed-by={{ grafana_key_ring_file }}] {{ grafana_repo_url }} stable main
+    state: present
+    update_cache: true
+  tags:
+    - grafana
+    - repository
+
+- name: Install Grafana {{ grafana_version }}
+  ansible.builtin.package:
+    name: grafana={{ grafana_pkg_version }}
+    state: present
+  tags:
+    - grafana
+
+- name: Install OpenNMS plugin for Grafana
+  ansible.builtin.command: "grafana-cli plugins install opennms-opennms-app"
+  register: gf_plugin_opennms
+  changed_when: gf_plugin_opennms != 0
+  tags:
+    - grafana
+    - plugin
+    - opennms
+
+- name: Grafana provisioning plugins
+  ansible.builtin.template:
+    src: plugins/opennms-app.yml.j2
+    dest: "{{ grafana_etc_dir }}/provisioning/plugins/opennms-app.yml"
+  notify:
+    - Restart grafana
+  tags:
+    - grafana
+    - plugin
+    - opennms
+
+- name: Grafana provisioning data sources
+  ansible.builtin.template:
+    src: datasources/opennms-horizon.yml.j2
+    dest: "{{ grafana_etc_dir }}/provisioning/datasources/opennms-horizon.yml"
+  notify:
+    - Restart grafana
+  tags:
+    - grafana
+    - plugin
+    - opennms
+
+- name: Enable and start systemd unit for Grafana
+  ansible.builtin.service:
+    name: grafana-server.service
+    enabled: true
+    state: started
+  tags:
+    - grafana
+    - systemd
