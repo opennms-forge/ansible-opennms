@@ -11,6 +11,10 @@ all:
           hosts:
             es-srv:
               ansible_host: 192.168.10.38
+        mimir:
+          hosts:
+            mimir-srv:
+              ansible_host: 192.168.10.38
         core:
           hosts:
             core-srv:

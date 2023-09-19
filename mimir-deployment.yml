@@ -1,7 +1,7 @@
 ---
-- name: Deploy Elasticsearch
+- name: Deploy Grafana Mimir
   hosts: all
   user: ubuntu
   become: true
   roles:
-    - stub_elasticsearch
+    - stub_mimir
