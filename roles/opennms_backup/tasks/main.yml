@@ -1,7 +1,7 @@
 ---
 - name: "Create a backup directory"
   file:
-    path: "{{onms_backup_folder }}"
+    path: "{{ onms_backup_folder }}"
     mode: 0777
     owner: root
     state: directory

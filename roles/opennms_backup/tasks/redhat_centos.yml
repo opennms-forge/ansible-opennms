@@ -2,7 +2,7 @@
 - name: Back up OpenNMS Horizon opt folder
   community.general.archive:
     path:
-    - /opt/opennms/*
+      - /opt/opennms/*
     dest: "{{ onms_backup_folder }}/{{ timestamp }}_opennms-opt.tar.gz"
     exclude_path:
     - /opt/opennms/data/cache/*
@@ -11,7 +11,7 @@
 - name: Back up OpenNMS Horizon var folder
   community.general.archive:
     path:
-    - /var/opennms/*
+      - /var/opennms/*
     dest: "{{ onms_backup_folder }}/{{ timestamp }}_opennms-var.tar.gz"
     format: gz
 
@@ -30,13 +30,13 @@
 - name: Grep OpenNMS user ID
   shell:
     cmd: "grep opennms /etc/passwd > {{ onms_backup_folder }}/{{ timestamp }}_opennms-passwd.txt"
-  ignore_errors: yes
+  ignore_errors: true
   changed_when: false
 
 - name: Grep OpenNMS group ID
   shell:
     cmd: "grep opennms /etc/group > {{ onms_backup_folder }}/{{ timestamp }}_opennms-group.txt"
-  ignore_errors: yes
+  ignore_errors: true
   changed_when: false
 
 - name: Create latest passwd file

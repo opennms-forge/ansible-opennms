@@ -2,7 +2,7 @@
 - name: Back up OpenNMS Horizon opt folder
   community.general.archive:
     path:
-    - /usr/share/opennms/*
+      - /usr/share/opennms/*
     dest: "{{ onms_backup_folder }}/{{ timestamp }}_opennms-opt.tar.gz"
     exclude_path:
     - /usr/share/opennms/data/cache/*
@@ -11,21 +11,21 @@
 - name: Back up OpenNMS Horizon etc folder
   community.general.archive:
     path:
-    - /etc/opennms/*
+      - /etc/opennms/*
     dest: "{{ onms_backup_folder }}/{{ timestamp }}_opennms-etc.tar.gz"
     format: gz
 
 - name: Back up OpenNMS Horizon lib folder
   community.general.archive:
     path:
-    - /var/lib/opennms/*
+      - /var/lib/opennms/*
     dest: "{{ onms_backup_folder }}/{{ timestamp }}_opennms-var-lib.tar.gz"
     format: gz
 
 - name: Back up OpenNMS Horizon usr/share/java folder
   community.general.archive:
     path:
-    - /usr/share/java/opennms/*
+      - /usr/share/java/opennms/*
     dest: "{{ onms_backup_folder }}/{{ timestamp }}_opennms-usr-share-java.tar.gz"
     format: gz
 
@@ -56,13 +56,13 @@
 - name: Grep OpenNMS user ID
   shell:
     cmd: "grep opennms /etc/passwd > {{ onms_backup_folder }}/{{ timestamp }}_opennms-passwd.txt"
-  ignore_errors: yes
+  ignore_errors: true
   changed_when: false
 
 - name: Grep OpenNMS group ID
   shell:
     cmd: "grep opennms /etc/group > {{ onms_backup_folder }}/{{ timestamp }}_opennms-group.txt"
-  ignore_errors: yes
+  ignore_errors: true
   changed_when: false
 
 - name: Create latest passwd file
