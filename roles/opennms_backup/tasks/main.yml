@@ -1,0 +1,15 @@
+---
+- name: "Create a backup directory"
+  file:
+    path: "{{onms_backup_folder }}"
+    mode: 0777
+    owner: root
+    state: directory
+
+- name: Run backups scripts for Ubuntu / Debian
+  ansible.builtin.include_tasks: ubuntu_debian.yml
+  when: ansible_distribution == "Debian" or ansible_distribution == "Ubuntu"
+
+- name: Run backups scripts for RedHat / CentOs
+  ansible.builtin.include_tasks: redhat_centos.yml
+  when: ansible_distribution == "RedHat" or ansible_distribution == "CentOS"
