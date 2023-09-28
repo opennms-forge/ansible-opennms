@@ -19,13 +19,13 @@
   ansible.builtin.copy:
     remote_src: true
     src: "{{ onms_backup_folder }}/{{ timestamp }}_opennms-opt.tar.gz"
-    dest: {{ onms_backup_folder }}/latest_opennms-opt.tar.gz
+    dest: "{{ onms_backup_folder }}/latest_opennms-opt.tar.gz"
 
 - name: Create latest var folder tar
   ansible.builtin.copy:
     remote_src: true
     src: "{{ onms_backup_folder }}/{{ timestamp }}_opennms-var.tar.gz"
-    dest: {{ onms_backup_folder }}/latest_opennms-var.tar.gz
+    dest: "{{ onms_backup_folder }}/latest_opennms-var.tar.gz"
 
 - name: Grep OpenNMS user ID
   shell:
