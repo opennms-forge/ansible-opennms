@@ -5,8 +5,11 @@
       - /opt/opennms/*
     dest: "{{ onms_backup_folder }}/{{ timestamp }}_opennms-opt.tar.gz"
     exclude_path:
-    - /opt/opennms/data/cache/*
+      - /opt/opennms/data/cache/*
     format: gz
+    mode: 0644
+    owner: opennms
+    group: opennms
 
 - name: Back up OpenNMS Horizon var folder
   community.general.archive:
@@ -14,39 +17,50 @@
       - /var/opennms/*
     dest: "{{ onms_backup_folder }}/{{ timestamp }}_opennms-var.tar.gz"
     format: gz
+    mode: 0644
+    owner: opennms
+    group: opennms
 
 - name: Create latest opt folder tar
   ansible.builtin.copy:
     remote_src: true
     src: "{{ onms_backup_folder }}/{{ timestamp }}_opennms-opt.tar.gz"
     dest: "{{ onms_backup_folder }}/latest_opennms-opt.tar.gz"
+    mode: 0644
+    owner: opennms
+    group: opennms
 
 - name: Create latest var folder tar
   ansible.builtin.copy:
     remote_src: true
     src: "{{ onms_backup_folder }}/{{ timestamp }}_opennms-var.tar.gz"
     dest: "{{ onms_backup_folder }}/latest_opennms-var.tar.gz"
+    mode: 0644
+    owner: opennms
+    group: opennms
 
 - name: Grep OpenNMS user ID
   shell:
     cmd: "grep opennms /etc/passwd > {{ onms_backup_folder }}/{{ timestamp }}_opennms-passwd.txt"
-  ignore_errors: true
-  changed_when: false
 
 - name: Grep OpenNMS group ID
   shell:
     cmd: "grep opennms /etc/group > {{ onms_backup_folder }}/{{ timestamp }}_opennms-group.txt"
-  ignore_errors: true
-  changed_when: false
 
 - name: Create latest passwd file
   ansible.builtin.copy:
     remote_src: true
     src: "{{ onms_backup_folder }}/{{ timestamp }}_opennms-passwd.txt"
     dest: "{{ onms_backup_folder }}/latest_opennms-passwd.txt"
+    mode: 0644
+    owner: opennms
+    group: opennms
 
 - name: Create latest group file
   ansible.builtin.copy:
     remote_src: true
     src: "{{ onms_backup_folder }}/{{ timestamp }}_opennms-group.txt"
     dest: "{{ onms_backup_folder }}/latest_opennms-group.txt"
+    mode: 0644
+    owner: opennms
+    group: opennms

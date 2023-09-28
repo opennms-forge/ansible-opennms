@@ -11,7 +11,7 @@
     state: dump
     name: opennms
     target: "{{ onms_backup_folder }}/{{ timestamp }}_opennms-postgres.dmp"
-  become: yes
+  become: true
   become_user: postgres
 
 - name: "Delete backups older than {{ onms_backup_retention }} days"
