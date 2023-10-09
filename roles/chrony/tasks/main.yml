@@ -1,0 +1,32 @@
+---
+- name: Install chrony for time synchronization
+  ansible.builtin.apt:
+    name: chrony
+    state: present
+    install_recommends: false
+  tags:
+    - chrony
+    - package
+
+- name: Configure chrony from template
+  ansible.builtin.template:
+    src: chrony.conf.j2
+    dest: /etc/chrony.conf
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify:
+    - Restart chronyd
+  tags:
+    - chrony
+    - configuration
+
+- name: 'Manage the chrony service'
+  become: yes
+  service:
+    name: chronyd
+    enabled: true
+    state: started
+  tags:
+    - 'chrony-service'

@@ -1,0 +1,21 @@
+---
+chrony_port: 123
+chrony_acquisitionport: 1123
+chrony_allow:
+chrony_conf_file: '/etc/chrony/chrony.conf'
+chrony_keyfile: '/etc/chrony/chrony.keys'
+chrony_pool:
+  "ntp.ubuntu.com": "iburst maxsources 4"
+  "0.ubuntu.ppol.ntp.org": "iburst maxsources 1"
+  "1.ubuntu.pool.ntp.org": "iburst maxsources 1"
+  "2.ubuntu.pool.ntp.org": "iburst maxsources 2"
+
+chrony_server: '169.254.169.123 prefer iburst'
+chrony_driftfile: '/var/lib/chrony/chrony.drift'
+chrony_log: 'tracking measurements statistics'
+chrony_logdir: '/var/log/chrony'
+chrony_maxupdateskew: 100.0
+chrony_dumpdir: '/var/lib/chrony'
+chrony_initstepslew: false
+chrony_initstepslew_threshold: 30
+chrony_initstepslew_servers: '169.254.169.123'
