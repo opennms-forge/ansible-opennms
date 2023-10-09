@@ -29,4 +29,5 @@
     enabled: true
     state: started
   tags:
-    - 'chrony-service'
+    - chrony
+    - systemd
