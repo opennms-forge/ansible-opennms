@@ -36,6 +36,9 @@
   ansible.builtin.template:
     src: plugins/opennms-app.yml.j2
     dest: "{{ grafana_etc_dir }}/provisioning/plugins/opennms-app.yml"
+    owner: grafana
+    group: grafana
+    mode: "0640"
   notify:
     - Restart grafana
   tags:
@@ -47,6 +50,9 @@
   ansible.builtin.template:
     src: datasources/opennms-horizon.yml.j2
     dest: "{{ grafana_etc_dir }}/provisioning/datasources/opennms-horizon.yml"
+    owner: grafana
+    group: grafana
+    mode: "0640"
   notify:
     - Restart grafana
   tags:

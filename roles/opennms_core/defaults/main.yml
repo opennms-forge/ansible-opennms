@@ -62,8 +62,8 @@ opennms_datasource_opennms_monitor_pool_max: 10
 opennms_datasource_opennms_monitor_pool_max_size: 50
 
 opennms_jvm_conf:
-  #JAVA_INITIAL_HEAP_SIZE: 2048
-  #JAVA_HEAP_SIZE: 4096
+  # JAVA_INITIAL_HEAP_SIZE: 2048
+  # JAVA_HEAP_SIZE: 4096
   PYROSCOPE_AGENT_ENABLED: 0
   PYROSCOPE_APPLICATION_NAME: Horizon-Core
   PYROSCOPE_SERVER_ADDRESS: http://localhost:4040
