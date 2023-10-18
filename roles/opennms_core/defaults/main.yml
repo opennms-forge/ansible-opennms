@@ -6,6 +6,7 @@ opennms_pkg_version: "{{ opennms_version }}*"
 opennms_plugin_cloud_version: 1
 opennms_plugin_cloud_pkg_version: "{{ opennms_plugin_cloud_version }}.*"
 opennms_home: /usr/share/opennms
+opennms_message_broker: none
 
 jrrd2_version: 2
 jrrd2_pkg_version: "{{ jrrd2_version }}.*"
@@ -46,18 +47,27 @@ opennms_datasource_db_password: p4a55word!
 postgres_user: postgres
 postgres_password: oth3rP455w0rd!
 
-opennms_datasources_connection_pool_idle_timeout: 600
-opennms_datasources_connection_pool_login_timeout: 3
-opennms_datasources_connection_pool_min_pool: 25
-opennms_datasources_connection_pool_max_pool: 50
-opennms_datasources_connection_pool_max_size: 50
+opennms_datasource_connection_pool_idle_timeout: 600
+opennms_datasource_connection_pool_login_timeout: 3
+opennms_datasource_connection_pool_min_pool: 25
+opennms_datasource_connection_pool_max_pool: 50
+opennms_datasource_connection_pool_max_size: 50
+opennms_datasource_opennms_admin_idle_timeout: 600
+opennms_datasource_opennms_admin_pool_min: 0
+opennms_datasource_opennms_admin_pool_max: 10
+opennms_datasource_opennms_admin_pool_max_size: 50
+opennms_datasource_opennms_monitor_idle_timeout: 600
+opennms_datasource_opennms_monitor_pool_min: 0
+opennms_datasource_opennms_monitor_pool_max: 10
+opennms_datasource_opennms_monitor_pool_max_size: 50
 
 opennms_jvm_conf:
-  JAVA_INITIAL_HEAP_SIZE: 2048
-  JAVA_HEAP_SIZE: 4096
+  #JAVA_INITIAL_HEAP_SIZE: 2048
+  #JAVA_HEAP_SIZE: 4096
   PYROSCOPE_AGENT_ENABLED: 0
-  PYROSCOPE_APPLICATION_NAME: Horizon-Core-32.0.2
+  PYROSCOPE_APPLICATION_NAME: Horizon-Core
   PYROSCOPE_SERVER_ADDRESS: http://localhost:4040
+  # ADDITIONAL_MANAGER_OPTIONS="-javaagent:/usr/share/opennms/lib/jmx_prometheus_javaagent-0.20.0.jar=9299:/usr/share/opennms/etc/jmx-exporter-config.yaml"
 
 opennms_properties_timeseries:
   org.opennms.rrd.strategyClass: org.opennms.netmgt.rrd.rrdtool.MultithreadedJniRrdStrategy
