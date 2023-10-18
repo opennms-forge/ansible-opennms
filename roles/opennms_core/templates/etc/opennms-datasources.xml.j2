@@ -4,28 +4,44 @@
 <!-- This is an Ansible managed template -->
 <!-- ##                                  -->
 <datasource-configuration xmlns:this="http://xmlns.opennms.org/xsd/config/opennms-datasources"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://xmlns.opennms.org/xsd/config/opennms-datasources
-  http://www.opennms.org/xsd/config/opennms-datasources.xsd ">
+                          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                          xsi:schemaLocation="http://xmlns.opennms.org/xsd/config/opennms-datasources
+                          http://www.opennms.org/xsd/config/opennms-datasources.xsd ">
 
-  <connection-pool factory="org.opennms.core.db.HikariCPConnectionFactory"
-    idleTimeout="{{ opennms_datasources_connection_pool_idle_timeout }}"
-    loginTimeout="{{ opennms_datasources_connection_pool_login_timeout }}"
-    minPool="{{ opennms_datasources_connection_pool_min_pool }}"
-    maxPool="{{ opennms_datasources_connection_pool_max_pool }}"
-    maxSize="{{ opennms_datasources_connection_pool_max_size }}" />
+    <connection-pool factory="org.opennms.core.db.HikariCPConnectionFactory"
+                     idleTimeout="{{ opennms_datasource_connection_pool_idle_timeout }}"
+                     loginTimeout="{{ opennms_datasource_connection_pool_login_timeout }}"
+                     minPool="{{ opennms_datasource_connection_pool_min_pool }}"
+                     maxPool="{{ opennms_datasource_connection_pool_max_pool }}"
+                     maxSize="{{ opennms_datasource_connection_pool_max_size }}" />
 
-  <jdbc-data-source name="opennms"
-                    database-name="{{ opennms_datasource_db_name }}"
-                    class-name="org.postgresql.Driver"
-                    url="jdbc:postgresql://{{ opennms_datasource_db_host }}:{{ opennms_datasource_db_port }}/{{ opennms_datasource_db_name }}"
-                    user-name="${scv:postgres:username}"
-                    password="${scv:postgres:password}" />
+    <jdbc-data-source name="opennms"
+                      database-name="{{ opennms_datasource_db_name }}"
+                      class-name="org.postgresql.Driver"
+                      url="jdbc:postgresql://{{ opennms_datasource_db_host }}:{{ opennms_datasource_db_port }}/{{ opennms_datasource_db_name }}"
+                      user-name="${scv:postgres:username}"
+                      password="${scv:postgres:password}" />
 
-  <jdbc-data-source name="opennms-admin"
-                    database-name="template1"
-                    class-name="org.postgresql.Driver"
-                    url="jdbc:postgresql://{{ opennms_datasource_db_host }}:{{ opennms_datasource_db_port }}/template1"
-                    user-name="${scv:postgres-admin:username}"
-                    password="${scv:postgres-admin:password}" />
+    <jdbc-data-source name="opennms-admin"
+                      database-name="template1"
+                      class-name="org.postgresql.Driver"
+                      url="jdbc:postgresql://{{ opennms_datasource_db_host }}:{{ opennms_datasource_db_port }}/template1"
+                      user-name="${scv:postgres-admin:username}"
+                      password="${scv:postgres-admin:password}">
+        <connection-pool idleTimeout="{{ opennms_datasource_opennms_admin_idle_timeout }}"
+                         minPool="{{ opennms_datasource_opennms_admin_pool_min }}"
+                         maxPool="{{ opennms_datasource_opennms_admin_pool_max }}"
+                         maxSize="{{ opennms_datasource_opennms_admin_pool_max_size }}" />
+    </jdbc-data-source>
+    <jdbc-data-source name="opennms-monitor"
+                      database-name="postgres"
+                      class-name="org.postgresql.Driver"
+                      url="jdbc:postgresql://{{ opennms_datasource_db_host }}:{{ opennms_datasource_db_port }}/postgres"
+                      user-name="${scv:postgres-admin:username}"
+                      password="${scv:postgres-admin:password}">
+        <connection-pool idleTimeout="{{ opennms_datasource_opennms_monitor_idle_timeout }}"
+                         minPool="{{ opennms_datasource_opennms_monitor_pool_min }}"
+                         maxPool="{{ opennms_datasource_opennms_monitor_pool_max }}"
+                         maxSize="{{ opennms_datasource_opennms_monitor_pool_max_size }}" />
+    </jdbc-data-source>
 </datasource-configuration>
