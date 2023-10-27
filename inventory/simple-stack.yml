@@ -1,0 +1,18 @@
+---
+all:
+  children:
+    opennms-stack:
+      children:
+        database:
+          hosts:
+            myopennms:
+              ansible_host: 192.168.10.38
+        grafana:
+          hosts:
+            myopennms:
+              ansible_host: 192.168.10.38
+        core:
+          hosts:
+            myopennms:
+              ansible_host: 192.168.10.38
+
