@@ -1,0 +1,4 @@
+---
+
+onms_backup_folder: /mnt/backup/opennms
+onms_backup_retention: 3
