@@ -21,6 +21,21 @@
     - minion
     - package
 
+- name: Configure Minion system properties
+  ansible.builtin.template:
+    src: custom.system.properties.j2
+    dest: "{{ opennms_minion_home }}/etc/custom.system.properties"
+    owner: minion
+    group: minion
+    mode: "0640"
+  with_dict: "{{ opennms_minion_customer_system_properties }}"
+  notify:
+    - Restart minion
+  tags:
+    - opennms
+    - minion
+    - configuration
+
 # TODO: We need to run the specific role depending on the message broker
 - name: Configure Kafka as message broker
   ansible.builtin.include_tasks: 21-kafka.yml
