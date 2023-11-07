@@ -15,4 +15,3 @@ all:
           hosts:
             myopennms:
               ansible_host: 192.168.10.38
-
