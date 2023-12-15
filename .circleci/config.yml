@@ -9,7 +9,7 @@ executors:
 workflows:
   build-workflow:
     jobs:
-      - validation
+      - build
 
 jobs:
   build:
