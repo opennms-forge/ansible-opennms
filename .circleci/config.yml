@@ -25,4 +25,4 @@ jobs:
           command: |
             ansible-galaxy collection build --output-path target
       - store_artifacts:
-            path: target
+          path: target
