@@ -1,4 +1,0 @@
----
-mimir_version: 2.10.0
-mimir_arch: amd64
-mimir_pkg_url: "https://github.com/grafana/mimir/releases/download/mimir-{{ mimir_version }}/mimir-{{ mimir_version }}_{{ mimir_arch }}.deb"

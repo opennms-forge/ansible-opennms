@@ -1,7 +1,0 @@
----
-- name: Run a Sentinel deployment in a local run
-  hosts: all
-  user: ubuntu
-  become: true
-  roles:
-    - opennms_sentinel

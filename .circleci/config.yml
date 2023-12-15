@@ -12,7 +12,7 @@ workflows:
       - validation
 
 jobs:
-  validation:
+  build:
     executor: build-executor
     steps:
       - checkout
@@ -20,3 +20,9 @@ jobs:
           name: Validate with Ansible lint
           command: |
             ansible-lint
+      - run:
+          name: Build Ansible collection
+          command: |
+            ansible-galaxy collection build --output-path target
+      - store_artifacts:
+            path: target

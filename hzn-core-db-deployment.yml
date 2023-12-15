@@ -1,8 +1,0 @@
----
-- name: Run a Core and PostgreSQL deployment in a local run
-  hosts: all
-  user: ubuntu
-  become: true
-  roles:
-    - stub_pgsql
-    - opennms_core
