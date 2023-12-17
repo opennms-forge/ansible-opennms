@@ -13,6 +13,7 @@
     - initialize
 
 - name: Initialize secure vault with database postgres credentials
+  become: true
   become_user: opennms
   ansible.builtin.command: "{{ opennms_home }}/bin/scvcli set postgres-admin {{ postgres_user }} {{ postgres_password }}"
   register: scv_postgres_admin
@@ -23,6 +24,7 @@
     - credentials
 
 - name: Initialize secure vault with database OpenNMS credentials
+  become: true
   become_user: opennms
   ansible.builtin.command: "{{ opennms_home }}/bin/scvcli set postgres {{ opennms_datasource_db_user }} {{ opennms_datasource_db_password }}"
   register: scv_postgres_opennms
@@ -37,7 +39,41 @@
     path: "{{ opennms_home }}/etc/configured"
   register: initialized_schema
 
+- name: Create OpenNMS database user {{ opennms_datasource_db_user }}
+  become: true
+  become_user: postgres
+  community.postgresql.postgresql_user:
+    state: present
+    name: "{{ opennms_datasource_db_user }}"
+    password: "{{ opennms_datasource_db_password }}"
+  tags:
+    - opennms
+    - postgresql
+    - initialize
+    - database
+
+- name: Create OpenNMS database schema
+  become: true
+  become_user: postgres
+  community.postgresql.postgresql_schema:
+    name: "{{ opennms_datasource_db_name }}"
+    owner: "{{ opennms_datasource_db_user }}"
+  tags:
+    - postgresql
+    - initialize
+
+- name: Grant permissions to schema public
+  become: true
+  become_user: postgres
+  community.postgresql.postgresql_query:
+    db: "{{ opennms_datasource_db_name }}"
+    query: "GRANT CREATE ON SCHEMA public TO PUBLIC;"
+  tags:
+    - postgresql
+    - initialize
+
 - name: Initialize database schema
+  become: true
   become_user: opennms
   ansible.builtin.command: "{{ opennms_home }}/bin/install -dis"
   register: database_init

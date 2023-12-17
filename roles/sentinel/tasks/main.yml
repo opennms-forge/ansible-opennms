@@ -1,11 +1,11 @@
 ---
 - name: Include OpenNMS OpenJDK roles
   ansible.builtin.include_role:
-    name: opennms_openjdk
+    name: openjdk
 
 - name: Include OpenNMS repository roles
   ansible.builtin.include_role:
-    name: opennms_repositories
+    name: repositories
 
 - name: Installing OpenNMS Sentinel
   ansible.builtin.apt:

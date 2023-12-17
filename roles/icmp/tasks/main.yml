@@ -1,7 +1,7 @@
 ---
 - name: Include OpenNMS repository roles
   ansible.builtin.include_role:
-    name: opennms_repositories
+    name: repositories
 
 - name: Installing JICMP
   ansible.builtin.apt:

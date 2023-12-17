@@ -1,15 +1,15 @@
 ---
 - name: Include OpenNMS OpenJDK roles
   ansible.builtin.include_role:
-    name: opennms_openjdk
+    name: openjdk
 
 - name: Include OpenNMS repository roles
   ansible.builtin.include_role:
-    name: opennms_repositories
+    name: repositories
 
 - name: Include OpenNMS ICMP setup roles
   ansible.builtin.include_role:
-    name: opennms_icmp
+    name: icmp
 
 - name: Installing OpenNMS Minion {{ opennms_version }}
   ansible.builtin.apt:
