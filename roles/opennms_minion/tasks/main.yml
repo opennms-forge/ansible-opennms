@@ -28,7 +28,7 @@
     owner: minion
     group: minion
     mode: "0640"
-  with_dict: "{{ opennms_minion_customer_system_properties }}"
+  with_dict: "{{ opennms_minion_customer_system_properties | default([]) }}"
   notify:
     - Restart minion
   tags:
