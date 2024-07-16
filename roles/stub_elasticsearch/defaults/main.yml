@@ -3,7 +3,8 @@ es_key_url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
 es_key_ring_file: /usr/share/keyrings/elasticsearch-keyring.gpg
 es_repo_url: https://artifacts.elastic.co/packages/7.x/apt
 arch: amd64
-es_version: 7.17.13
+es_version: 7.17.9
+drift_version: 2.0.5
 es_pkg_version: "{{ es_version }}*"
 onms_drift_plugin_dir: /usr/share/elasticsearch/plugins/drift
 es_etc_dir: /etc/elasticsearch
