@@ -78,7 +78,7 @@
   ansible.builtin.shell: |
     cd {{ kafka_home }}
     bin/kafka-storage.sh random-uuid > ansible_cluster_id
-    chown kafka:kafka ansible_cluster_id
+    chown "{{ kafka_user }}:{{ kafka_group }}" ansible_cluster_id
     bin/kafka-storage.sh format --ignore-formatted -t $(cat ansible_cluster_id) -c config/kraft/server.properties
   when: not initialized_cluster_uuid.stat.exists
   register: cluster_uuid_output
