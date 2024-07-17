@@ -27,8 +27,8 @@
     dest: /opt
     creates: /opt/kafka_{{ scala_version }}-{{ kafka_version }}/bin
     remote_src: true
-    owner: kafka
-    group: kafka
+    owner: "{{ kafka_user }}"
+    group: "{{ kafka_group }}"
   tags:
     - opennms
     - kafka
@@ -39,23 +39,23 @@
     path: /var/log/kafka
     state: directory
     mode: '0755'
-    owner: kafka
-    group: kafka
+    owner: "{{ kafka_user }}"
+    group: "{{ kafka_group }}"
 
 - name: Create Kafka log directory
   ansible.builtin.file:
     path: /var/log/kafka/combined-logs
     state: directory
     mode: '0755'
-    owner: kafka
-    group: kafka
+    owner: "{{ kafka_user }}"
+    group: "{{ kafka_group }}"
 
 - name: Configure the Kafka message broker
   ansible.builtin.template:
     src: server.properties.j2
     dest: "{{ kafka_home }}/config/kraft/server.properties"
-    owner: kafka
-    group: kafka
+    owner: "{{ kafka_user }}"
+    group: "{{ kafka_group }}"
     mode: "0640"
   with_dict: "{{ kafka_server_properties }}"
   tags:
@@ -86,7 +86,19 @@
   tags:
     - opennms
     - kafka
-    - confiig
+    - config
+
+- name: Set ownership and permissions
+  ansible.builtin.file:
+    path: "{{ kafka_log_dir }}"
+    owner: "{{ kafka_user }}"
+    group: "{{ kafka_group }}"
+    recurse: true
+    mode: "0755"
+  tags:
+    - opennms
+    - kafka
+    - config
 
 - name: Install Kafka Systemd unit
   ansible.builtin.template:

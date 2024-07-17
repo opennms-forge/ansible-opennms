@@ -1,9 +1,12 @@
 ---
-kafka_version: 3.5.1
+kafka_version: 3.7.1
 scala_version: 2.13
 kafka_url: https://dlcdn.apache.org/kafka/{{ kafka_version }}/kafka_{{ scala_version }}-{{ kafka_version }}.tgz
 kafka_home: /opt/kafka_{{ scala_version }}-{{ kafka_version }}
 kafka_advertised_listener: PLAINTEXT://localhost:9092
+kafka_user: kafka
+kafka_group: kafka
+kafka_log_dir: /var/log/kafka/combined-logs
 
 # Kafka requires an OpenJDK 8+
 openjdk_version: 17
@@ -31,4 +34,4 @@ kafka_server_properties:
   "log.retention.hours": 168
   "log.segment.bytes": 1073741824
   "log.retention.check.interval.ms": 300000
-  "log.dirs": /var/log/kafka/combined-logs
+  "log.dirs": "{{ kafka_log_dir }}"

@@ -42,7 +42,7 @@
 # yamllint disable rule:line-length
 - name: Install OpenNMS Drift plugin
   ansible.builtin.unarchive:
-    src: https://output.circle-artifacts.com/output/job/809619ac-46fa-4f5b-9f9a-c1362af1d88a/artifacts/0/target/artifacts/elasticsearch-drift-plugin-7.17.13-2.0.5-SNAPSHOT.zip
+    src: "https://github.com/OpenNMS/elasticsearch-drift-plugin/releases/download/v{{ drift_version }}_es-{{ es_version }}/elasticsearch-drift-plugin-{{ es_version }}-{{ drift_version }}.zip"
     dest: '{{ onms_drift_plugin_dir }}'
     remote_src: true
   tags:
