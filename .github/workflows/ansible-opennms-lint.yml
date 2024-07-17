@@ -1,0 +1,18 @@
+---
+name: ansible-opennms-lint
+run-name: Validate the Ansible playbook
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  ansible-lint:
+    runs-on: ubuntu-latest
+    container:
+      image: quay.io/labmonkeys/vmbuilder:1.9.3.b66
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add workspace to git safe.directory
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - name: Run ansible lint
+        run: ansible-lint
