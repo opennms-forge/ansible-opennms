@@ -26,7 +26,6 @@ opennms_pkgs:
   - "opennms-plugin-cloud={{ opennms_plugin_cloud_pkg_version }}"
 
 opennms_tool_deps:
-  - haveged
   - "rrdtool={{ rrdtool_pkg_version }}"
 
 opennms_perl_deps:
