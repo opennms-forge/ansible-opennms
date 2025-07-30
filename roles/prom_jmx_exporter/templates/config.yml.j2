@@ -1,0 +1,34 @@
+---
+startDelaySeconds: {{ prom_jmx_exporter_config.start_delay_seconds }}
+lowercaseOutputName: {{ prom_jmx_exporter_config.lowercase_output_name }}
+lowercaseOutputLabelNames: {{ prom_jmx_exporter_config.lowercase_output_label_names }}
+autoExcludeObjectNameAttributes: {{ prom_jmx_exporter_config.auto_exclude_object_name_attributes }}
+
+includeObjectNames:
+{% for object_name in prom_jmx_exporter_config.include_object_names %}
+  - "{{ object_name }}"
+{% endfor %}
+
+# The specific list of scheduled objects for Pollerd and Collectd are not exposed to Prometheus.
+excludeObjectNameAttributes:
+  "OpenNMS:Name=Pollerd":
+    - "Schedule"
+  "OpenNMS:Name=Collectd":
+    - "Schedule"
+
+rules:
+  - pattern: "OpenNMS.*"
+  - pattern: "org.opennms.*"
+  - pattern: "com.zaxxer.hikari.*"
+  - pattern: "org.opennms.core.ipc.rpc<name=([^.,]*).([^.,]*).([^.,]*).*Count*"
+    name: org_opennms_core_ipc_rpc_count
+    labels:
+      destination: $1
+      type: $2
+      metric: $3
+  - pattern: "org.opennms.core.ipc.rpc<name=([^.,]*).([^.,]*).([^.,]*).*Mean*"
+    name: org_opennms_core_ipc_rpc_mean
+    labels:
+      destination: $1
+      type: $2
+      metric: $3

@@ -1,0 +1,31 @@
+---
+- name: Create JMX Prometheus home directory
+  ansible.builtin.file:
+    path: "{{ prom_jmx_exporter_home }}"
+    state: directory
+    owner: "{{ prom_jmx_exporter_owner }}"
+    group: "{{ prom_jmx_exporter_group }}"
+    mode: "0750"
+  tags:
+    - "jmx-prometheus-exporter"
+
+- name: Installing JMX Prometheus Exporter
+  ansible.builtin.get_url:
+    url: "{{ prom_jmx_exporter_url }}"
+    dest: "{{ prom_jmx_exporter_home }}/jmx_prometheus_javaagent.jar"
+    checksum: "{{ prom_jmx_exporter_sha256 }}"
+    owner: "{{ prom_jmx_exporter_owner }}"
+    group: "{{ prom_jmx_exporter_group }}"
+    mode: "0640"
+  tags:
+    - "jmx-prometheus-exporter"
+
+- name: Create JMX Prometheus Exporter configuration
+  ansible.builtin.template:
+    src: config.yml.j2
+    dest: "{{ prom_jmx_exporter_home }}/config.yaml"
+    owner: "{{ prom_jmx_exporter_owner }}"
+    group: "{{ prom_jmx_exporter_group }}"
+    mode: "0640"
+  tags:
+    - "jmx-prometheus-exporter"

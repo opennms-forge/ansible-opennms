@@ -3,8 +3,6 @@ opennms_distribution: Horizon
 opennms_version: 33.1.8
 opennms_pkg_version: "{{ opennms_version }}*"
 
-opennms_plugin_cloud_version: 1
-opennms_plugin_cloud_pkg_version: "{{ opennms_plugin_cloud_version }}.*"
 opennms_home: /usr/share/opennms
 opennms_message_broker: none
 
@@ -23,7 +21,6 @@ opennms_pkgs:
   - "opennms-server={{ opennms_pkg_version }}"
   - "opennms-webapp-jetty={{ opennms_pkg_version }}"
   - "opennms-webapp-hawtio={{ opennms_pkg_version }}"
-  - "opennms-plugin-cloud={{ opennms_plugin_cloud_pkg_version }}"
 
 opennms_tool_deps:
   - "rrdtool={{ rrdtool_pkg_version }}"

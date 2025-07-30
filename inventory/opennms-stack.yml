@@ -23,7 +23,7 @@ all:
           hosts:
             core-srv:
               ansible_host: 192.168.10.38
-        message-broker:
+        message_broker:
           hosts:
             core-srv:
               ansible_host: 192.168.10.38
