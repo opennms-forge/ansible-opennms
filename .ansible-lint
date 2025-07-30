@@ -2,3 +2,7 @@
 # .ansible-lint
 
 profile: basic
+
+skip_list:
+  - yaml[line-length]
+
