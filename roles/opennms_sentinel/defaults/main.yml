@@ -1,6 +1,6 @@
 ---
 opennms_distribution: Horizon
-opennms_version: 33.1.8
+opennms_version: 34.0.0
 opennms_pkg_version: "{{ opennms_version }}*"
 opennms_sentinel_home: /usr/share/sentinel
 

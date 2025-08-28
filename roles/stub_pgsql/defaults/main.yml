@@ -1,5 +1,6 @@
 ---
 pgsql_key_url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+pgsql_key_sha256: 0144068502a1eddd2a0280ede10ef607d1ec592ce819940991203941564e8e76
 pgsql_key_ring_file: /usr/share/keyrings/pgsql-keyring.gpg
 pgsql_repo_url: https://apt.postgresql.org/pub/repos/apt
 arch: amd64

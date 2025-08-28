@@ -4,9 +4,7 @@
 arch: amd64
 
 opennms_key_url: https://packages.opennms.com/public/stable/gpg.697677243260D071.key
-opennms_key_ring_file: /usr/share/keyrings/opennms-stable-archive-keyring.gpg
+opennms_key_sha256: f2396a3fdf52777892c5bf72839f7cd81bd026b3a26a920438c7f9a1e4f1b19b
+opennms_key_ring_file: /usr/share/keyrings/opennms-stable-keyring.gpg
 opennms_repo_url: https://packages.opennms.com/public/stable/deb/ubuntu
-
-opennms_common_key_url: https://packages.opennms.com/public/common/gpg.697677243260D071.key
-opennms_common_key_ring_file: /usr/share/keyrings/opennms-common-archive-keyring.gpg
 opennms_common_repo_url: https://packages.opennms.com/public/common/deb/ubuntu
