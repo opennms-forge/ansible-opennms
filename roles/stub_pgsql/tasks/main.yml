@@ -12,10 +12,23 @@
   ansible.builtin.include_role:
     name: opennms_repositories
 
-- name: Add PostgreSQL signing key to a keyring file
-  ansible.builtin.apt_key:
+- name: Download PostgreSQL repository key
+  ansible.builtin.get_url:
     url: "{{ pgsql_key_url }}"
-    keyring: "{{ pgsql_key_ring_file }}"
+    dest: /tmp/gpg.ACCC4CF8.key
+    mode: "0644"
+    checksum: "sha256:{{ pgsql_key_sha256 }}"
+  tags:
+    - opennms
+    - postgresql
+    - repository
+
+- name: Convert the PostgreSQL repository key to GPG format
+  ansible.builtin.command: "gpg --dearmor -o {{ pgsql_key_ring_file }} /tmp/gpg.ACCC4CF8.key"
+  args:
+    creates: "{{ pgsql_key_ring_file }}"
+  register: pgsql_key_ring
+  changed_when: pgsql_key_ring.rc != 0
   tags:
     - opennms
     - postgresql

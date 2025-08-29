@@ -5,7 +5,6 @@
     state: present
     install_recommends: false
   tags:
-    - opennms
     - java
 
 - name: Set java version to OpenJDK {{ openjdk_version }}
@@ -13,5 +12,4 @@
     name: java
     path: /usr/lib/jvm/java-{{ openjdk_version }}-openjdk-amd64/bin/java
   tags:
-    - opennms
     - java

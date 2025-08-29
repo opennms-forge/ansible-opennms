@@ -1,7 +1,7 @@
 ---
 all:
   children:
-    opennms-stack:
+    opennms_stack:
       children:
         database:
           hosts:

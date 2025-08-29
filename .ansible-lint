@@ -1,8 +1,7 @@
 ---
-# .ansible-lint
-
-profile: basic
+profile: production
 
 skip_list:
   - yaml[line-length]
-
+  - var-naming[no-role-prefix]
+  - no-changed-when

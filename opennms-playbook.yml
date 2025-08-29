@@ -1,5 +1,4 @@
-## file: opennms-playbook.yml
-
+---
 - name: Manage PostgreSQL database
   hosts: database
   become: true
@@ -34,8 +33,8 @@
   hosts: core
   become: true
   roles:
-    - opennms_core
     - prom_jmx_exporter
+    - opennms_core
 
 - name: Manage OpenNMS Horizon Minion
   hosts: minion

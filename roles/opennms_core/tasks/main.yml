@@ -20,11 +20,12 @@
   register: java_conf
 
 - name: Configure Java runtime environment
+  become: true
   become_user: opennms
   ansible.builtin.command: "{{ opennms_home }}/bin/runjava -s"
   changed_when: java_conf
   tags:
-    - opennms
+    - core
     - initialize
 
 - name: Include tasks to setup the database
@@ -42,7 +43,7 @@
     name: opennms.service
     enabled: true
   tags:
-    - opennms
+    - core
     - systemd
 
 - name: Start systemd unit for OpenNMS {{ opennms_distribution }}
@@ -52,8 +53,20 @@
   when:
     - skip_startup | default("false") == "false"
   tags:
-    - opennms
+    - core
     - systemd
+
+- name: Check if UFW is installed
+  ansible.builtin.command: which ufw
+  register: ufw_binary_check
+  ignore_errors: true
+  tags:
+    - core
+    - firwall
 
 - name: Include tasks to configure Firewall rules
   ansible.builtin.include_tasks: 50-firewall.yml
+  when: ufw_binary_check.rc == 0
+  tags:
+    - core
+    - firwall
