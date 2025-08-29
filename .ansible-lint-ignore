@@ -1,2 +1,0 @@
-# created by 'IntelliJ Ansible Lint Plugin'
-roles/prom_jmx_exporter/defaults/main.yml yaml[line-length]

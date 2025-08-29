@@ -12,7 +12,8 @@
     - opennms
     - initialize
 
-- name: Initialize secure vault with database postgres credentials
+- name: Initialize secure vault with database postgres credential
+  become: true
   become_user: opennms
   ansible.builtin.command: "{{ opennms_home }}/bin/scvcli set postgres-admin {{ postgres_user }} {{ postgres_password }}"
   register: scv_postgres_admin
@@ -23,6 +24,7 @@
     - credentials
 
 - name: Initialize secure vault with database OpenNMS credentials
+  become: true
   become_user: opennms
   ansible.builtin.command: "{{ opennms_home }}/bin/scvcli set postgres {{ opennms_datasource_db_user }} {{ opennms_datasource_db_password }}"
   register: scv_postgres_opennms
@@ -38,6 +40,7 @@
   register: initialized_schema
 
 - name: Initialize database schema
+  become: true
   become_user: opennms
   ansible.builtin.command: "{{ opennms_home }}/bin/install -dis"
   register: database_init

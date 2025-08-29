@@ -20,6 +20,7 @@
   register: java_conf
 
 - name: Configure Java runtime environment
+  become: true
   become_user: opennms
   ansible.builtin.command: "{{ opennms_home }}/bin/runjava -s"
   changed_when: java_conf
@@ -56,9 +57,9 @@
     - systemd
 
 - name: Check if UFW is installed
-  command: which ufw
+  ansible.builtin.command: which ufw
   register: ufw_binary_check
-  ignore_errors: yes
+  ignore_errors: true
   tags:
     - core
     - firwall

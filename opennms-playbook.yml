@@ -1,5 +1,4 @@
-## file: opennms-playbook.yml
-
+---
 - name: Manage PostgreSQL database
   hosts: database
   become: true
