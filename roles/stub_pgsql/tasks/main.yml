@@ -158,7 +158,7 @@
   become: true
   become_user: postgres
   community.postgresql.postgresql_query:
-    db: "{{ opennms_datasource_db_name }}"
+    login_db: "{{ opennms_datasource_db_name }}"
     # yamllint disable-line rule:line-length
     query: "CREATE OR REPLACE FUNCTION iplike(i_ipaddress text,i_rule text) RETURNS bool AS '/usr/lib/postgresql/{{ pg_version }}/lib/iplike.so' LANGUAGE 'c' RETURNS NULL ON NULL INPUT;"
   tags:
