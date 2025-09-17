@@ -1,6 +1,6 @@
 ---
 opennms_distribution: Horizon
-opennms_version: 34.0.0
+opennms_version: 34.0.1
 opennms_pkg_version: "{{ opennms_version }}*"
 opennms_minion_home: "/usr/share/minion"
 
