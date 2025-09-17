@@ -23,7 +23,7 @@
   become: true
   become_user: opennms
   ansible.builtin.command: "{{ opennms_home }}/bin/runjava -s"
-  changed_when: java_conf
+  changed_when: java_conf.changed
   tags:
     - core
     - initialize

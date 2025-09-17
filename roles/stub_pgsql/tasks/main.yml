@@ -2,7 +2,7 @@
 - name: Verify Ansible version
   ansible.builtin.assert:
     that:
-      - "'{{ ansible_version.full }}' is version('2.11.0', '>=', version_type='semver')"
+      - ansible_version.full is version('2.11.0', '>=', version_type='semver')
     fail_msg: "You need at least Ansible 2.11 or greater to run these tasks. Your Ansible version is {{ ansible_version.full }}."
   tags:
     - dependency
@@ -104,9 +104,10 @@
     - postgresql
 
 - name: Set SCRAM-SHA-256 password encryption
+  become: true
   become_user: postgres
-  community.postgresql.postgresql_set:
-    name: password_encryption
+  community.postgresql.postgresql_alter_system:
+    param: password_encryption
     value: scram-sha-256
   notify:
     - Restart postgresql
@@ -117,9 +118,10 @@
     - credentials
 
 - name: Set postgres admin password
+  become: true
   become_user: postgres
   community.postgresql.postgresql_query:
-    db: postgres
+    login_db: postgres
     query: "ALTER USER {{ postgres_user }} WITH PASSWORD '{{ postgres_password }}';"
   tags:
     - opennms
@@ -128,6 +130,7 @@
     - credentials
 
 - name: Create OpenNMS database user {{ opennms_datasource_db_user }}
+  become: true
   become_user: postgres
   community.postgresql.postgresql_user:
     state: present
@@ -140,6 +143,7 @@
     - database
 
 - name: Create OpenNMS database {{ opennms_datasource_db_name }}
+  become: true
   become_user: postgres
   community.postgresql.postgresql_db:
     name: "{{ opennms_datasource_db_name }}"
@@ -151,6 +155,7 @@
     - database
 
 - name: Install iplike stored procedure in OpenNMS database
+  become: true
   become_user: postgres
   community.postgresql.postgresql_query:
     db: "{{ opennms_datasource_db_name }}"
