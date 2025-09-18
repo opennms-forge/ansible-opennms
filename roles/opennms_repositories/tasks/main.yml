@@ -30,7 +30,7 @@
 
 - name: Install OpenNMS APT commons repository
   ansible.builtin.apt_repository:
-    repo: "deb [arch={{ arch }} signed-by={{ opennms_common_key_ring_file }}] {{ opennms_common_repo_url }} {{ ansible_distribution_release }} main"
+    repo: "deb [arch={{ arch }} signed-by={{ opennms_key_ring_file }}] {{ opennms_common_repo_url }} {{ ansible_distribution_release }} main"
     state: present
     update_cache: true
   tags:
