@@ -21,6 +21,22 @@
     state: present
     shell: /bin/false
 
+- name: Create Kafka app directory
+  ansible.builtin.file:
+    path: /opt/kafka_{{ scala_version }}-{{ kafka_version }}
+    state: directory
+    mode: '0755'
+    owner: "{{ kafka_user }}"
+    group: "{{ kafka_group }}"
+
+- name: Create Kafka config directory
+  ansible.builtin.file:
+    path: /opt/kafka_{{ scala_version }}-{{ kafka_version }}/config/kraft
+    state: directory
+    mode: '0755'
+    owner: "{{ kafka_user }}"
+    group: "{{ kafka_group }}"
+
 - name: Extract Kafka binary
   ansible.builtin.unarchive:
     src: "{{ kafka_url }}"
