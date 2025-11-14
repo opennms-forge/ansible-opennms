@@ -33,7 +33,6 @@
   hosts: core
   become: true
   roles:
-    - prom_jmx_exporter
     - opennms_core
 
 - name: Manage OpenNMS Horizon Minion

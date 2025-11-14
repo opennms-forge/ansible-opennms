@@ -1,6 +1,6 @@
 ---
 opennms_distribution: Horizon
-opennms_version: 34.0.1
+opennms_version: 34.1.0
 opennms_pkg_version: "{{ opennms_version }}*"
 
 opennms_home: /usr/share/opennms
@@ -14,6 +14,26 @@ rrdtool_pkg_version: "{{ rrdtool_version }}.*"
 
 iplike_version: 2
 iplike_pkg_version: "{{ iplike_version }}.*"
+
+prom_jmx_exporter_owner: opennms
+prom_jmx_exporter_group: opennms
+prom_jmx_exporter_version: 1.4.0
+prom_jmx_exporter_url: "https://github.com/prometheus/jmx_exporter/releases/download/{{ prom_jmx_exporter_version }}/jmx_prometheus_javaagent-{{ prom_jmx_exporter_version }}.jar"
+prom_jmx_exporter_sha256: sha256:db1492e95a7ee95cd5e0a969875c0d4f0ef6413148d750351a41cc71d775f59a
+prom_jmx_exporter_home: /opt/prom-jmx-exporter
+prom_jmx_exporter_config:
+  start_delay_seconds: 0
+  lowercase_output_name: true
+  lowercase_output_label_names: true
+  auto_exclude_object_name_attributes: true
+  include_object_names:
+    - "java.lang:*"
+    - "OpenNMS:*"
+    - "org.opennms.*:*"
+    - "org.opennms.newts:name=ring-buffer*"
+    - "org.opennms.newts:name=repository.samples-inserted*"
+    - "org.opennms.core.ipc.rpc:*"
+
 
 opennms_pkgs:
   - "jrrd2={{ jrrd2_pkg_version }}"
