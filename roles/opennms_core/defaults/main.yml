@@ -33,7 +33,7 @@ prom_jmx_exporter_config:
     - "org.opennms.newts:name=ring-buffer*"
     - "org.opennms.newts:name=repository.samples-inserted*"
     - "org.opennms.core.ipc.rpc:*"
-
+    - "com.zaxxer.hikari:*"
 
 opennms_pkgs:
   - "jrrd2={{ jrrd2_pkg_version }}"
