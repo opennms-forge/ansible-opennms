@@ -24,6 +24,7 @@ rules:
   - pattern: "org.opennms.core.ipc.rpc<name=([^.,]*).([^.,]*).([^.,]*).*Count*"
     name: org_opennms_core_ipc_rpc_count
     labels:
+
       destination: $1
       type: $2
       metric: $3
