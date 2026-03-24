@@ -1,16 +1,16 @@
 ---
 - name: "Set Time Zone to {{ timezone }}"
-  timezone:
+  community.general.timezone:
     name: "{{ timezone }}"
 
 - name: Update APT cache
   ansible.builtin.apt:
-    update_cache: yes
+    update_cache: true
     cache_valid_time: 3600
 
 - name: "Install dependencies"
-  tags: [ "system", "tools" ]
-  apt:
+  tags: ["system", "tools"]
+  ansible.builtin.apt:
     pkg:
       - acl
       - apt-listchanges
