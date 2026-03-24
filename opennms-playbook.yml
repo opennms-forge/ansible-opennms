@@ -3,46 +3,54 @@
   hosts: database
   become: true
   roles:
+    - common
     - stub_pgsql
 
 - name: Manage Message broker
   hosts: message_broker
   become: true
   roles:
+    - common
     - stub_kafka
 
 - name: Manage Elasticsearch
   hosts: elasticsearch
   become: true
   roles:
+    - common
     - stub_elasticsearch
 
 - name: Manage Mimir
   hosts: mimir
   become: true
   roles:
+    - common
     - stub_mimir
 
 - name: Manage Grafana
   hosts: grafana
   become: true
   roles:
+    - common
     - stub_grafana
 
 - name: Manage OpenNMS Horizon Core system
   hosts: core
   become: true
   roles:
+    - common
     - opennms_core
 
 - name: Manage OpenNMS Horizon Minion
   hosts: minion
   become: true
   roles:
+    - common
     - opennms_minion
 
 - name: Manage OpenNMS Horizon Sentinel
   hosts: sentinel
   become: true
   roles:
+    - common
     - opennms_sentinel
