@@ -8,11 +8,14 @@ on:
 jobs:
   ansible-lint:
     runs-on: ubuntu-latest
-    container:
-      image: quay.io/labmonkeys/vmbuilder:1.9.3.b66
     steps:
-      - uses: actions/checkout@v4
-      - name: Add workspace to git safe.directory
-        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
-      - name: Run ansible lint
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: '3.13'
+      - name: Install Ansible and ansible-lint
+        run: pip install ansible-core==2.20.4 ansible-lint==26.3.0
+      - name: Install Ansible collections
+        run: ansible-galaxy collection install -r requirements.yml
+      - name: Run ansible-lint
         run: ansible-lint
