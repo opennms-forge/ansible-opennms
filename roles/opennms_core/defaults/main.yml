@@ -97,3 +97,20 @@ opennms_properties_message_broker:
   org.opennms.core.ipc.strategy: kafka
   org.opennms.core.ipc.sink.initialSleepTime: 60000
   org.opennms.core.ipc.kafka.bootstrap.servers: localhost:9092
+
+opennms_properties_webapp:
+  opennms.web.base-url: http://%x%c/
+  #org.opennms.netmgt.jetty.host: 0.0.0.0
+  org.opennms.netmgt.jetty.port: 8980
+  #org.opennms.netmgt.jetty.https-keystore: /opt/opennms/etc/jetty.keystore
+  #org.opennms.netmgt.jetty.https-keystorepassword: changeit
+  #org.opennms.netmgt.jetty.https-keypassword: changeit
+  #org.opennms.netmgt.jetty.https-host: 127.0.0.1
+  #org.opennms.netmgt.jetty.https-port: 8443
+  #rg.opennms.netmgt.jetty.ajp-port: 8981
+  #org.opennms.netmgt.jetty.sendServerVersion: false
+  #org.opennms.netmgt.jetty.enableRequestLogging: false
+  #org.opennms.netmgt.jetty.requestHeaderSize: 4000
+  #org.eclipse.jetty.server.Request.maxFormKeys: 2000
+  #org.eclipse.jetty.server.Request.maxFormContentSize: 200000
+  #org.opennms.netmgt.jetty.relativeRedirectAllowed=true

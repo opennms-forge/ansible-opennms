@@ -13,6 +13,21 @@
     - opennms
     - configuration
 
+- name: Configure webapp for OpenNMS {{ opennms_distribution }}
+  ansible.builtin.template:
+    src: etc/opennms.properties.d/_ansible.webapp.properties.j2
+    dest: "{{ opennms_home }}/etc/opennms.properties.d/_ansible.webapp.properties"
+    owner: opennms
+    group: opennms
+    mode: "0640"
+  with_dict: "{{ opennms_properties_webapp }}"
+  notify:
+    - Restart opennms
+  tags:
+    - opennms
+    - configuration
+    - webapp
+
 - name: Configure OpenNMS Java Virtual Machine
   ansible.builtin.template:
     src: etc/opennms.conf.j2
