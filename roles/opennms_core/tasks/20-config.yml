@@ -20,7 +20,7 @@
     owner: opennms
     group: opennms
     mode: "0640"
-  with_dict: "{{ opennms_properties_webapp }}"
+  when: opennms_properties_webapp is defined and opennms_properties_webapp | length > 0
   notify:
     - Restart opennms
   tags:

@@ -107,7 +107,7 @@ opennms_properties_webapp:
   # org.opennms.netmgt.jetty.https-keypassword: changeit
   # org.opennms.netmgt.jetty.https-host: 127.0.0.1
   # org.opennms.netmgt.jetty.https-port: 8443
-  # rg.opennms.netmgt.jetty.ajp-port: 8981
+  # org.opennms.netmgt.jetty.ajp-port: 8981
   # org.opennms.netmgt.jetty.sendServerVersion: false
   # org.opennms.netmgt.jetty.enableRequestLogging: false
   # org.opennms.netmgt.jetty.requestHeaderSize: 4000

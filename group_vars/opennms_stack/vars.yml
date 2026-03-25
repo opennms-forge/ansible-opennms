@@ -72,6 +72,9 @@
 #  "log.retention.check.interval.ms": 300000
 #  "log.dirs": /var/log/kafka/combined-logs
 
+# If you need set any of these settings here, you need to pull the whole dictionary from the opennms_core defaults
+# We don't combine the dictionary here with the defaults
+# See: https://github.com/opennms-forge/ansible-opennms/issues/4
 # opennms_properties_webapp:
   # opennms.web.base-url: http://%x%c/
   # org.opennms.netmgt.jetty.host: 0.0.0.0
@@ -81,7 +84,7 @@
   # org.opennms.netmgt.jetty.https-keypassword: changeit
   # org.opennms.netmgt.jetty.https-host: 127.0.0.1
   # org.opennms.netmgt.jetty.https-port: 8443
-  # rg.opennms.netmgt.jetty.ajp-port: 8981
+  # org.opennms.netmgt.jetty.ajp-port: 8981
   # org.opennms.netmgt.jetty.sendServerVersion: false
   # org.opennms.netmgt.jetty.enableRequestLogging: false
   # org.opennms.netmgt.jetty.requestHeaderSize: 4000
