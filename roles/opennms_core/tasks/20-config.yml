@@ -21,6 +21,7 @@
     group: opennms
     mode: "0640"
   when: opennms_properties_webapp is defined and opennms_properties_webapp | length > 0
+  no_log: true
   notify:
     - Restart opennms
   tags:
