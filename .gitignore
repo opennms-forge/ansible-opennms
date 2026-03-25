@@ -1,2 +1,5 @@
 .idea/
 *.iml
+.claude/
+_bmad/
+_bmad-output/
