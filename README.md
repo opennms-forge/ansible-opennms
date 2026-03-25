@@ -1,3 +1,5 @@
+![Alt](https://repobeats.axiom.co/api/embed/f81f303e61554ad2e9f66b54cc8e847e593984f8.svg "Repobeats analytics image")
+
 # 🚀 Deployment of OpenNMS with Ansible ✨
 
 Encoding your infrastructure using Ansible is widely adopted.
