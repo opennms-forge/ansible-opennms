@@ -8,6 +8,17 @@ Ansible collection for deploying OpenNMS Horizon monitoring infrastructure on De
 
 **Design constraint**: Roles only configure system-level files, not settings modifiable via web UI or APIs.
 
+## Git Workflow
+
+**Never push directly to `main`.** All changes must go through a feature branch and Pull Request for review.
+
+```bash
+# Create a branch, make changes, then open a PR
+git checkout -b <type>/<short-description>
+# ... make changes, commit ...
+gh pr create
+```
+
 ## Git Commits
 
 Follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/). Format: `<type>[optional scope]: <description>`. Common types: `feat`, `fix`, `docs`, `refactor`, `ci`, `chore`. Breaking changes use `!` after the type (e.g., `feat!:`) or a `BREAKING CHANGE:` footer.
