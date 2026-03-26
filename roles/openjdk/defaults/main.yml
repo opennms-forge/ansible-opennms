@@ -1,0 +1,3 @@
+---
+openjdk_version: 17
+openjdk_pkg_version: "{{ openjdk_version }}*"

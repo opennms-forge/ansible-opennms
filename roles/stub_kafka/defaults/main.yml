@@ -9,7 +9,7 @@ kafka_group: kafka
 kafka_log_dir: /var/log/kafka/combined-logs
 
 # Kafka requires an OpenJDK 8+
-openjdk_version: 17
+openjdk_version: 21
 openjdk_pkg_version: "{{ openjdk_version }}*"
 
 kafka_server_properties:
