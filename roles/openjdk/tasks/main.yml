@@ -1,5 +1,5 @@
 ---
-- name: Installing OpenJDK {{ openjdk_version }}
+- name: Installing OpenJDK JDK
   ansible.builtin.apt:
     name: "openjdk-{{ openjdk_version }}-jdk-headless={{ openjdk_pkg_version }}"
     state: present
@@ -7,7 +7,7 @@
   tags:
     - java
 
-- name: Set java version to OpenJDK {{ openjdk_version }}
+- name: Set OpenJDK default java version
   community.general.alternatives:
     name: java
     path: /usr/lib/jvm/java-{{ openjdk_version }}-openjdk-amd64/bin/java
