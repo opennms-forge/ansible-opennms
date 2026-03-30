@@ -6,7 +6,7 @@
     owner: grafana
     group: grafana
     mode: "0640"
-  notify: Restart grafana
+  notify: restart_grafana
   tags:
     - grafana
     - plugin
