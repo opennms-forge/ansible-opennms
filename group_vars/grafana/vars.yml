@@ -1,6 +1,7 @@
 ---
-# Grafana version — matches the previous stub_grafana default
-grafana_version: "12.*"
+# Grafana version — must be an exact version string or "latest"
+# grafana.grafana collection constructs the apt package as grafana=<version>
+grafana_version: "12.4.2"
 
 # Repo management is handled automatically by the collection
 grafana_manage_repo: true
@@ -20,22 +21,20 @@ opennms_datasource_db_name: opennms_horizon
 opennms_datasource_db_user: opennms
 opennms_datasource_db_password: p4a55word!  # TODO: move to vault
 
-# OpenNMS Grafana app plugin
+# Plugins — grafana.grafana.grafana installs these via grafana-cli
+# NOTE: the collection has no variable for enabling/configuring app plugins.
+# The opennms-opennms-app will be installed but enabling it requires a
+# separate provisioning file under /etc/grafana/provisioning/plugins/.
 grafana_plugins:
   - opennms-opennms-app
-
-# App provisioning — enables the OpenNMS app in the Main Org
-grafana_app_conf:
-  - name: opennms-opennms-app
-    org_name: Main Org.
-    enabled: true
 
 # Datasources — translated from stub_grafana templates/datasources/opennms-horizon.yml.j2
 grafana_datasources:
   - name: OpenNMS Performance
     type: opennms-performance-datasource
+    orgId: 1
     access: proxy
-    url: "{{ onms_hzn_rest_url }}/"
+    url: "{{ onms_hzn_rest_url }}"
     isDefault: true
     basicAuth: true
     basicAuthUser: admin
@@ -44,8 +43,9 @@ grafana_datasources:
 
   - name: OpenNMS Entity
     type: opennms-entity-datasource
+    orgId: 1
     access: proxy
-    url: "{{ onms_hzn_rest_url }}/"
+    url: "{{ onms_hzn_rest_url }}"
     basicAuth: true
     basicAuthUser: admin
     secureJsonData:
@@ -53,8 +53,9 @@ grafana_datasources:
 
   - name: OpenNMS Flow
     type: opennms-flow-datasource
+    orgId: 1
     access: proxy
-    url: "{{ onms_hzn_rest_url }}/"
+    url: "{{ onms_hzn_rest_url }}"
     basicAuth: true
     basicAuthUser: admin
     secureJsonData:
@@ -62,6 +63,7 @@ grafana_datasources:
 
   - name: postgres
     type: postgres
+    orgId: 1
     access: proxy
     url: "{{ opennms_datasource_db_host }}:{{ opennms_datasource_db_port }}"
     database: "{{ opennms_datasource_db_name }}"
@@ -69,7 +71,7 @@ grafana_datasources:
     secureJsonData:
       password: "{{ opennms_datasource_db_password }}"
     jsonData:
-      postgresVersion: 1200
+      postgresVersion: 1500
       sslmode: disable
       tlsAuth: false
       tlsSkipVerify: true

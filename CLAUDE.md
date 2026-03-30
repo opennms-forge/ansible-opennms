@@ -98,7 +98,7 @@ Templates for OpenNMS config go in `roles/opennms_core/templates/etc/opennms.pro
 External collections (`requirements.yml`):
 - `community.postgresql` v4.2.0 — used by `stub_pgsql` and `opennms_core` for database setup
 - `community.general` v12.5.0 — general utilities
-- `grafana.grafana` v5.7.0 — Grafana installation and provisioning
+- `grafana.grafana` v6.0.6 — Grafana installation and provisioning
 
 ## Key Versions
 
