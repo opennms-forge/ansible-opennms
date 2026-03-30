@@ -2,7 +2,6 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:recommended"],
   "schedule": ["before 6am on monday"],
-  "labels": ["dependencies"],
   "packageRules": [
     {
       "matchManagers": ["ansible-galaxy"],
@@ -12,8 +11,16 @@
     },
     {
       "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["minor", "patch"],
       "groupName": "github actions",
       "automerge": true,
+      "labels": ["dependencies", "ci"]
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["major"],
+      "groupName": "github actions (major)",
+      "automerge": false,
       "labels": ["dependencies", "ci"]
     }
   ]
