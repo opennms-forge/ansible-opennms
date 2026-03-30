@@ -32,7 +32,7 @@
   become: true
   roles:
     - common
-    - stub_grafana
+    - grafana.grafana.grafana
 
 - name: Manage OpenNMS Horizon Core system
   hosts: core

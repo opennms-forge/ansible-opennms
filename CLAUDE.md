@@ -68,8 +68,10 @@ ansible-playbook -i inventory/opennms-stack.yml hzn-sentinel-deployment.yml
 - `stub_pgsql` — PostgreSQL 15 with OpenNMS database/user
 - `stub_kafka` — Kafka 4.2.0 in KRaft mode
 - `stub_elasticsearch` — Elasticsearch for flow data
-- `stub_grafana` — Grafana 12
 - `stub_mimir` — Grafana Mimir 3.0.4
+
+**External collection roles** (replacing stubs where mature alternatives exist):
+- `grafana.grafana.grafana` — Grafana 12.x (replaces `stub_grafana`); configured via `group_vars/grafana/vars.yml`
 
 ### Inventory & Variables
 
@@ -96,6 +98,7 @@ Templates for OpenNMS config go in `roles/opennms_core/templates/etc/opennms.pro
 External collections (`requirements.yml`):
 - `community.postgresql` v4.2.0 — used by `stub_pgsql` and `opennms_core` for database setup
 - `community.general` v12.5.0 — general utilities
+- `grafana.grafana` v5.7.0 — Grafana installation and provisioning
 
 ## Key Versions
 
