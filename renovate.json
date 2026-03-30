@@ -1,0 +1,20 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "schedule": ["before 6am on monday"],
+  "labels": ["dependencies"],
+  "packageRules": [
+    {
+      "matchManagers": ["ansible-galaxy"],
+      "groupName": "ansible-galaxy collections",
+      "automerge": false,
+      "labels": ["dependencies", "ansible"]
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "github actions",
+      "automerge": true,
+      "labels": ["dependencies", "ci"]
+    }
+  ]
+}
