@@ -33,6 +33,7 @@
   roles:
     - common
     - grafana.grafana.grafana
+    - grafana_provisioning
 
 - name: Manage OpenNMS Horizon Core system
   hosts: core
