@@ -72,6 +72,7 @@ ansible-playbook -i inventory/opennms-stack.yml hzn-sentinel-deployment.yml
 
 **External collection roles** (replacing stubs where mature alternatives exist):
 - `grafana.grafana.grafana` — Grafana 12.x (replaces `stub_grafana`); configured via `group_vars/grafana/vars.yml`
+- `grafana_provisioning` — Drops the `opennms-opennms-app` plugin provisioning file; runs after `grafana.grafana.grafana` since the collection installs the plugin but does not enable it
 
 ### Inventory & Variables
 

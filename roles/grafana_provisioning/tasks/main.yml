@@ -1,0 +1,12 @@
+---
+- name: Enable opennms-opennms-app plugin
+  ansible.builtin.copy:
+    src: plugins/opennms-app.yml
+    dest: /etc/grafana/provisioning/plugins/opennms-app.yml
+    owner: grafana
+    group: grafana
+    mode: "0640"
+  notify: Restart grafana
+  tags:
+    - grafana
+    - plugin
