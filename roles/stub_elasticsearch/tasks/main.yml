@@ -17,9 +17,10 @@
     - repository
 
 - name: Install Elasticsearch {{ es_version }}
-  ansible.builtin.package:
+  ansible.builtin.apt:
     name: elasticsearch={{ es_pkg_version }}
     state: present
+    allow_downgrade: true
   tags:
     - elasticsearch
 
