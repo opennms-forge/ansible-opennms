@@ -25,4 +25,6 @@ es_configuration:
   path.data: /var/lib/elasticsearch
   path.logs: /var/log/elasticsearch
   xpack.security.enabled: 'false'
+  xpack.security.http.ssl.enabled: 'false'
+  xpack.security.transport.ssl.enabled: 'false'
 es_jvm_options: {}
