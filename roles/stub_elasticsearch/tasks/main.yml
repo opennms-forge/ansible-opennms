@@ -58,7 +58,6 @@
     owner: root
     group: elasticsearch
     mode: '0644'
-  with_dict: "{{ es_configuration }}"
   notify:
     - Restart elasticsearch
   tags:
@@ -72,7 +71,7 @@
     owner: root
     group: elasticsearch
     mode: '0644'
-  with_dict: "{{ es_jvm_options }}"
+  when: es_jvm_options | length > 0
   notify:
     - Restart elasticsearch
   tags:
