@@ -82,7 +82,17 @@
 #
 #   opennms_elastic_flows:
 #     elasticUrl: http://elasticsearch-host:9200
+#     globalElasticUser: elastic
+#     globalElasticPassword: changeme
 #     elasticIndexStrategy: monthly
+#     maxFlowDurationMs: 120000
+#     bulkSize: 1000
+#     bulkRetryCount: 5
+#     bulkFlushMs: 500
+#     connTimeout: 5000
+#     readTimeout: 30000
+#     skipElasticsearchPersistence: "false"
+#     useComposableTemplates: "false"
 #
 # Option B: Sentinel(s) handle flow persistence (distributed topology)
 #   Leave Core's opennms_elastic_flows as {} (the default).
@@ -90,10 +100,17 @@
 #
 #   opennms_elastic_flows:
 #     elasticUrl: http://elasticsearch-host:9200
+#     globalElasticUser: elastic
+#     globalElasticPassword: changeme
 #     elasticIndexStrategy: hourly
-#
-# See roles/opennms_core/defaults/main.yml and
-#     roles/opennms_sentinel/defaults/main.yml for the full list of properties.
+#     maxFlowDurationMs: 120000
+#     bulkSize: 1000
+#     bulkRetryCount: 5
+#     bulkFlushMs: 500
+#     connTimeout: 30000
+#     readTimeout: 60000
+#     skipElasticsearchPersistence: "false"
+#     useComposableTemplates: "false"
 
 # If you need set any of these settings here, you need to pull the whole dictionary from the opennms_core defaults
 # We don't combine the dictionary here with the defaults
