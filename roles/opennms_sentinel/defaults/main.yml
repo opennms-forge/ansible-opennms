@@ -22,9 +22,7 @@ opennms_sentinel_distributed_datasource:
 # Do NOT also enable opennms_elastic_flows on Core when Sentinel handles flows.
 # See group_vars/opennms_stack/vars.yml for override examples.
 opennms_elastic_flows:
-  elasticUrl: http://localhost:9200
-  globalElasticUser: ""
-  globalElasticPassword: ""
+  elasticUrl: http://CHANGEME:9200
   elasticIndexStrategy: hourly
   maxFlowDurationMs: 120000
   bulkSize: 1000
@@ -34,7 +32,6 @@ opennms_elastic_flows:
   readTimeout: 60000
   skipElasticsearchPersistence: "false"
   useComposableTemplates: "false"
-  "settings.index.number_of_replicas": 0
 
 opennms_sentinel_controller:
   id: "{{ ansible_facts['machine_id'] if ansible_facts['machine_id'] is defined else inventory_hostname }}"

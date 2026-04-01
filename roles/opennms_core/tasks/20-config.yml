@@ -36,8 +36,20 @@
     owner: opennms
     group: opennms
     mode: "0640"
-  when: opennms_elastic_flows is defined and opennms_elastic_flows | length > 0
+  when: opennms_elastic_flows | length > 0
   no_log: true
+  notify:
+    - Restart opennms
+  tags:
+    - opennms
+    - configuration
+    - elasticsearch
+
+- name: Remove Elasticsearch flow persistence config when not handled by Core
+  ansible.builtin.file:
+    path: "{{ opennms_home }}/etc/org.opennms.features.flows.persistence.elastic.cfg"
+    state: absent
+  when: opennms_elastic_flows | length == 0
   notify:
     - Restart opennms
   tags:

@@ -3,5 +3,7 @@
 # Managed by Ansible
 ######
 {% for (key, value) in opennms_elastic_flows.items() %}
+{% if value != "" %}
 {{ key }}={{ value }}
+{% endif %}
 {% endfor %}
