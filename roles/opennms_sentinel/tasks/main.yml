@@ -27,6 +27,7 @@
     owner: sentinel
     group: sentinel
     mode: '0640'
+  when: opennms_elastic_flows | length > 0
   notify:
     - Restart sentinel
   tags:
@@ -57,13 +58,27 @@
     owner: sentinel
     group: sentinel
     mode: "0640"
-  with_dict: "{{ opennms_sentinel_flow_persistence }}"
+  when: opennms_elastic_flows | length > 0
+  no_log: true
   notify:
     - Restart sentinel
   tags:
     - opennms
     - sentinel
     - configuration
+
+- name: Remove Elasticsearch flow persistence config when not handled by Sentinel
+  ansible.builtin.file:
+    path: "{{ opennms_sentinel_home }}/etc/org.opennms.features.flows.persistence.elastic.cfg"
+    state: absent
+  when: opennms_elastic_flows | length == 0
+  notify:
+    - Restart sentinel
+  tags:
+    - opennms
+    - sentinel
+    - configuration
+    - elasticsearch
 
 - name: Configure the Sentinel controller
   ansible.builtin.template:
