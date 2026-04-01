@@ -57,7 +57,8 @@
     owner: sentinel
     group: sentinel
     mode: "0640"
-  with_dict: "{{ opennms_sentinel_flow_persistence }}"
+  when: opennms_elastic_flows is defined and opennms_elastic_flows | length > 0
+  no_log: true
   notify:
     - Restart sentinel
   tags:

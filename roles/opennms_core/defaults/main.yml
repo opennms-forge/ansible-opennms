@@ -98,19 +98,11 @@ opennms_properties_message_broker:
   org.opennms.core.ipc.sink.initialSleepTime: 60000
   org.opennms.core.ipc.kafka.bootstrap.servers: localhost:9092
 
-opennms_elastic_flows:
-  elasticUrl: http://localhost:9200
-  globalElasticUser: ""
-  globalElasticPassword: ""
-  elasticIndexStrategy: monthly
-  maxFlowDurationMs: 120000
-  bulkSize: 1000
-  bulkRetryCount: 5
-  bulkFlushMs: 500
-  connTimeout: 5000
-  readTimeout: 30000
-  skipElasticsearchPersistence: "false"
-  useComposableTemplates: "false"
+# Elasticsearch flow persistence - disabled by default on Core.
+# Enable when running a single-node stack without Sentinel.
+# Do NOT enable on Core and Sentinel at the same time.
+# See group_vars/opennms_stack/vars.yml for override examples.
+opennms_elastic_flows: {}
 
 opennms_properties_webapp:
   opennms.web.base-url: http://%x%c/

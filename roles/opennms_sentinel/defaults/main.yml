@@ -18,12 +18,23 @@ opennms_sentinel_distributed_datasource:
   "datasource.password": "{{ opennms_datasource_db_password }}"
   "datasource.databaseName": "{{ opennms_datasource_db_name }}"
 
-opennms_sentinel_flow_persistence:
-  elasticUrl: http://elastic-ip:9200
+# Elasticsearch flow persistence - enabled by default on Sentinel.
+# Do NOT also enable opennms_elastic_flows on Core when Sentinel handles flows.
+# See group_vars/opennms_stack/vars.yml for override examples.
+opennms_elastic_flows:
+  elasticUrl: http://localhost:9200
+  globalElasticUser: ""
+  globalElasticPassword: ""
   elasticIndexStrategy: hourly
-  "settings.index.number_of_replicas": 0
+  maxFlowDurationMs: 120000
+  bulkSize: 1000
+  bulkRetryCount: 5
+  bulkFlushMs: 500
   connTimeout: 30000
   readTimeout: 60000
+  skipElasticsearchPersistence: "false"
+  useComposableTemplates: "false"
+  "settings.index.number_of_replicas": 0
 
 opennms_sentinel_controller:
   id: "{{ ansible_facts['machine_id'] if ansible_facts['machine_id'] is defined else inventory_hostname }}"
