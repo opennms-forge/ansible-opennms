@@ -98,6 +98,20 @@ opennms_properties_message_broker:
   org.opennms.core.ipc.sink.initialSleepTime: 60000
   org.opennms.core.ipc.kafka.bootstrap.servers: localhost:9092
 
+opennms_elastic_flows:
+  elasticUrl: http://localhost:9200
+  globalElasticUser: ""
+  globalElasticPassword: ""
+  elasticIndexStrategy: monthly
+  maxFlowDurationMs: 120000
+  bulkSize: 1000
+  bulkRetryCount: 5
+  bulkFlushMs: 500
+  connTimeout: 5000
+  readTimeout: 30000
+  skipElasticsearchPersistence: "false"
+  useComposableTemplates: "false"
+
 opennms_properties_webapp:
   opennms.web.base-url: http://%x%c/
   # org.opennms.netmgt.jetty.host: 0.0.0.0

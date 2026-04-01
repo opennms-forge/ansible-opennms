@@ -29,6 +29,22 @@
     - configuration
     - webapp
 
+- name: Configure Elasticsearch flow persistence for OpenNMS {{ opennms_distribution }}
+  ansible.builtin.template:
+    src: etc/org.opennms.features.flows.persistence.elastic.cfg.j2
+    dest: "{{ opennms_home }}/etc/org.opennms.features.flows.persistence.elastic.cfg"
+    owner: opennms
+    group: opennms
+    mode: "0640"
+  when: opennms_elastic_flows is defined and opennms_elastic_flows | length > 0
+  no_log: true
+  notify:
+    - Restart opennms
+  tags:
+    - opennms
+    - configuration
+    - elasticsearch
+
 - name: Configure OpenNMS Java Virtual Machine
   ansible.builtin.template:
     src: etc/opennms.conf.j2
