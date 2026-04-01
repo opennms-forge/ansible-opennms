@@ -77,8 +77,8 @@
 # Flow data can be persisted by Core (single-node) OR by one or more Sentinels.
 # Enable it on exactly ONE of the two roles - never both.
 #
-# Option A: Core handles flow persistence (single-node, no Sentinel)
-#   Set in group_vars for the Core host group:
+# Core or Sentinel handles flow persistence
+#   Set in group_vars for the Core host group or the Sentinel host group to handle flow persistence.
 #
 #   opennms_elastic_flows:
 #     elasticUrl: http://elasticsearch-host:9200
@@ -91,24 +91,6 @@
 #     bulkFlushMs: 500
 #     connTimeout: 5000
 #     readTimeout: 30000
-#     skipElasticsearchPersistence: "false"
-#     useComposableTemplates: "false"
-#
-# Option B: Sentinel(s) handle flow persistence (distributed topology)
-#   Leave Core's opennms_elastic_flows as {} (the default).
-#   Set in group_vars for the Sentinel host group:
-#
-#   opennms_elastic_flows:
-#     elasticUrl: http://elasticsearch-host:9200
-#     globalElasticUser: elastic
-#     globalElasticPassword: changeme
-#     elasticIndexStrategy: hourly
-#     maxFlowDurationMs: 120000
-#     bulkSize: 1000
-#     bulkRetryCount: 5
-#     bulkFlushMs: 500
-#     connTimeout: 30000
-#     readTimeout: 60000
 #     skipElasticsearchPersistence: "false"
 #     useComposableTemplates: "false"
 
