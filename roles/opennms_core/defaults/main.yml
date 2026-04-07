@@ -1,6 +1,6 @@
 ---
 opennms_distribution: Horizon
-opennms_version: 35.0.4
+opennms_version: 35.0.5
 opennms_pkg_version: "{{ opennms_version }}*"
 
 opennms_home: /opt/opennms
