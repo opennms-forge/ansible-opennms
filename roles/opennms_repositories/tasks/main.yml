@@ -10,7 +10,7 @@
     - repository
 
 - name: Convert the OpenNMS repository key to GPG format
-  ansible.builtin.command: "gpg --dearmor -o /tmp/opennms-repo-keyring.gpg /tmp/opennms-repo.key"
+  ansible.builtin.command: "gpg --batch --yes --dearmor -o /tmp/opennms-repo-keyring.gpg /tmp/opennms-repo.key"
   changed_when: false
   tags:
     - opennms
