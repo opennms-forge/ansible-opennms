@@ -65,7 +65,7 @@ ansible-playbook -i inventory/opennms-stack.yml hzn-sentinel-deployment.yml
 - `opennms_icmp` — ICMP monitoring configuration
 
 **Stub infrastructure roles** (POC/testing only, not production):
-- `stub_pgsql` — PostgreSQL 15 with OpenNMS database/user
+- `stub_pgsql` — PostgreSQL 18 with OpenNMS database/user
 - `stub_kafka` — Kafka 4.2.0 in KRaft mode
 - `stub_elasticsearch` — Elasticsearch for flow data
 - `stub_mimir` — Grafana Mimir 3.0.4
@@ -106,7 +106,7 @@ External collections (`requirements.yml`):
 | Component | Version |
 |-----------|---------|
 | OpenNMS Horizon | 35.0.5 |
-| PostgreSQL | 15 |
+| PostgreSQL | 18 |
 | Kafka | 4.2.0 (KRaft) |
 | OpenJDK | 17 |
 | Grafana | 12.x |
