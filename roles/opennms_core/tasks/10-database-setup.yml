@@ -34,6 +34,18 @@
     - initialize
     - credentials
 
+- name: Configure PostgreSQL version compatibility
+  ansible.builtin.template:
+    src: etc/opennms.properties.d/_ansible.postgres.properties.j2
+    dest: "{{ opennms_home }}/etc/opennms.properties.d/_ansible.postgres.properties"
+    owner: opennms
+    group: opennms
+    mode: "0640"
+  tags:
+    - opennms
+    - initialize
+    - database
+
 - name: Verify if database is already initialized
   ansible.builtin.stat:
     path: "{{ opennms_home }}/etc/configured"
