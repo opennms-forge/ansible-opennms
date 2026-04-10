@@ -51,6 +51,8 @@ opennms_perl_deps:
   - libwww-perl
   - libxml-twig-perl
 
+pg_version: 18
+
 opennms_datasource_db_host: localhost
 opennms_datasource_db_port: 5432
 opennms_datasource_db_name: opennms_horizon
