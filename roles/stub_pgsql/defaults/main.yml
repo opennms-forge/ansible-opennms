@@ -5,7 +5,7 @@ pgsql_key_ring_file: /usr/share/keyrings/pgsql-keyring.gpg
 pgsql_repo_url: https://apt.postgresql.org/pub/repos/apt
 arch: amd64
 # Just the major version for PostgreSQL, used also for iplike installation and setup
-pg_version: 15
+pg_version: 18
 pg_pkg_version: "{{ pg_version }}.*"
 
 # TODO: Need to go into a secure vault
