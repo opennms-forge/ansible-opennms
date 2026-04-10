@@ -2,7 +2,7 @@
 - name: Download OpenNMS repository key
   ansible.builtin.get_url:
     url: "{{ opennms_key_url }}"
-    dest: /tmp/gpg.697677243260D071.key
+    dest: /tmp/opennms-repo.key
     mode: "0644"
     checksum: "sha256:{{ opennms_key_sha256 }}"
   tags:
@@ -10,7 +10,7 @@
     - repository
 
 - name: Convert the OpenNMS repository key to GPG format
-  ansible.builtin.command: "gpg --dearmor -o {{ opennms_key_ring_file }} /tmp/gpg.697677243260D071.key"
+  ansible.builtin.command: "gpg --dearmor -o {{ opennms_key_ring_file }} /tmp/opennms-repo.key"
   args:
     creates: "{{ opennms_key_ring_file }}"
   register: opennms_key_ring
@@ -21,16 +21,7 @@
 
 - name: Install OpenNMS APT repository for stable releases
   ansible.builtin.apt_repository:
-    repo: "deb [arch={{ arch }} signed-by={{ opennms_key_ring_file }}] {{ opennms_repo_url }} {{ ansible_distribution_release }} main"
-    state: present
-    update_cache: true
-  tags:
-    - opennms
-    - repository
-
-- name: Install OpenNMS APT commons repository
-  ansible.builtin.apt_repository:
-    repo: "deb [arch={{ arch }} signed-by={{ opennms_key_ring_file }}] {{ opennms_common_repo_url }} {{ ansible_distribution_release }} main"
+    repo: "deb [arch={{ arch }} signed-by={{ opennms_key_ring_file }}] {{ opennms_repo_url }} stable main"
     state: present
     update_cache: true
   tags:
