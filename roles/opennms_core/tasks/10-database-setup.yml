@@ -55,6 +55,8 @@
   become: true
   become_user: opennms
   ansible.builtin.command: "{{ opennms_home }}/bin/install -dis"
+  environment:
+    ADDITIONAL_MANAGER_OPTIONS: "-Dopennms.postgresql.maxVersion={{ (pg_version | int + 1) }}.0"
   register: database_init
   when: not initialized_schema.stat.exists
   changed_when: database_init.rc != 0
