@@ -1,7 +1,7 @@
 ---
 # Grafana version — must be an exact version string or "latest"
 # grafana.grafana collection constructs the apt package as grafana=<version>
-grafana_version: "12.4.2"
+grafana_version: "13.0.1"
 
 # Repo management is handled automatically by the collection
 grafana_manage_repo: true
