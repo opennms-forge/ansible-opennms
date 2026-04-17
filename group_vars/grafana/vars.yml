@@ -1,7 +1,10 @@
 ---
 # Grafana version — must be an exact version string or "latest"
 # grafana.grafana collection constructs the apt package as grafana=<version>
-grafana_version: "13.0.1"
+# Pinned to 12.x: Grafana 13 breaks the collection's plugin install task
+# (grafana-cli needs --homepath). Bump back to 13.x once upstream fixes this.
+# See: https://github.com/grafana/grafana-ansible-collection/issues/497
+grafana_version: "12.4.3"
 
 # Repo management is handled automatically by the collection
 grafana_manage_repo: true
