@@ -1,0 +1,22 @@
+---
+- name: "Create a backup directory"
+  file:
+    path: "{{ onms_backup_folder }}"
+    mode: 0777
+    owner: root
+    state: directory
+
+- name: "Back up the database"
+  postgresql_db:
+    state: dump
+    name: opennms
+    target: "{{ onms_backup_folder }}/{{ timestamp }}_opennms-postgres.dmp"
+  become: true
+  become_user: postgres
+
+- name: "Delete backups older than {{ onms_backup_retention }} days"
+  shell:
+    cmd: "find {{ onms_backup_folder }} -type f ! -name 'latest*' -mtime +{{ onms_backup_retention }} -delete"
+  ignore_errors: true
+  no_log: false
+  changed_when: false
