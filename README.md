@@ -26,6 +26,61 @@ It is in an early stage and not ready for production use yet.
 * Backup, Restore, Upgrade OpenNMS Horizon
 * Supporting a RHEL-based operating system
 
+## 📦 Install from Ansible Galaxy
+
+The collection is published as [`indigo423.opennms`](https://galaxy.ansible.com/ui/repo/published/indigo423/opennms/).
+
+```bash
+ansible-galaxy collection install indigo423.opennms
+```
+
+Or pin a specific version via `requirements.yml`:
+
+```yaml
+collections:
+  - name: indigo423.opennms
+    version: "0.3.2"
+```
+
+Reference roles by their fully-qualified name (`indigo423.opennms.<role>`). The three production OpenNMS components each get their own play:
+
+```yaml
+- name: Horizon Core
+  hosts: core
+  become: true
+  roles:
+    - indigo423.opennms.common
+    - indigo423.opennms.opennms_core
+
+- name: Horizon Minion
+  hosts: minion
+  become: true
+  roles:
+    - indigo423.opennms.common
+    - indigo423.opennms.opennms_minion
+
+- name: Horizon Sentinel
+  hosts: sentinel
+  become: true
+  roles:
+    - indigo423.opennms.common
+    - indigo423.opennms.opennms_sentinel
+```
+
+Each component role pulls in `openjdk`, `opennms_repositories`, and `opennms_icmp` via `include_role`, so those don't need to be declared explicitly. Per-role docs live in `roles/<name>/README.md`; configurable variables in `roles/<name>/defaults/main.yml`. See [`RELEASING.md`](RELEASING.md) for the publish flow.
+
+### 🧪 Non-production testing
+
+For evaluation and CI the collection ships stub roles that stand up the services OpenNMS talks to. **None of these are production-grade** — they're convenient for a working stack on a single sandbox host.
+
+- `indigo423.opennms.stub_pgsql` — PostgreSQL with the OpenNMS database and user provisioned.
+- `indigo423.opennms.stub_kafka` — Apache Kafka 4.x in KRaft mode for OpenNMS IPC.
+- `indigo423.opennms.stub_elasticsearch` — single-node Elasticsearch for flow data.
+- `indigo423.opennms.stub_mimir` — Grafana Mimir for time-series storage.
+- For Grafana, install the upstream [`grafana.grafana`](https://galaxy.ansible.com/ui/repo/published/grafana/grafana/) collection and run `indigo423.opennms.grafana_provisioning` afterwards to enable the OpenNMS plugin. There is no `stub_grafana` — that role was replaced by the external collection.
+
+For real deployments, plug in your own PostgreSQL, Kafka, Elasticsearch, and Grafana roles instead of the stubs.
+
 ## 🎯 Scope
 
 * Gives users the possibility to deploy the components following best-practices
