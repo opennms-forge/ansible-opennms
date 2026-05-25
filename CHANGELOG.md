@@ -4,6 +4,11 @@ All notable changes to the `indigo423.opennms` collection are documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Each entry below is a short index; the corresponding GitHub release contains the full notes including the Component Versions table and upgrade instructions.
 
+## [0.3.1] - 2026-05-25
+
+### Changed
+- First release published automatically to Ansible Galaxy as `indigo423.opennms` via the `galaxy-release` workflow introduced in #85. No role or runtime changes from v0.3.0.
+
 ## [0.3.0] - 2026-05-25
 
 ### Changed
@@ -30,6 +35,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Renovate configuration for automated Ansible Galaxy collection updates.
 - CI on standard GitHub-hosted runners with SHA-pinned actions and Dependabot.
 
+[0.3.1]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.3.1
 [0.3.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.3.0
 [0.2.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.2.0
 [0.1.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.1.0
