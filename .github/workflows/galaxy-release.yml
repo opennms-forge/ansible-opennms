@@ -1,0 +1,38 @@
+---
+name: galaxy-release
+run-name: Publish collection to Ansible Galaxy
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: '3.13'
+      - name: Install ansible-core
+        run: pip install ansible-core==2.20.4
+      - name: Verify galaxy.yml version matches release tag
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          EXPECTED="${TAG#v}"
+          ACTUAL=$(awk '/^version:/ { print $2 }' galaxy.yml | tr -d '"' | tr -d "'")
+          if [ "${ACTUAL}" != "${EXPECTED}" ]; then
+            echo "::error::galaxy.yml version (${ACTUAL}) does not match release tag (${TAG} -> ${EXPECTED}). Bump galaxy.yml before tagging."
+            exit 1
+          fi
+      - name: Build collection
+        run: ansible-galaxy collection build --output-path dist/
+      - name: Publish collection to Ansible Galaxy
+        env:
+          GALAXY_TOKEN: ${{ secrets.ANSIBLE_GALAXY_API_KEY }}
+        run: |
+          ansible-galaxy collection publish \
+            --token "${GALAXY_TOKEN}" \
+            dist/indigo423-opennms-*.tar.gz
