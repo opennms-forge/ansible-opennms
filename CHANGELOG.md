@@ -4,6 +4,14 @@ All notable changes to the `indigo423.opennms` collection are documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Each entry below is a short index; the corresponding GitHub release contains the full notes including the Component Versions table and upgrade instructions.
 
+## [0.3.2] - 2026-05-25
+
+### Added
+- Per-role `meta/main.yml` (galaxy_info: author, GPL-3.0-or-later license, min_ansible_version `2.15`, Debian bookworm/trixie + Ubuntu jammy/noble platforms, galaxy_tags) and `README.md` for all 12 roles (#87). This is the minimum metadata Galaxy's importer requires; v0.3.1 was rejected on upload because it was missing.
+
+### Notes
+- First release that actually lands on https://galaxy.ansible.com/ as `indigo423.opennms`. v0.3.1 stays in the GitHub release history as a record of the failed Galaxy publish.
+
 ## [0.3.1] - 2026-05-25
 
 ### Changed
@@ -35,6 +43,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Renovate configuration for automated Ansible Galaxy collection updates.
 - CI on standard GitHub-hosted runners with SHA-pinned actions and Dependabot.
 
+[0.3.2]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.3.2
 [0.3.1]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.3.1
 [0.3.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.3.0
 [0.2.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.2.0
