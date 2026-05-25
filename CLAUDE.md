@@ -57,9 +57,9 @@ ansible-playbook -i inventory/opennms-stack.yml hzn-sentinel-deployment.yml
 
 **Core OpenNMS components** (production targets):
 - `opennms_repositories` — APT repo and GPG key setup; must run before any package install
-- `openjdk` — Installs OpenJDK 17 for OpenNMS components and OpenJDK 21 for Kafka
+- `openjdk` — Installs OpenJDK 21 for OpenNMS components and Kafka
 - `common` — Timezone, APT cache update, base system packages
-- `opennms_core` — OpenNMS Horizon Core (35.0.5): database init, Kafka config, JVM tuning, firewall rules
+- `opennms_core` — OpenNMS Horizon Core (36.0.0): database init, Kafka config, JVM tuning, firewall rules
 - `opennms_minion` — Minion agent for isolated network segments
 - `opennms_sentinel` — Flow persistence and aggregation
 - `opennms_icmp` — ICMP monitoring configuration
@@ -105,10 +105,10 @@ External collections (`requirements.yml`):
 
 | Component | Version |
 |-----------|---------|
-| OpenNMS Horizon | 35.0.5 |
+| OpenNMS Horizon | 36.0.0 |
 | PostgreSQL | 18 |
 | Kafka | 4.2.0 (KRaft) |
-| OpenJDK | 17 |
+| OpenJDK | 21 |
 | Grafana | 12.x |
 | Grafana Mimir | 3.0.4 |
 | Prometheus JMX Exporter | 1.5.0 |
