@@ -125,16 +125,20 @@ The collection is published to Ansible Galaxy as **`indigo423.opennms`**. Public
 1. **Namespace ownership.** The `indigo423` namespace on https://galaxy.ansible.com must be owned (or co-owned) by the account that generates the API token. New collaborators are added via the *Namespaces* page on galaxy.ansible.com.
 2. **API token.** Generate a token at https://galaxy.ansible.com/me/preferences (Preferences → API Key) and store it as the `ANSIBLE_GALAXY_API_KEY` secret under *Settings → Secrets and variables → Actions* for the repo. The token belongs to the user; if it rotates, update the secret.
 
-### Per-release: bump `galaxy.yml`
+### Per-release: bump `galaxy.yml` and update `CHANGELOG.md`
 
-Before tagging a release, bump the `version:` field in `galaxy.yml` to match the intended tag (without the `v` prefix):
+Before tagging a release, two files must be updated in the same PR that bumps role defaults and `CLAUDE.md`'s Component Versions table:
 
-```yaml
-# galaxy.yml
-version: 0.4.0   # matches the upcoming v0.4.0 tag
-```
+1. **`galaxy.yml`** — set `version:` to match the intended tag (without the `v` prefix):
 
-Include this bump in the same PR that updates role defaults and `CLAUDE.md`'s Component Versions table. The release workflow verifies `galaxy.yml`'s `version` equals `<release-tag>` minus the `v` and fails the build otherwise — this guard catches forgotten bumps before the artifact ships.
+   ```yaml
+   # galaxy.yml
+   version: 0.4.0   # matches the upcoming v0.4.0 tag
+   ```
+
+   The release workflow verifies `galaxy.yml`'s `version` equals `<release-tag>` minus the `v` and fails the build otherwise — this guard catches forgotten bumps before the artifact ships.
+
+2. **`CHANGELOG.md`** — add a new `## [X.Y.Z] - YYYY-MM-DD` section at the top with short entries grouped by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) categories (`Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`). Update the link-reference list at the bottom. The file is required by the `galaxy[no-changelog]` ansible-lint rule and is shipped inside the published artifact.
 
 ### Release flow with Galaxy
 
