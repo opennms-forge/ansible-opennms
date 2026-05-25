@@ -1,0 +1,22 @@
+---
+galaxy_info:
+  role_name: stub_mimir
+  author: Ronny Trommer
+  description: POC/test stub that deploys Grafana Mimir for OpenNMS time-series storage. Not for production use.
+  license: GPL-3.0-or-later
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+        - trixie
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+  galaxy_tags:
+    - mimir
+    - metrics
+    - stub
+
+dependencies: []

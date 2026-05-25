@@ -1,0 +1,22 @@
+---
+galaxy_info:
+  role_name: common
+  author: Ronny Trommer
+  description: Base system configuration (timezone, APT cache, common packages) for hosts running OpenNMS components.
+  license: GPL-3.0-or-later
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+        - trixie
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+  galaxy_tags:
+    - system
+    - base
+    - monitoring
+
+dependencies: []

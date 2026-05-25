@@ -1,0 +1,22 @@
+---
+galaxy_info:
+  role_name: grafana_provisioning
+  author: Ronny Trommer
+  description: Drops the OpenNMS Grafana app plugin provisioning file so the plugin installed by the grafana.grafana collection is enabled.
+  license: GPL-3.0-or-later
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+        - trixie
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+  galaxy_tags:
+    - grafana
+    - monitoring
+    - opennms
+
+dependencies: []
