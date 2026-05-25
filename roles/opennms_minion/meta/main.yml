@@ -1,0 +1,22 @@
+---
+galaxy_info:
+  role_name: opennms_minion
+  author: Ronny Trommer
+  description: Deploys and configures the OpenNMS Minion agent for monitoring isolated network segments.
+  license: GPL-3.0-or-later
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+        - trixie
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+  galaxy_tags:
+    - opennms
+    - monitoring
+    - agent
+
+dependencies: []

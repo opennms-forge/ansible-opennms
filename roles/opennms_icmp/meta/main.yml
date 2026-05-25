@@ -1,0 +1,22 @@
+---
+galaxy_info:
+  role_name: opennms_icmp
+  author: Ronny Trommer
+  description: Installs jicmp/jicmp6 native libraries used by OpenNMS Horizon components for ICMP monitoring.
+  license: GPL-3.0-or-later
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+        - trixie
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+  galaxy_tags:
+    - opennms
+    - icmp
+    - monitoring
+
+dependencies: []

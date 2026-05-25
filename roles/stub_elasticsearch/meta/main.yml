@@ -1,0 +1,22 @@
+---
+galaxy_info:
+  role_name: stub_elasticsearch
+  author: Ronny Trommer
+  description: POC/test stub that deploys a single-node Elasticsearch instance for OpenNMS flow data. Not for production use.
+  license: GPL-3.0-or-later
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+        - trixie
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+  galaxy_tags:
+    - elasticsearch
+    - search
+    - stub
+
+dependencies: []
