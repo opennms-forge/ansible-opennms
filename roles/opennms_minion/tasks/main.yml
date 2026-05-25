@@ -3,8 +3,8 @@
   ansible.builtin.include_role:
     name: openjdk
   vars:
-    openjdk_version: 17
-    openjdk_pkg_version: "17*"
+    openjdk_version: 21
+    openjdk_pkg_version: "21*"
 
 - name: Include OpenNMS repository roles
   ansible.builtin.include_role:
