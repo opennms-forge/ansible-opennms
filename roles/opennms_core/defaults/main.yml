@@ -85,21 +85,6 @@ opennms_datasource_connection_pool_min_pool: 25
 opennms_datasource_connection_pool_max_pool: 50
 opennms_datasource_connection_pool_max_size: 50
 
-# DEPRECATED (inert): the eight variables below were rendered into the deleted
-# opennms-datasources.xml.j2 template. Upstream's pristine XML hard-codes the
-# admin/monitor connection-pool values (idleTimeout=600, minPool=0, maxPool=10,
-# maxSize=50) without ${env:...} placeholders, so overriding these here has no
-# effect. Kept temporarily for backward-compatible variable visibility; will be
-# removed in a future release.
-opennms_datasource_opennms_admin_idle_timeout: 600
-opennms_datasource_opennms_admin_pool_min: 0
-opennms_datasource_opennms_admin_pool_max: 10
-opennms_datasource_opennms_admin_pool_max_size: 50
-opennms_datasource_opennms_monitor_idle_timeout: 600
-opennms_datasource_opennms_monitor_pool_min: 0
-opennms_datasource_opennms_monitor_pool_max: 10
-opennms_datasource_opennms_monitor_pool_max_size: 50
-
 # Built-in env-var defaults derived from the legacy connection variables above.
 # Treated as private (underscore prefix); users should NOT override this dict
 # directly. To override individual env vars without losing the defaults, set
