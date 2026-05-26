@@ -1,16 +1,104 @@
 ---
-- name: Configure OpenNMS data base connection
-  ansible.builtin.template:
-    src: etc/opennms-datasources.xml.j2
+# Datasource configuration is no longer rendered by Ansible. The pristine
+# opennms-datasources.xml shipped by the deb package resolves ${scv:...|env:...|default}
+# at OpenNMS startup; the SCV writes below and the env vars in opennms.conf
+# (rendered in 05-opennms-conf.yml) drive the values.
+#
+# For hosts that ran an earlier version of this role and have an Ansible-rendered
+# XML on disk, the migration block detects the role's signature and replaces the
+# file with the pristine copy. User-customized XMLs (without the signature) are
+# left untouched.
+
+- name: Check whether opennms-datasources.xml exists
+  ansible.builtin.stat:
+    path: "{{ opennms_home }}/etc/opennms-datasources.xml"
+  register: opennms_datasources_on_disk
+  tags:
+    - opennms
+    - initialize
+    - database
+
+- name: Read on-disk opennms-datasources.xml for signature inspection
+  ansible.builtin.slurp:
+    src: "{{ opennms_home }}/etc/opennms-datasources.xml"
+  register: opennms_datasources_slurp
+  when: opennms_datasources_on_disk.stat.exists
+  tags:
+    - opennms
+    - initialize
+    - database
+
+- name: Check whether the pristine opennms-datasources.xml is available
+  ansible.builtin.stat:
+    path: /usr/share/opennms/etc-pristine/opennms-datasources.xml
+  register: opennms_datasources_pristine
+  tags:
+    - opennms
+    - initialize
+    - database
+
+- name: Read pristine opennms-datasources.xml for content comparison
+  ansible.builtin.slurp:
+    src: /usr/share/opennms/etc-pristine/opennms-datasources.xml
+  register: opennms_datasources_pristine_slurp
+  when: opennms_datasources_pristine.stat.exists
+  tags:
+    - opennms
+    - initialize
+    - database
+
+- name: Fail if Ansible-managed datasources.xml needs migration but pristine source is missing
+  ansible.builtin.fail:
+    msg: >-
+      An earlier Ansible-rendered opennms-datasources.xml is on disk, but the
+      pristine source at /usr/share/opennms/etc-pristine/opennms-datasources.xml
+      is missing. Reinstall the opennms-server package or restore the pristine
+      directory before re-running this role.
+  when:
+    - opennms_datasources_on_disk.stat.exists
+    - "'This is an Ansible managed template' in (opennms_datasources_slurp.content | default('') | b64decode)"
+    - not opennms_datasources_pristine.stat.exists
+  tags:
+    - opennms
+    - initialize
+    - database
+
+- name: Restore pristine opennms-datasources.xml over the Ansible-managed copy
+  ansible.builtin.copy:
+    src: /usr/share/opennms/etc-pristine/opennms-datasources.xml
     dest: "{{ opennms_home }}/etc/opennms-datasources.xml"
+    remote_src: true
     owner: opennms
     group: opennms
     mode: "0640"
+    backup: true
+  when:
+    - opennms_datasources_on_disk.stat.exists
+    - "'This is an Ansible managed template' in (opennms_datasources_slurp.content | default('') | b64decode)"
+    - opennms_datasources_pristine.stat.exists
   notify:
     - Restart opennms
   tags:
     - opennms
     - initialize
+    - database
+
+- name: Warn that a user-customized opennms-datasources.xml is preserved as-is
+  ansible.builtin.debug:
+    msg: >-
+      {{ opennms_home }}/etc/opennms-datasources.xml does not contain the Ansible
+      template signature and differs from the pristine file. It is treated as
+      user-customized; the role will not modify it. Overrides via opennms.conf
+      env vars still apply where the XML uses ${env:...} placeholders.
+  when:
+    - opennms_datasources_on_disk.stat.exists
+    - "'This is an Ansible managed template' not in (opennms_datasources_slurp.content | default('') | b64decode)"
+    - opennms_datasources_pristine.stat.exists
+    - (opennms_datasources_slurp.content | default('') | b64decode) != (opennms_datasources_pristine_slurp.content | default('') | b64decode)
+  tags:
+    - opennms
+    - initialize
+    - database
 
 - name: Initialize secure vault with database postgres credential
   become: true
@@ -18,6 +106,7 @@
   ansible.builtin.command: "{{ opennms_home }}/bin/scvcli set postgres-admin {{ postgres_user }} {{ postgres_password }}"
   register: scv_postgres_admin
   changed_when: scv_postgres_admin.rc != 0
+  no_log: true
   tags:
     - opennms
     - initialize
@@ -29,10 +118,25 @@
   ansible.builtin.command: "{{ opennms_home }}/bin/scvcli set postgres {{ opennms_datasource_db_user }} {{ opennms_datasource_db_password }}"
   register: scv_postgres_opennms
   changed_when: scv_postgres_opennms.rc != 0
+  no_log: true
   tags:
     - opennms
     - initialize
     - credentials
+
+- name: Verify SCV has the expected credentials before OpenNMS reads them
+  become: true
+  become_user: opennms
+  ansible.builtin.command: "{{ opennms_home }}/bin/scvcli show {{ item }}"
+  loop:
+    - postgres
+    - postgres-admin
+  register: scv_verify
+  changed_when: false
+  failed_when: scv_verify.rc != 0 or (scv_verify.stdout | default('') | trim) == ''
+  tags:
+    - opennms
+    - database
 
 - name: Configure PostgreSQL version compatibility
   ansible.builtin.template:

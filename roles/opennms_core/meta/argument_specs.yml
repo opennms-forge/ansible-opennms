@@ -1,0 +1,51 @@
+---
+argument_specs:
+  main:
+    short_description: Deploys and configures OpenNMS Horizon Core.
+    description:
+      - Installs the OpenNMS Horizon Core server and webapp packages.
+      - Initializes the PostgreSQL schema via C(install -dis).
+      - Renders C(/opt/opennms/etc/opennms.conf) with environment variables that
+        the pristine C(opennms-datasources.xml) and C(service-configuration.xml)
+        resolve at OpenNMS startup.
+    options:
+      opennms_datasource_db_password:
+        type: str
+        default: "__SET_VIA_VAULT__"
+        description:
+          - PostgreSQL password for the OpenNMS application role.
+          - SENSITIVE. The role refuses to run while this is the sentinel
+            default (see C(tasks/00-credentials-check.yml)). Populate via the
+            vault written by C(indigo423.opennms.init_secrets), or override
+            directly in your inventory.
+      postgres_password:
+        type: str
+        default: "__SET_VIA_VAULT__"
+        description:
+          - PostgreSQL administrative password used by C(scvcli set postgres-admin).
+          - SENSITIVE. Same sentinel-default and bootstrap workflow as
+            C(opennms_datasource_db_password).
+      opennms_env:
+        type: dict
+        default: {}
+        description:
+          - Additional or overriding environment variables rendered into
+            C(/opt/opennms/etc/opennms.conf) and exported to the OpenNMS JVM.
+            This dict is merged ON TOP of the role's built-in env defaults
+            (C(POSTGRES_HOST), C(POSTGRES_PORT), C(OPENNMS_DBNAME) derived
+            from C(opennms_datasource_db_host/port/name)); siblings keep
+            their defaults when you set only a subset.
+          - Use this dict to tune SSL mode, connection-pool sizes, or any
+            other env var the pristine C(opennms-datasources.xml) resolves
+            via C(${env:...}) placeholders. The role does not set these by
+            default because the pristine XML's literal defaults already
+            apply.
+      opennms_services:
+        type: dict
+        default: {}
+        description:
+          - "Daemon enable/disable toggles. Each key is a C(CORE_SERVICE_<NAME>_ENABLED)
+            env var consumed by the pristine C(service-configuration.xml).
+            Boolean values are rendered as lowercase strings."
+          - "Empty by default - upstream defaults apply. Example:
+            C({CORE_SERVICE_TELEMETRYD_ENABLED: false, CORE_SERVICE_SYSLOGD_ENABLED: true})."

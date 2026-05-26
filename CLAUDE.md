@@ -71,7 +71,7 @@ ansible-playbook -i inventory/opennms-stack.yml hzn-sentinel-deployment.yml
 - `stub_mimir` — Grafana Mimir 3.0.4
 
 **External collection roles** (replacing stubs where mature alternatives exist):
-- `grafana.grafana.grafana` — Grafana 12.x (replaces `stub_grafana`); configured via `group_vars/grafana/vars.yml`
+- `grafana.grafana.grafana` — Grafana 12.x (replaces `stub_grafana`); configured via `inventory/group_vars/grafana/vars.yml`
 - `grafana_provisioning` — Drops the `opennms-opennms-app` plugin provisioning file; runs after `grafana.grafana.grafana` since the collection installs the plugin but does not enable it
 
 ### Inventory & Variables
@@ -79,7 +79,7 @@ ansible-playbook -i inventory/opennms-stack.yml hzn-sentinel-deployment.yml
 - `inventory/opennms-stack.yml` — Full stack on a single host
 - `inventory/simple-stack.yml` — Simplified topology
 - `inventory/minion.yml` — Minion-only deployment
-- `group_vars/opennms_stack/vars.yml` — Stack-level overrides (see comments in file for all tunables)
+- `inventory/group_vars/opennms_stack/vars.yml` — Stack-level overrides (see comments in file for all tunables)
 
 Role defaults live in `roles/<role>/defaults/main.yml`.
 

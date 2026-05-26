@@ -1,0 +1,26 @@
+---
+argument_specs:
+  main:
+    short_description: Stub PostgreSQL setup for OpenNMS POC/test environments.
+    description:
+      - Installs PostgreSQL from the upstream apt repository and creates the
+        admin role, OpenNMS application role, and OpenNMS database.
+      - Not production-grade. Intended for lab and CI use; replace with a
+        managed PostgreSQL deployment for production.
+    options:
+      postgres_password:
+        type: str
+        default: "__SET_VIA_VAULT__"
+        description:
+          - Password set on the PostgreSQL admin role via C(ALTER USER).
+          - SENSITIVE. The role refuses to run while this is the sentinel
+            default (see C(tasks/00-credentials-check.yml)). Populate via the
+            vault written by C(indigo423.opennms.init_secrets), or override
+            directly in your inventory.
+      opennms_datasource_db_password:
+        type: str
+        default: "__SET_VIA_VAULT__"
+        description:
+          - Password set on the OpenNMS application role at creation time.
+          - SENSITIVE. Same sentinel-default and bootstrap workflow as
+            C(postgres_password).

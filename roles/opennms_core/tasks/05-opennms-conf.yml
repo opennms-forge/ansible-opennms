@@ -1,0 +1,19 @@
+---
+# Render /opt/opennms/etc/opennms.conf BEFORE any task that invokes the OpenNMS
+# Java runtime (scvcli, install -dis). The pristine opennms-datasources.xml and
+# service-configuration.xml resolve ${env:...} placeholders at JVM startup, so
+# the env vars exported by opennms.conf must already be on disk when those
+# tools run.
+- name: Render OpenNMS environment configuration ({{ opennms_distribution }})
+  ansible.builtin.template:
+    src: etc/opennms.conf.j2
+    dest: "{{ opennms_home }}/etc/opennms.conf"
+    owner: opennms
+    group: opennms
+    mode: "0640"
+  notify:
+    - Restart opennms
+  tags:
+    - opennms
+    - openjdk
+    - configuration

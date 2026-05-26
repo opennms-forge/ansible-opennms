@@ -1,4 +1,7 @@
 ---
+- name: Verify credentials before anything else
+  ansible.builtin.include_tasks: 00-credentials-check.yml
+
 - name: Include OpenNMS OpenJDK roles
   ansible.builtin.include_role:
     name: openjdk
@@ -33,6 +36,9 @@
   tags:
     - core
     - initialize
+
+- name: Render OpenNMS environment configuration before database init
+  ansible.builtin.include_tasks: 05-opennms-conf.yml
 
 - name: Include tasks to setup the database
   ansible.builtin.include_tasks: 10-database-setup.yml

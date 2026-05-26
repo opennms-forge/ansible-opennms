@@ -53,31 +53,58 @@ opennms_perl_deps:
 
 pg_version: 18
 
+# Datasource connection parameters.
+#
+# These variables drive the env-var entries rendered into /opt/opennms/etc/opennms.conf
+# (see opennms_env below). OpenNMS Horizon 36 resolves placeholders in the pristine
+# /opt/opennms/etc/opennms-datasources.xml using the chain:
+#
+#   ${scv:<key>:<field> | env:<VAR> | <literal default>}
+#
+# i.e. Secure Credential Vault first (populated by scvcli set in 10-database-setup.yml),
+# then environment variables exported via opennms.conf, then the literal default baked
+# into the pristine XML. The Ansible role owns the SCV writes and the opennms.conf
+# render; it does NOT manage opennms-datasources.xml directly.
 opennms_datasource_db_host: localhost
 opennms_datasource_db_port: 5432
 opennms_datasource_db_name: opennms_horizon
 
-# TODO: Need to go into a secure vault
+# Database credentials are intentionally sentinel-defaulted: the role refuses
+# to run with these values (see tasks/00-credentials-check.yml). Provide real
+# values via the vault populated by indigo423.opennms.init_secrets, or override
+# directly in your inventory.
 opennms_datasource_db_user: opennms
-opennms_datasource_db_password: p4a55word!
+opennms_datasource_db_password: "__SET_VIA_VAULT__"
 
-# TODO: Need to go into a secure vault
 postgres_user: postgres
-postgres_password: oth3rP455w0rd!
+postgres_password: "__SET_VIA_VAULT__"
 
-opennms_datasource_connection_pool_idle_timeout: 600
-opennms_datasource_connection_pool_login_timeout: 3
-opennms_datasource_connection_pool_min_pool: 25
-opennms_datasource_connection_pool_max_pool: 50
-opennms_datasource_connection_pool_max_size: 50
-opennms_datasource_opennms_admin_idle_timeout: 600
-opennms_datasource_opennms_admin_pool_min: 0
-opennms_datasource_opennms_admin_pool_max: 10
-opennms_datasource_opennms_admin_pool_max_size: 50
-opennms_datasource_opennms_monitor_idle_timeout: 600
-opennms_datasource_opennms_monitor_pool_min: 0
-opennms_datasource_opennms_monitor_pool_max: 10
-opennms_datasource_opennms_monitor_pool_max_size: 50
+# Built-in env-var defaults rendered into opennms.conf. Only the host/port/dbname
+# are populated here because the role needs them for install -dis and PostgreSQL
+# setup, and opennms_datasource_db_name differs from the pristine literal. SSL
+# and connection-pool tunables are intentionally absent: the pristine
+# opennms-datasources.xml ships matching literal defaults, so the role would
+# only emit redundant env vars. Set keys in `opennms_env` (below) to tune them.
+_opennms_env_defaults:
+  POSTGRES_HOST: "{{ opennms_datasource_db_host }}"
+  POSTGRES_PORT: "{{ opennms_datasource_db_port }}"
+  OPENNMS_DBNAME: "{{ opennms_datasource_db_name }}"
+
+# Additional or overriding env vars merged on top of `_opennms_env_defaults` and
+# rendered into /opt/opennms/etc/opennms.conf. Only specify keys you want to
+# override or add — siblings keep their defaults. Example:
+#   opennms_env:
+#     POSTGRES_HOST: db.example.com   # override one key; others stay default
+#     PYROSCOPE_SERVER_ADDRESS: http://pyro.local:4040
+opennms_env: {}
+
+# Daemon enable/disable toggles for OpenNMS services. Each key is a
+# CORE_SERVICE_<NAME>_ENABLED env var resolved by the pristine service-configuration.xml.
+# Empty by default - upstream defaults apply. Override per topology, e.g.:
+#   opennms_services:
+#     CORE_SERVICE_TELEMETRYD_ENABLED: false
+#     CORE_SERVICE_SYSLOGD_ENABLED: true
+opennms_services: {}
 
 opennms_jvm_conf:
   # JAVA_INITIAL_HEAP_SIZE: 2048
@@ -103,7 +130,7 @@ opennms_properties_message_broker:
 # Elasticsearch flow persistence - disabled by default on Core.
 # Enable when running a single-node stack without Sentinel.
 # Do NOT enable on Core and Sentinel at the same time.
-# See group_vars/opennms_stack/vars.yml for override examples.
+# See inventory/group_vars/opennms_stack/vars.yml for override examples.
 opennms_elastic_flows: {}
 
 opennms_properties_webapp:

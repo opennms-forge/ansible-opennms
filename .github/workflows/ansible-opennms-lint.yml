@@ -17,5 +17,35 @@ jobs:
         run: pip install ansible-core==2.20.4 ansible-lint==26.3.0
       - name: Install Ansible collections
         run: ansible-galaxy collection install -r requirements.yml
+      - name: Check for plaintext credential regressions
+        # Fail if historical or common-placeholder credentials appear in role
+        # defaults or committed group_vars. Uses git ls-files so we only scan
+        # tracked files, and explicitly fails if the scope matches zero files
+        # (which would otherwise hide regressions on a layout change).
+        run: |
+          set -eu
+          files=$(git ls-files \
+            'roles/*/defaults/*.yml' 'roles/*/defaults/*.yaml' \
+            'inventory/group_vars/*.yml' 'inventory/group_vars/*.yaml' \
+            'inventory/group_vars/**/*.yml' 'inventory/group_vars/**/*.yaml' \
+            2>/dev/null)
+          if [ -z "$files" ]; then
+            echo "::error::Credential regression check matched zero files."
+            echo "The repository layout may have drifted; update the workflow scope."
+            exit 1
+          fi
+          # Patterns: historical defaults plus common placeholder strings that
+          # operators should never commit. Case-insensitive. The leading
+          # `^[[:space:]]*[^#[:space:]]` restricts matches to non-comment lines,
+          # so commented documentation examples are not false positives.
+          matches=$(echo "$files" | xargs grep -niE \
+            '^[[:space:]]*[^#[:space:]].*(p4a55word|oth3rP455w0rd|changeme|password123|admin1234|secret123|defaultpw)' \
+            2>/dev/null || true)
+          if [ -n "$matches" ]; then
+            echo "::error::Plaintext credential detected in committed files:"
+            echo "$matches"
+            echo "Run indigo423.opennms.init_secrets and use vault references instead."
+            exit 1
+          fi
       - name: Run ansible-lint
         run: ansible-lint

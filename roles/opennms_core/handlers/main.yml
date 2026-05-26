@@ -1,4 +1,7 @@
 ---
+# Handler name "Restart opennms" is referenced verbatim by notify: directives
+# across this role (05-opennms-conf.yml, 10-database-setup.yml, 20-config.yml,
+# 21-kafka.yml). Do not rename without updating every caller.
 - name: Restart opennms
   ansible.builtin.service:
     name: opennms.service
