@@ -9,18 +9,6 @@ argument_specs:
         the pristine C(opennms-datasources.xml) and C(service-configuration.xml)
         resolve at OpenNMS startup.
     options:
-      opennms_datasource_ssl_mode:
-        type: str
-        default: prefer
-        description:
-          - PostgreSQL SSL mode used by all data sources.
-          - Rendered as the C(POSTGRES_SSL_MODE) env var in C(opennms.conf).
-      opennms_datasource_ssl_factory:
-        type: str
-        default: org.postgresql.ssl.LibPQFactory
-        description:
-          - PostgreSQL SSL socket factory class.
-          - Rendered as the C(POSTGRES_SSL_FACTORY) env var in C(opennms.conf).
       opennms_env:
         type: dict
         default: {}
@@ -28,13 +16,14 @@ argument_specs:
           - Additional or overriding environment variables rendered into
             C(/opt/opennms/etc/opennms.conf) and exported to the OpenNMS JVM.
             This dict is merged ON TOP of the role's built-in env defaults
-            (derived from C(opennms_datasource_db_host), C(_db_port),
-            C(_db_name), C(_ssl_mode), C(_ssl_factory) and the
-            C(_connection_pool_*) variables); siblings keep their defaults
-            when you set only a subset.
-          - Connection params and pool tunables map to env-var names that the
-            pristine C(opennms-datasources.xml) resolves via its
-            C(${env:...}) placeholders.
+            (C(POSTGRES_HOST), C(POSTGRES_PORT), C(OPENNMS_DBNAME) derived
+            from C(opennms_datasource_db_host/port/name)); siblings keep
+            their defaults when you set only a subset.
+          - Use this dict to tune SSL mode, connection-pool sizes, or any
+            other env var the pristine C(opennms-datasources.xml) resolves
+            via C(${env:...}) placeholders. The role does not set these by
+            default because the pristine XML's literal defaults already
+            apply.
       opennms_services:
         type: dict
         default: {}

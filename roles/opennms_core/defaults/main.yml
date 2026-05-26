@@ -68,8 +68,6 @@ pg_version: 18
 opennms_datasource_db_host: localhost
 opennms_datasource_db_port: 5432
 opennms_datasource_db_name: opennms_horizon
-opennms_datasource_ssl_mode: prefer
-opennms_datasource_ssl_factory: org.postgresql.ssl.LibPQFactory
 
 # The plaintext passwords below are POC-grade defaults suitable only for lab/dev use.
 # Override via Ansible Vault for any deployment beyond local testing.
@@ -79,28 +77,16 @@ opennms_datasource_db_password: p4a55word!
 postgres_user: postgres
 postgres_password: oth3rP455w0rd!
 
-opennms_datasource_connection_pool_idle_timeout: 600
-opennms_datasource_connection_pool_login_timeout: 3
-opennms_datasource_connection_pool_min_pool: 25
-opennms_datasource_connection_pool_max_pool: 50
-opennms_datasource_connection_pool_max_size: 50
-
-# Built-in env-var defaults derived from the legacy connection variables above.
-# Treated as private (underscore prefix); users should NOT override this dict
-# directly. To override individual env vars without losing the defaults, set
-# entries in `opennms_env` (below) — the role merges `opennms_env` over
-# `_opennms_env_defaults` in the template.
+# Built-in env-var defaults rendered into opennms.conf. Only the host/port/dbname
+# are populated here because the role needs them for install -dis and PostgreSQL
+# setup, and opennms_datasource_db_name differs from the pristine literal. SSL
+# and connection-pool tunables are intentionally absent: the pristine
+# opennms-datasources.xml ships matching literal defaults, so the role would
+# only emit redundant env vars. Set keys in `opennms_env` (below) to tune them.
 _opennms_env_defaults:
   POSTGRES_HOST: "{{ opennms_datasource_db_host }}"
   POSTGRES_PORT: "{{ opennms_datasource_db_port }}"
   OPENNMS_DBNAME: "{{ opennms_datasource_db_name }}"
-  POSTGRES_SSL_MODE: "{{ opennms_datasource_ssl_mode }}"
-  POSTGRES_SSL_FACTORY: "{{ opennms_datasource_ssl_factory }}"
-  OPENNMS_DATABASE_CONNECTION_IDLETIMEOUT: "{{ opennms_datasource_connection_pool_idle_timeout }}"
-  OPENNMS_DATABASE_CONNECTION_LOGINTIMEOUT: "{{ opennms_datasource_connection_pool_login_timeout }}"
-  OPENNMS_DATABASE_CONNECTION_MINPOOL: "{{ opennms_datasource_connection_pool_min_pool }}"
-  OPENNMS_DATABASE_CONNECTION_MAXPOOL: "{{ opennms_datasource_connection_pool_max_pool }}"
-  OPENNMS_DATABASE_CONNECTION_MAXSIZE: "{{ opennms_datasource_connection_pool_max_size }}"
 
 # Additional or overriding env vars merged on top of `_opennms_env_defaults` and
 # rendered into /opt/opennms/etc/opennms.conf. Only specify keys you want to

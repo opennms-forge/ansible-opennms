@@ -20,27 +20,24 @@ ${scv:<key>:<field> | env:<VAR> | <literal default>}
        `- populated by scvcli set (this role)
 ```
 
-Credentials flow through the Secure Credential Vault (SCV) — populated by `scvcli set postgres ...` and `scvcli set postgres-admin ...` in `10-database-setup.yml`. Connection params (host, port, dbname, SSL, pool tunables) flow through env vars in `opennms.conf`.
+Credentials flow through the Secure Credential Vault (SCV) — populated by `scvcli set postgres ...` and `scvcli set postgres-admin ...` in `10-database-setup.yml`. Host, port, and dbname flow through env vars in `opennms.conf`. SSL and connection-pool tunables are left to the pristine XML's literal defaults unless you explicitly set them.
 
 | Legacy variable | Env var rendered |
 |---|---|
 | `opennms_datasource_db_host` | `POSTGRES_HOST` |
 | `opennms_datasource_db_port` | `POSTGRES_PORT` |
 | `opennms_datasource_db_name` | `OPENNMS_DBNAME` |
-| `opennms_datasource_ssl_mode` | `POSTGRES_SSL_MODE` |
-| `opennms_datasource_ssl_factory` | `POSTGRES_SSL_FACTORY` |
-| `opennms_datasource_connection_pool_idle_timeout` | `OPENNMS_DATABASE_CONNECTION_IDLETIMEOUT` |
-| `opennms_datasource_connection_pool_login_timeout` | `OPENNMS_DATABASE_CONNECTION_LOGINTIMEOUT` |
-| `opennms_datasource_connection_pool_min_pool` | `OPENNMS_DATABASE_CONNECTION_MINPOOL` |
-| `opennms_datasource_connection_pool_max_pool` | `OPENNMS_DATABASE_CONNECTION_MAXPOOL` |
-| `opennms_datasource_connection_pool_max_size` | `OPENNMS_DATABASE_CONNECTION_MAXSIZE` |
 
-For direct control, set `opennms_env` as a dict. Entries are **merged on top of** the role's built-in env defaults — keys you don't set keep their defaults, so partial overrides are safe:
+For everything else — SSL mode, connection-pool sizes, or any env var the pristine `opennms-datasources.xml` resolves via `${env:...}` — set `opennms_env`. Entries are **merged on top of** the role's built-in env defaults; keys you don't set keep their defaults:
 
 ```yaml
 opennms_env:
-  POSTGRES_HOST: db.example.com   # override one key; siblings stay default
+  POSTGRES_HOST: db.example.com               # override host
+  POSTGRES_SSL_MODE: require                  # tighten SSL
+  OPENNMS_DATABASE_CONNECTION_MAXPOOL: 100    # raise the main pool ceiling
 ```
+
+The pristine Horizon 36 `opennms-datasources.xml` defaults are: `POSTGRES_SSL_MODE=prefer`, `POSTGRES_SSL_FACTORY=org.postgresql.ssl.LibPQFactory`, `OPENNMS_DATABASE_CONNECTION_IDLETIMEOUT=600`, `LOGINTIMEOUT=3`, `MINPOOL=25`, `MAXPOOL=50`, `MAXSIZE=50`.
 
 ### Service toggles
 
