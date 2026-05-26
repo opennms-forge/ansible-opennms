@@ -6,7 +6,53 @@ Part of the [`indigo423.opennms`](https://galaxy.ansible.com/ui/repo/published/i
 
 ## Variables
 
-See [`defaults/main.yml`](defaults/main.yml).
+See [`defaults/main.yml`](defaults/main.yml) for the full list. The most relevant variables for tuning datasource and service behavior are documented below.
+
+### Datasource configuration
+
+Connection parameters are exported as environment variables in `/opt/opennms/etc/opennms.conf`. OpenNMS Horizon 36's pristine `opennms-datasources.xml` resolves these via the chain:
+
+```
+${scv:<key>:<field> | env:<VAR> | <literal default>}
+       |                  |              |
+       |                  |              `- baked into the pristine XML
+       |                  `- exported by Ansible via opennms.conf
+       `- populated by scvcli set (this role)
+```
+
+Credentials flow through the Secure Credential Vault (SCV) — populated by `scvcli set postgres ...` and `scvcli set postgres-admin ...` in `10-database-setup.yml`. Connection params (host, port, dbname, SSL, pool tunables) flow through env vars in `opennms.conf`.
+
+| Legacy variable | Env var rendered |
+|---|---|
+| `opennms_datasource_db_host` | `POSTGRES_HOST` |
+| `opennms_datasource_db_port` | `POSTGRES_PORT` |
+| `opennms_datasource_db_name` | `OPENNMS_DBNAME` |
+| `opennms_datasource_ssl_mode` | `POSTGRES_SSL_MODE` |
+| `opennms_datasource_ssl_factory` | `POSTGRES_SSL_FACTORY` |
+| `opennms_datasource_connection_pool_idle_timeout` | `OPENNMS_DATABASE_CONNECTION_IDLETIMEOUT` |
+| `opennms_datasource_connection_pool_login_timeout` | `OPENNMS_DATABASE_CONNECTION_LOGINTIMEOUT` |
+| `opennms_datasource_connection_pool_min_pool` | `OPENNMS_DATABASE_CONNECTION_MINPOOL` |
+| `opennms_datasource_connection_pool_max_pool` | `OPENNMS_DATABASE_CONNECTION_MAXPOOL` |
+| `opennms_datasource_connection_pool_max_size` | `OPENNMS_DATABASE_CONNECTION_MAXSIZE` |
+
+For direct control, set `opennms_env` as a dict. Entries are **merged on top of** the role's built-in env defaults — keys you don't set keep their defaults, so partial overrides are safe:
+
+```yaml
+opennms_env:
+  POSTGRES_HOST: db.example.com   # override one key; siblings stay default
+```
+
+### Service toggles
+
+Daemons can be enabled/disabled via `opennms_services`. Each key is a `CORE_SERVICE_<NAME>_ENABLED` env var consumed by the pristine `service-configuration.xml`:
+
+```yaml
+opennms_services:
+  CORE_SERVICE_TELEMETRYD_ENABLED: false   # disable when Sentinel handles flows
+  CORE_SERVICE_SYSLOGD_ENABLED: true       # enable syslog ingestion on Core
+```
+
+Empty by default; upstream defaults apply for every unmodified service. `Manager` and `Eventd` are not toggleable.
 
 ## Example
 
@@ -15,6 +61,23 @@ See [`defaults/main.yml`](defaults/main.yml).
   roles:
     - indigo423.opennms.opennms_core
 ```
+
+## Migration from earlier role versions
+
+Earlier versions of this role rendered `/opt/opennms/etc/opennms-datasources.xml` from a Jinja template. The current version instead trusts the pristine XML shipped by the `opennms-server` deb package and drives runtime values through env vars and SCV.
+
+On the first run after upgrading:
+
+- If the on-disk `opennms-datasources.xml` contains the marker comment `This is an Ansible managed template` (left by the previous version), the role copies the pristine file from `/usr/share/opennms/etc-pristine/opennms-datasources.xml` over it and triggers a restart.
+- If the file does not contain that marker, the role treats it as user-customized and leaves it untouched. A debug message notes the divergence; overrides via `opennms.conf` env vars still apply where the file uses `${env:...}` placeholders.
+
+If the role's signature-match incorrectly classifies a customized file (e.g., you intentionally kept the original template's header comment), the migration is non-destructive: `ansible.builtin.copy` runs with `backup: true`, leaving the pre-overwrite content at `/opt/opennms/etc/opennms-datasources.xml.NNNNN.YYYY-MM-DD@HH:MM:SS~`. Restore from there if needed.
+
+To force a manual migration of a user-customized file, first run `apt-get install --reinstall opennms-server` (which restores the pristine copy), then re-run the role.
+
+## Security notes
+
+The defaults `opennms_datasource_db_password` and `postgres_password` carry plaintext POC-grade values. Override them via Ansible Vault for any deployment beyond local testing.
 
 ## License
 

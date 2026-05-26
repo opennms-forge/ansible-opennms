@@ -3,3 +3,5 @@
 .claude/
 _bmad/
 _bmad-output/
+.ansible/
+openspec/

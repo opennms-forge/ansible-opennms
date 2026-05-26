@@ -34,6 +34,9 @@
     - core
     - initialize
 
+- name: Render OpenNMS environment configuration before database init
+  ansible.builtin.include_tasks: 05-opennms-conf.yml
+
 - name: Include tasks to setup the database
   ansible.builtin.include_tasks: 10-database-setup.yml
 
