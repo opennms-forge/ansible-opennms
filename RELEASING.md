@@ -23,7 +23,7 @@ When preparing a release, check these files for any version drift that should be
 | PostgreSQL | `roles/opennms_core/defaults/main.yml` (`pg_version`) |
 | Kafka | `roles/stub_kafka/defaults/main.yml` |
 | Elasticsearch | `roles/stub_elasticsearch/defaults/main.yml` |
-| Grafana | `group_vars/grafana/vars.yml` (`grafana_version`) |
+| Grafana | `inventory/group_vars/grafana/vars.yml` (`grafana_version`) |
 | Grafana Mimir | `roles/stub_mimir/defaults/main.yml` |
 | Prometheus JMX Exporter | `roles/opennms_core/defaults/main.yml` (`prom_jmx_exporter_version`) |
 | External collections | `requirements.yml` |

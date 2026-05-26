@@ -9,6 +9,22 @@ argument_specs:
         the pristine C(opennms-datasources.xml) and C(service-configuration.xml)
         resolve at OpenNMS startup.
     options:
+      opennms_datasource_db_password:
+        type: str
+        default: "__SET_VIA_VAULT__"
+        description:
+          - PostgreSQL password for the OpenNMS application role.
+          - SENSITIVE. The role refuses to run while this is the sentinel
+            default (see C(tasks/00-credentials-check.yml)). Populate via the
+            vault written by C(indigo423.opennms.init_secrets), or override
+            directly in your inventory.
+      postgres_password:
+        type: str
+        default: "__SET_VIA_VAULT__"
+        description:
+          - PostgreSQL administrative password used by C(scvcli set postgres-admin).
+          - SENSITIVE. Same sentinel-default and bootstrap workflow as
+            C(opennms_datasource_db_password).
       opennms_env:
         type: dict
         default: {}

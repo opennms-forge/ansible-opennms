@@ -5,3 +5,8 @@ _bmad/
 _bmad-output/
 .ansible/
 openspec/
+
+# Vault password files and stray secrets directories never enter the repo.
+# Encrypted vault.yml IS committable (intentionally not excluded here).
+**/.vault-pass*
+**/.secrets/

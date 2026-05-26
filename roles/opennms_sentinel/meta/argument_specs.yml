@@ -1,0 +1,17 @@
+---
+argument_specs:
+  main:
+    short_description: Deploys and configures OpenNMS Sentinel.
+    description:
+      - Installs the OpenNMS Sentinel package and writes its datasource and
+        Kafka configuration files.
+    options:
+      opennms_datasource_db_password:
+        type: str
+        default: "__SET_VIA_VAULT__"
+        description:
+          - PostgreSQL password the Sentinel uses to connect to the OpenNMS database.
+          - SENSITIVE. The role refuses to run while this is the sentinel
+            default (see C(tasks/00-credentials-check.yml)). Populate via the
+            vault written by C(indigo423.opennms.init_secrets), or override
+            directly in your inventory.

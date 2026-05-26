@@ -17,5 +17,19 @@ jobs:
         run: pip install ansible-core==2.20.4 ansible-lint==26.3.0
       - name: Install Ansible collections
         run: ansible-galaxy collection install -r requirements.yml
+      - name: Check for plaintext credential regressions
+        # Fail if the historical plaintext defaults reappear in role defaults
+        # or committed group_vars. Scope excludes this workflow file by design.
+        run: |
+          set -eu
+          matches=$(find roles/*/defaults inventory/group_vars -type f \
+                      \( -name '*.yml' -o -name '*.yaml' \) \
+                      -exec grep -nE 'p4a55word|oth3rP455w0rd' {} + || true)
+          if [ -n "$matches" ]; then
+            echo "::error::Plaintext credential detected in committed files:"
+            echo "$matches"
+            echo "Run indigo423.opennms.init_secrets and use vault references instead."
+            exit 1
+          fi
       - name: Run ansible-lint
         run: ansible-lint
