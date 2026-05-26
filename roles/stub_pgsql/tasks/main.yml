@@ -126,6 +126,7 @@
   community.postgresql.postgresql_query:
     login_db: postgres
     query: "ALTER USER {{ postgres_user }} WITH PASSWORD '{{ postgres_password }}';"
+  no_log: true
   tags:
     - opennms
     - postgresql

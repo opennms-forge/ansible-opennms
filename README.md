@@ -86,8 +86,10 @@ For real deployments, plug in your own PostgreSQL, Kafka, Elasticsearch, and Gra
 The collection ships no plaintext database passwords. Before your first deployment, run the bootstrap playbook against your inventory to generate strong random credentials and store them in an Ansible Vault file:
 
 ```bash
-ansible-playbook -i <your inventory> indigo423.opennms.init_secrets
+ansible-playbook -i <path-to-your-inventory-file> indigo423.opennms.init_secrets
 ```
+
+Pass a single inventory **file** (not a directory). For multi-inventory setups, run the bootstrap once per inventory, or pass `-e secrets_dest_dir=<path>` to choose where the vault lands explicitly.
 
 The bootstrap:
 
