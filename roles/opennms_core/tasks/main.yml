@@ -1,4 +1,7 @@
 ---
+- name: Verify credentials before anything else
+  ansible.builtin.include_tasks: 00-credentials-check.yml
+
 - name: Include OpenNMS OpenJDK roles
   ansible.builtin.include_role:
     name: openjdk

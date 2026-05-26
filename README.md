@@ -81,6 +81,64 @@ For evaluation and CI the collection ships stub roles that stand up the services
 
 For real deployments, plug in your own PostgreSQL, Kafka, Elasticsearch, and Grafana roles instead of the stubs.
 
+## 🔐 First-time setup: bootstrap database credentials
+
+The collection ships no plaintext database passwords. Before your first deployment, run the bootstrap playbook against your inventory to generate strong random credentials and store them in an Ansible Vault file:
+
+```bash
+ansible-playbook -i <path-to-your-inventory-file> indigo423.opennms.init_secrets
+```
+
+Pass a single inventory **file** (not a directory). For multi-inventory setups, run the bootstrap once per inventory, or pass `-e secrets_dest_dir=<path>` to choose where the vault lands explicitly.
+
+The bootstrap:
+
+- Writes a vault password file at `~/.config/ansible-opennms/vault-pass` (mode `0600`). **This file is the master key — back it up to a password manager.** Losing it leaves your encrypted vault unrecoverable.
+- Generates random 32-character passwords for `opennms_datasource_db_password` and `postgres_password`.
+- Writes them to `<inventory_dir>/group_vars/opennms_stack/vault.yml` (encrypted) and `vars.yml` (references). Commit both files to your inventory.
+- Prints the recommended `ansible.cfg` snippet at completion. Add this line under `[defaults]` in your project's `ansible.cfg`, your `~/.ansible.cfg`, OR set it via the `ANSIBLE_VAULT_PASSWORD_FILE` env var:
+
+  ```ini
+  [defaults]
+  vault_password_file = ~/.config/ansible-opennms/vault-pass
+  ```
+
+After this one-time setup, every `ansible-playbook` invocation resolves the vault password automatically — no `--ask-vault-pass` flag required.
+
+### Migration
+
+- **Already overriding credentials in your inventory?** No action required. Your overrides take precedence over the role defaults (which are now sentinel strings that fail the play if not overridden).
+- **Relied on the shipped defaults (`p4a55word!`/`oth3rP455w0rd!`)?** Run the bootstrap once. The next playbook run will rotate PostgreSQL via `ALTER USER` and re-populate the OpenNMS Secure Credential Vault.
+- **Source-repo developers:** `group_vars/` moved to `inventory/group_vars/`. Re-run the bootstrap if you had committed values in the old location.
+
+### Rotation
+
+Re-run the bootstrap with `-e force_rotate=true` to regenerate the credential values (the vault password file is preserved):
+
+```bash
+ansible-playbook -i <inventory> indigo423.opennms.init_secrets -e force_rotate=true
+```
+
+Then re-run the deployment playbook to propagate the new values to every consumer:
+
+- `stub_pgsql` (or your own PostgreSQL role) — `ALTER USER` runs against the admin and application roles.
+- `opennms_core` — `scvcli set postgres` and `scvcli set postgres-admin` rewrite SCV.
+- `opennms_sentinel` — the distributed datasource config file is rewritten.
+- The Grafana data source (provisioned via the upstream collection) — re-provisioned with the new value.
+
+### Recovery from a lost vault password file
+
+If `~/.config/ansible-opennms/vault-pass` is gone and you have no backup, the encrypted vault is unrecoverable. Run the bootstrap with `-e force_reinit=true` to regenerate everything:
+
+```bash
+ansible-playbook -i <inventory> indigo423.opennms.init_secrets -e force_reinit=true
+```
+
+This destroys the existing `vault.yml`. After it completes, you must also reset the PostgreSQL admin password before re-running the deployment, because the database still holds the now-lost password:
+
+- For `stub_pgsql` on a host you control: `sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD '<new postgres_password from vault>';"`. Read the new value via `ansible-vault view --vault-password-file ~/.config/ansible-opennms/vault-pass <vault.yml path>`.
+- For external PostgreSQL: ask your DBA to reset the admin password to match the new vault value, or accept a database wipe.
+
 ## 🎯 Scope
 
 * Gives users the possibility to deploy the components following best-practices

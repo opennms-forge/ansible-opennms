@@ -8,6 +8,9 @@
     - dependency
     - ansible
 
+- name: Verify credentials before anything else
+  ansible.builtin.include_tasks: 00-credentials-check.yml
+
 - name: Include OpenNMS repository roles
   ansible.builtin.include_role:
     name: opennms_repositories
@@ -123,6 +126,7 @@
   community.postgresql.postgresql_query:
     login_db: postgres
     query: "ALTER USER {{ postgres_user }} WITH PASSWORD '{{ postgres_password }}';"
+  no_log: true
   tags:
     - opennms
     - postgresql

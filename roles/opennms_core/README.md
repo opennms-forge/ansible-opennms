@@ -72,9 +72,15 @@ If the role's signature-match incorrectly classifies a customized file (e.g., yo
 
 To force a manual migration of a user-customized file, first run `apt-get install --reinstall opennms-server` (which restores the pristine copy), then re-run the role.
 
-## Security notes
+## Credentials
 
-The defaults `opennms_datasource_db_password` and `postgres_password` carry plaintext POC-grade values. Override them via Ansible Vault for any deployment beyond local testing.
+This role refuses to run while `opennms_datasource_db_password` or `postgres_password` is the sentinel default `__SET_VIA_VAULT__` (`tasks/00-credentials-check.yml`). Bootstrap real credentials once with:
+
+```bash
+ansible-playbook -i <your inventory> indigo423.opennms.init_secrets
+```
+
+See the [collection README](../../README.md#-first-time-setup-bootstrap-database-credentials) for the full vault workflow, including master-key responsibility, rotation (`force_rotate=true`), and recovery (`force_reinit=true`).
 
 ## License
 
