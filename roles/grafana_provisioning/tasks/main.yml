@@ -2,6 +2,7 @@
 - name: Install the opennms-opennms-app plugin
   ansible.builtin.command:
     cmd: grafana-cli plugins install opennms-opennms-app
+    chdir: /usr/share/grafana
     creates: /var/lib/grafana/plugins/opennms-opennms-app
   notify: restart_grafana
   tags:
