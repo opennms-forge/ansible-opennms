@@ -34,11 +34,12 @@ The Component Versions table in `CLAUDE.md` should also be in sync.
 
 Releases are created from `main` after all intended changes have merged. The repository's branch protection forbids pushing to `main` directly — every change must arrive via a reviewed pull request.
 
-1. **Confirm `main` is at the intended commit.**
+1. **Land the release-prep PR.** Before tagging, `main` must already contain the `galaxy.yml` version bump and a matching `CHANGELOG.md` entry — see [Per-release: bump `galaxy.yml` and update `CHANGELOG.md`](#per-release-bump-galaxyyml-and-update-changelogmd). The `galaxy-release.yml` workflow refuses to publish if `galaxy.yml`'s `version:` field at the tagged commit doesn't match the tag (minus the `v` prefix). Confirm `main` is at the intended commit:
 
    ```bash
    git checkout main
    git pull --ff-only
+   grep '^version:' galaxy.yml          # must read X.Y.Z (no leading v)
    gh pr list --state merged --base main -L 10   # sanity-check what's in
    ```
 
@@ -150,6 +151,15 @@ Before tagging a release, two files must be updated in the same PR that bumps ro
 ### Republishing or recovering a failed run
 
 - **CI failed mid-publish (or before the release existed):** edit the GitHub release and click *Publish release* again — this re-fires `release: published` and re-runs the workflow.
+- **`galaxy.yml` version doesn't match the tag** (the bump was forgotten): the safe path is **forward-only** — cut the next patch version. Bump `galaxy.yml` and `CHANGELOG.md` on a new PR, merge, then tag and release `vX.Y.(Z+1)`. The failed `vX.Y.Z` release stays in place (delete it on GitHub if you want, but don't rewrite the tag — it's published state). Rewriting a tag is only acceptable when it's minutes old and you can confirm no consumer fetched it; in that narrow case:
+
+  ```bash
+  gh release delete vX.Y.Z --yes
+  git push origin :refs/tags/vX.Y.Z
+  git tag -d vX.Y.Z
+  # fix galaxy.yml + CHANGELOG.md on a PR, merge, then re-tag and re-release.
+  ```
+
 - **Manual fallback** (e.g., to backfill a tag from before this workflow existed):
 
   ```bash

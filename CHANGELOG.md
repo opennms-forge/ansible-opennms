@@ -4,6 +4,11 @@ All notable changes to the `indigo423.opennms` collection are documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Each entry below is a short index; the corresponding GitHub release contains the full notes including the Component Versions table and upgrade instructions.
 
+## [0.4.1] - 2026-05-28
+
+### Fixed
+- `opennms_core`: replace `scvcli show` with `scvcli get` in the post-credential verification step. `scvcli` has no `show` subcommand; the supported verbs are `set`, `get`, `get-all`, `list`, `delete`. Every deployment failed immediately after `init_secrets` populated the SCV vault with `Error: "show" is not a valid value for "ACTION"`. `get ALIAS` has the same signature and returns the stored entry, satisfying the existing `failed_when` guard (#93).
+
 ## [0.4.0] - 2026-05-28
 
 ### Added
