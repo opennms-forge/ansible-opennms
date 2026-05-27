@@ -1,7 +1,7 @@
 ---
 namespace: indigo423
 name: opennms
-version: 0.3.2
+version: 0.4.0
 readme: README.md
 authors:
   - Ronny Trommer <ronny@no42.org>
