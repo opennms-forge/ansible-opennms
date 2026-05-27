@@ -4,6 +4,11 @@ All notable changes to the `indigo423.opennms` collection are documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Each entry below is a short index; the corresponding GitHub release contains the full notes including the Component Versions table and upgrade instructions.
 
+## [0.4.2] - 2026-05-28
+
+### Fixed
+- `grafana_provisioning`: install `opennms-opennms-app` via `grafana-cli` before dropping the provisioning file that enables it. Previously the role copied a provisioning entry referencing the plugin but never installed it, so `grafana-server` failed to start with `Failed to provision plugins: plugin not installed: "opennms-opennms-app"` whenever the role ran against a fresh host. README and `meta/main.yml` updated to reflect the role's expanded scope.
+
 ## [0.4.1] - 2026-05-28
 
 ### Fixed
