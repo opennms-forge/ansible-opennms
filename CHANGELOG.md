@@ -4,6 +4,29 @@ All notable changes to the `indigo423.opennms` collection are documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Each entry below is a short index; the corresponding GitHub release contains the full notes including the Component Versions table and upgrade instructions.
 
+## [0.4.0] - 2026-05-28
+
+### Added
+- `opennms_core`: drive datasource configuration via env vars in `opennms.conf` instead of mirroring `opennms-datasources.xml`. Signature-based migration restores the deb-shipped pristine XML for hosts whose file still carries the old "Ansible managed template" marker, and leaves user-customized XML untouched. New `opennms_datasource_ssl_mode` (`prefer`) and `opennms_datasource_ssl_factory` (`org.postgresql.ssl.LibPQFactory`) variables match the pristine XML defaults (#90).
+- `playbooks/init_secrets.yml`: bootstrap playbook for initial SCV/datasource credentials, including a non-comment placeholder regex (`changeme`, `password123`, etc.) to catch accidentally-committed defaults. Documents `-i` inventory expectations and the `secrets_dest_dir` override for multi-inventory setups (#90).
+- Pre-flight `00-credentials-check.yml` tasks for `opennms_core`, `opennms_sentinel`, and `stub_pgsql` — fail-fast SCV credential validation before any service-impacting step runs (#90).
+- Role argument validation via `meta/argument_specs.yml` for `opennms_core`, `opennms_sentinel`, and `stub_pgsql` (#90).
+- README: "Install from Ansible Galaxy" section covering `ansible-galaxy collection install`, a pinned `requirements.yml` example, and FQCN role references (`indigo423.opennms.<role>`) (#89).
+
+### Changed
+- Inventory restructure: `group_vars/grafana/vars.yml` and `group_vars/opennms_stack/vars.yml` moved under `inventory/group_vars/` to match Ansible's expected layout (#90).
+- `opennms_core`: render `opennms.conf` from a new `05-opennms-conf.yml` so env vars land on disk before `scvcli set` and `install -dis` run. `opennms.conf.j2` now emits `opennms_env` and `opennms_services` (`CORE_SERVICE_*_ENABLED` toggles) with shell-safe double-quoting and lowercase booleans; fails fast on duplicate keys across the three dicts (#90).
+- CI lint workflow expanded (`.github/workflows/ansible-opennms-lint.yml`, +30 lines) (#90).
+
+### Removed
+- `opennms_core`: dropped eight inert variables — `opennms_datasource_opennms_admin_*` and `opennms_datasource_opennms_monitor_*`. They were only consumed by the deleted `opennms-datasources.xml.j2`; the pristine Horizon XML hard-codes these pool values without env-var placeholders, so the vars never reached the running config (#90).
+- `opennms_core`: deleted `templates/etc/opennms-datasources.xml.j2`. Hosts that had the old template applied are migrated to the pristine deb XML automatically; see Breaking Changes for the customization path (#90).
+
+### Breaking Changes
+- New credential pre-flight: the `00-credentials-check.yml` tasks will halt the run if required SCV credentials are missing. Existing inventories must define them before re-running, or use the new `playbooks/init_secrets.yml` to bootstrap.
+- Inventory path move: any local override referencing `group_vars/{grafana,opennms_stack}/vars.yml` at the repo root must be updated to `inventory/group_vars/...`.
+- Removed variables: if your inventory set `opennms_datasource_opennms_admin_*` or `opennms_datasource_opennms_monitor_*`, those keys are now unknown to `argument_specs.yml` and will fail validation. Delete them — they were never wired up to a runtime config.
+
 ## [0.3.2] - 2026-05-25
 
 ### Added
@@ -43,6 +66,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Renovate configuration for automated Ansible Galaxy collection updates.
 - CI on standard GitHub-hosted runners with SHA-pinned actions and Dependabot.
 
+[0.4.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.4.0
 [0.3.2]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.3.2
 [0.3.1]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.3.1
 [0.3.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.3.0
