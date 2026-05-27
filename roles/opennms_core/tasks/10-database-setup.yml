@@ -127,7 +127,7 @@
 - name: Verify SCV has the expected credentials before OpenNMS reads them
   become: true
   become_user: opennms
-  ansible.builtin.command: "{{ opennms_home }}/bin/scvcli show {{ item }}"
+  ansible.builtin.command: "{{ opennms_home }}/bin/scvcli get {{ item }}"
   loop:
     - postgres
     - postgres-admin
