@@ -1,3 +1,8 @@
 ---
-jicmp_version: 3.*
-jicmp6_version: 3.*
+# Track whatever jicmp/jicmp6 the configured OpenNMS repo offers rather than
+# pinning a major. A frozen major (e.g. 3.*) becomes a downgrade — and apt
+# refuses it without --allow-downgrades — once a host carries the newer libs a
+# later Horizon release pulls in. "*" resolves to the repo candidate and stays
+# idempotent. Consumers that need a frozen build can still override these.
+jicmp_version: "*"
+jicmp6_version: "*"
