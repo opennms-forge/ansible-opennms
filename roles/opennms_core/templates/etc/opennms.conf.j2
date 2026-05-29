@@ -8,12 +8,19 @@
 {%- set _svc_keys = opennms_services.keys() | list %}
 {%- set _collisions = (_jvm_keys | intersect(_env_keys)) + (_jvm_keys | intersect(_svc_keys)) + (_env_keys | intersect(_svc_keys)) %}
 {%- if _collisions | length > 0 %}{{ undef('opennms.conf: duplicate keys across opennms_jvm_conf / opennms_env / opennms_services: ' ~ (_collisions | unique | join(', '))) }}{% endif %}
+{# JVM tunables are consumed as shell variables by bin/opennms and bin/install,
+   so they are not exported. The env-var and service entries below are exported
+   because the pristine opennms-datasources.xml (and the CORE_SERVICE_*_ENABLED
+   toggles) resolve them via ${env:VAR}, i.e. the JVM's process environment.
+   bin/install (. opennms.conf) and bin/opennms (__onms_read_conf) both source
+   this file without auto-export, so without `export` the values stay shell-local
+   and the JVM falls back to the literal defaults (e.g. localhost:5432). #}
 {% for (key, value) in opennms_jvm_conf.items() -%}
 {{ key }}="{{ value | string | replace('\\', '\\\\') | replace('"', '\\"') }}"
 {% endfor -%}
 {% for (key, value) in _env_merged.items() -%}
-{{ key }}="{{ value | string | replace('\\', '\\\\') | replace('"', '\\"') }}"
+export {{ key }}="{{ value | string | replace('\\', '\\\\') | replace('"', '\\"') }}"
 {% endfor -%}
 {% for (key, value) in opennms_services.items() -%}
-{{ key }}="{{ value | string | lower | replace('\\', '\\\\') | replace('"', '\\"') }}"
+export {{ key }}="{{ value | string | lower | replace('\\', '\\\\') | replace('"', '\\"') }}"
 {% endfor -%}
