@@ -4,6 +4,11 @@ All notable changes to the `indigo423.opennms` collection are documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Each entry below is a short index; the corresponding GitHub release contains the full notes including the Component Versions table and upgrade instructions.
 
+## [0.4.6] - 2026-05-29
+
+### Fixed
+- `opennms_minion`: pin `JAVA_HOME` in `/etc/default/minion`. Unlike `opennms_core` (which runs `runjava -s`), the Minion role never told the service where Java is, so it fell back to karaf's `bin/find-java.sh`, whose max-version cap rejects current JDKs (e.g. 21) and aborted startup with `JAVA_HOME is not valid: No match found!` — `minion.service` failed to start. The role now resolves the installed JDK (`readlink -f /usr/bin/java`) and writes `JAVA_HOME` into the unit's EnvironmentFile, bypassing the broken auto-detection.
+
 ## [0.4.5] - 2026-05-29
 
 ### Fixed

@@ -24,6 +24,34 @@
     - minion
     - package
 
+- name: Resolve the installed JDK home
+  ansible.builtin.command: readlink -f /usr/bin/java
+  register: opennms_minion_java_bin
+  changed_when: false
+  tags:
+    - opennms
+    - minion
+
+# The Minion service has no equivalent of Core's `runjava -s`; with JAVA_HOME
+# unset it falls back to karaf's bin/find-java.sh, whose max-version cap rejects
+# current JDKs (e.g. 21) and aborts startup with "JAVA_HOME is not valid: No
+# match found!". Pin JAVA_HOME in the unit's EnvironmentFile (no `export` — it is
+# parsed by systemd as KEY=value) so detection is bypassed.
+- name: Point the Minion service at the installed JDK
+  ansible.builtin.lineinfile:
+    path: /etc/default/minion
+    regexp: '^#?\s*(export\s+)?JAVA_HOME='
+    line: "JAVA_HOME={{ opennms_minion_java_bin.stdout | dirname | dirname }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Restart minion
+  tags:
+    - opennms
+    - minion
+    - configuration
+
 - name: Configure Minion system properties
   ansible.builtin.template:
     src: custom.system.properties.j2
