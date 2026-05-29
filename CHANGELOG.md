@@ -4,6 +4,11 @@ All notable changes to the `indigo423.opennms` collection are documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Each entry below is a short index; the corresponding GitHub release contains the full notes including the Component Versions table and upgrade instructions.
 
+## [0.4.4] - 2026-05-29
+
+### Fixed
+- `opennms_core`: export the env-var and service entries in `opennms.conf` so they reach the JVM. `bin/install` (`. opennms.conf`) and `bin/opennms` (`__onms_read_conf`) both source the file without auto-export, so the unexported `POSTGRES_HOST`/`POSTGRES_PORT`/`OPENNMS_DBNAME` (and `CORE_SERVICE_*_ENABLED`) entries stayed shell-local and never reached the JVM. The `${env:...}` placeholders in the pristine `opennms-datasources.xml` then fell back to their literals — every deployment with a non-`localhost` database failed at `install -dis` and at runtime with `Connection to localhost:5432 refused`. JVM tunables (`JAVA_HEAP_SIZE`, `ADDITIONAL_MANAGER_OPTIONS`) remain unexported as they are read as shell variables.
+
 ## [0.4.3] - 2026-05-29
 
 ### Fixed
