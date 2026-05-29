@@ -4,6 +4,11 @@ All notable changes to the `indigo423.opennms` collection are documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Each entry below is a short index; the corresponding GitHub release contains the full notes including the Component Versions table and upgrade instructions.
 
+## [0.4.3] - 2026-05-29
+
+### Fixed
+- `opennms_icmp`: stop defaulting `jicmp_version`/`jicmp6_version` to the stale `3.*` major. On a host that already carries the newer libraries a later Horizon release pulls in (e.g. `4.0.0-1` under Horizon 36), `apt` treated `3.*` as a downgrade and aborted with `E: Packages were downgraded and -y was used without --allow-downgrades`. The defaults now use `*`, which resolves to the configured repo's candidate and stays idempotent. Consumers needing a frozen build can still override these.
+
 ## [0.4.2] - 2026-05-28
 
 ### Fixed
