@@ -18,5 +18,4 @@
       - bzip2
       - curl
       - git-core
-      - gnupg
     state: present

@@ -1,0 +1,6 @@
+---
+# scvcli is run through bash explicitly: the packaged script reads java.conf
+# with the bash-only $(<file) expansion under a #!/bin/sh shebang, which
+# yields an empty java path on Debian/Ubuntu where sh is dash. Patching the
+# script itself would be undone by every package upgrade.
+scvcli_cmd: "bash {{ opennms_home }}/bin/scvcli"

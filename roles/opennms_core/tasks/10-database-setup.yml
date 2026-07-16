@@ -100,13 +100,10 @@
     - initialize
     - database
 
-# scvcli is run through bash explicitly: the packaged script reads java.conf
-# with the bash-only $(<file) expansion under a #!/bin/sh shebang, which
-# yields an empty java path on Debian/Ubuntu where sh is dash.
 - name: Initialize secure vault with database postgres credential
   become: true
   become_user: opennms
-  ansible.builtin.command: "bash {{ opennms_home }}/bin/scvcli set postgres-admin {{ postgres_user }} {{ postgres_password }}"
+  ansible.builtin.command: "{{ scvcli_cmd }} set postgres-admin {{ postgres_user }} {{ postgres_password }}"
   register: scv_postgres_admin
   changed_when: scv_postgres_admin.rc != 0
   no_log: true
@@ -118,7 +115,7 @@
 - name: Initialize secure vault with database OpenNMS credentials
   become: true
   become_user: opennms
-  ansible.builtin.command: "bash {{ opennms_home }}/bin/scvcli set postgres {{ opennms_datasource_db_user }} {{ opennms_datasource_db_password }}"
+  ansible.builtin.command: "{{ scvcli_cmd }} set postgres {{ opennms_datasource_db_user }} {{ opennms_datasource_db_password }}"
   register: scv_postgres_opennms
   changed_when: scv_postgres_opennms.rc != 0
   no_log: true
@@ -130,7 +127,7 @@
 - name: Verify SCV has the expected credentials before OpenNMS reads them
   become: true
   become_user: opennms
-  ansible.builtin.command: "bash {{ opennms_home }}/bin/scvcli get {{ item }}"
+  ansible.builtin.command: "{{ scvcli_cmd }} get {{ item }}"
   loop:
     - postgres
     - postgres-admin
