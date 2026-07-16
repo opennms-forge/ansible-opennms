@@ -1,7 +1,7 @@
 ---
 opennms_distribution: Horizon
 # renovate: datasource=github-tags depName=OpenNMS/opennms extractVersion=^opennms-(?<version>\d+\.\d+\.\d+)-\d+$
-opennms_version: 36.0.0
+opennms_version: 36.0.2
 opennms_pkg_version: "{{ opennms_version }}*"
 opennms_sentinel_home: /opt/sentinel
 
