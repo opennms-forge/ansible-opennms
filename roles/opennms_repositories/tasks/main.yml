@@ -1,4 +1,19 @@
 ---
+# Installed here rather than in `common` because this role is the gpg consumer
+# and is included by every component role — the targeted playbooks
+# (hzn-*-deployment.yml) and standalone Galaxy consumers never run `common`.
+# Minimal cloud images ship without gnupg.
+- name: Install gnupg for repository key handling
+  ansible.builtin.apt:
+    pkg:
+      - gnupg
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  tags:
+    - opennms
+    - repository
+
 - name: Download OpenNMS repository key
   ansible.builtin.get_url:
     url: "{{ opennms_key_url }}"
