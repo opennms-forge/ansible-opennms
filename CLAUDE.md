@@ -98,17 +98,17 @@ Templates for OpenNMS config go in `roles/opennms_core/templates/etc/opennms.pro
 
 External collections (`requirements.yml`):
 - `community.postgresql` v4.2.0 — used by `stub_pgsql` and `opennms_core` for database setup
-- `community.general` v12.5.0 — general utilities
-- `grafana.grafana` v6.0.6 — Grafana installation and provisioning
+- `community.general` v13.2.0 — general utilities
+- `grafana.grafana` v6.1.0 — Grafana installation and provisioning
 
 ## Key Versions
 
 | Component | Version |
 |-----------|---------|
-| OpenNMS Horizon | 36.0.0 |
+| OpenNMS Horizon | 36.0.2 |
 | PostgreSQL | 18 |
 | Kafka | 4.2.0 (KRaft) |
 | OpenJDK | 21 |
 | Grafana | 12.x |
 | Grafana Mimir | 3.0.4 |
-| Prometheus JMX Exporter | 1.5.0 |
+| Prometheus JMX Exporter | 1.6.0 |
