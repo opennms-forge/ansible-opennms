@@ -68,6 +68,26 @@
     - core
     - systemd
 
+# systemd reports the unit "started" as soon as the launcher returns, but the
+# JVM/web UI take minutes to come up — and OpenNMS can still exit during that
+# window (e.g. a Liquibase changelog-lock timeout). Wait for the web UI so the
+# role only reports success once Core is actually serving, and fails clearly if
+# it never becomes ready.
+- name: Wait for OpenNMS Core to become ready
+  ansible.builtin.uri:
+    url: "http://localhost:8980/opennms/login.jsp"
+    method: GET
+    status_code: 200
+  register: opennms_core_ready
+  until: opennms_core_ready.status | default(0) == 200
+  retries: "{{ opennms_startup_retries | default(30) }}"
+  delay: "{{ opennms_startup_delay | default(10) }}"
+  when:
+    - skip_startup | default("false") == "false"
+  tags:
+    - core
+    - systemd
+
 - name: Check if UFW is installed
   ansible.builtin.command: which ufw
   register: ufw_binary_check
