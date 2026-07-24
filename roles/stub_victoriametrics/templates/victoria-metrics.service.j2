@@ -1,0 +1,19 @@
+# Managed by Ansible (indigo423.opennms.stub_victoriametrics)
+[Unit]
+Description=VictoriaMetrics single-node time-series database
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=victoriametrics
+Group=victoriametrics
+ExecStart=/usr/local/bin/victoria-metrics-prod \
+  -storageDataPath={{ victoriametrics_data_path }} \
+  -httpListenAddr=:{{ victoriametrics_http_port }} \
+  -retentionPeriod={{ victoriametrics_retention }}
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
