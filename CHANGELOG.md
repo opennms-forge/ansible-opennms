@@ -4,6 +4,25 @@ All notable changes to the `indigo423.opennms` collection are documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Each entry below is a short index; the corresponding GitHub release contains the full notes including the Component Versions table and upgrade instructions.
 
+## [0.5.0] - 2026-07-25
+
+### Added
+- `opennms_core`: wait for Core to answer on `http://localhost:8980/opennms/login.jsp` after the systemd unit starts, instead of returning as soon as systemd accepts the start. Core needs minutes to serve and can exit mid-startup, so the play previously reported success on a Core that was already going down. Tunable via `opennms_startup_retries` (30) and `opennms_startup_delay` (10s, ≈5 min total); skipped when `skip_startup` is set (#112).
+
+### Fixed
+- `opennms_core`: fail the play when `bin/install -dis` fails. The task ran with `changed_when: rc != 0` and no `failed_when`, so a successful schema migration reported *ok/unchanged* and a **failed** one never failed the play — the role went on to start OpenNMS against a half-migrated database, surfacing later as a 5-minute Liquibase-lock hang and `System.exit(1)` with nothing pointing at the real cause (#111).
+- `opennms_core`: clear a stale Liquibase changelog lock before startup. An interrupted `install -dis` or Core start can leave `databasechangeloglock` held, making the next start wait out Liquibase's 5-minute default and then `System.exit(1)` — the deploy hung until someone cleared the lock by hand. The role now resets a stale lock after schema init, guarded by a `DO` block so it is a no-op when the table is absent and idempotent otherwise. Adds `python3-psycopg2` to the Core host for the query (#113).
+
+## [0.4.7] - 2026-07-17
+
+### Changed
+- Bump OpenNMS Horizon to `36.0.2` and Prometheus JMX Exporter to `1.6.0`; both are now Renovate-managed so future bumps arrive automatically (#107, #108).
+- `stub_kafka`: download Kafka from `archive.apache.org` instead of `dlcdn.apache.org`. The CDN drops superseded releases, so any pinned `kafka_version` starts 404ing as soon as upstream moves on — `4.2.0` was already gone (#109).
+
+### Fixed
+- `opennms_repositories`: install `gnupg`. Minimal cloud images ship without it, and every repository-key task needs it; standard server images masked the gap. Installed here rather than in `common` so the targeted `hzn-*-deployment.yml` playbooks and standalone Galaxy consumers are covered too (#109).
+- `opennms_core`: run `scvcli` through `bash`. The packaged script reads `java.conf` with the bash-only `$(<file)` expansion under a `#!/bin/sh` shebang, which yields an empty Java path on Debian/Ubuntu where `sh` is dash — breaking vault init with `-jar: not found` (#109).
+
 ## [0.4.6] - 2026-05-29
 
 ### Fixed
@@ -96,6 +115,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Renovate configuration for automated Ansible Galaxy collection updates.
 - CI on standard GitHub-hosted runners with SHA-pinned actions and Dependabot.
 
+[0.5.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.5.0
+[0.4.7]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.4.7
+[0.4.6]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.4.6
+[0.4.5]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.4.5
+[0.4.4]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.4.4
+[0.4.3]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.4.3
+[0.4.2]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.4.2
+[0.4.1]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.4.1
 [0.4.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.4.0
 [0.3.2]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.3.2
 [0.3.1]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.3.1
