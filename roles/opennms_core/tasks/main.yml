@@ -46,6 +46,10 @@
 - name: Include tasks configuring the core system
   ansible.builtin.include_tasks: 20-config.yml
 
+- name: Configure the Prometheus remote_write time-series plugin
+  ansible.builtin.include_tasks: 22-timeseries-plugin.yml
+  when: opennms_remotewrite.enabled | default(false) | bool
+
 - name: Configure Kafka as message broker
   ansible.builtin.include_tasks: 21-kafka.yml
   when: opennms_message_broker == "kafka"

@@ -1,0 +1,52 @@
+---
+# Install + configure the opennms-prometheus-remotewrite-plugin so OpenNMS writes
+# metrics to any Prometheus remote_write backend (Mimir, VictoriaMetrics, ...).
+# The time-series strategy itself (org.opennms.timeseries.strategy=integration)
+# is set via opennms_properties_timeseries (see 20-config.yml).
+- name: Enable the OSGi time-series integration layer for remote_write
+  ansible.builtin.template:
+    src: etc/opennms.properties.d/_ansible.remotewrite.properties.j2
+    dest: "{{ opennms_home }}/etc/opennms.properties.d/_ansible.remotewrite.properties"
+    owner: opennms
+    group: opennms
+    mode: "0640"
+  notify: Restart opennms
+  tags:
+    - core
+    - timeseries
+
+- name: Download the Prometheus remote_write plugin KAR
+  ansible.builtin.get_url:
+    url: "{{ opennms_remotewrite_kar_url }}"
+    dest: "{{ opennms_home }}/deploy/opennms-prometheus-remotewrite-plugin.kar"
+    owner: opennms
+    group: opennms
+    mode: "0644"
+  notify: Restart opennms
+  tags:
+    - core
+    - timeseries
+
+- name: Boot the Prometheus remote_write Karaf feature
+  ansible.builtin.copy:
+    dest: "{{ opennms_home }}/etc/featuresBoot.d/tss-prometheus.boot"
+    content: "{{ opennms_remotewrite_feature }}\n"
+    owner: opennms
+    group: opennms
+    mode: "0644"
+  notify: Restart opennms
+  tags:
+    - core
+    - timeseries
+
+- name: Configure the Prometheus remote_write plugin
+  ansible.builtin.template:
+    src: etc/org.opennms.plugins.tss.prometheus.cfg.j2
+    dest: "{{ opennms_home }}/etc/org.opennms.plugins.tss.prometheus.cfg"
+    owner: opennms
+    group: opennms
+    mode: "0644"
+  notify: Restart opennms
+  tags:
+    - core
+    - timeseries
