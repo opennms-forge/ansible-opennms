@@ -168,3 +168,37 @@
     - opennms
     - initialize
     - database
+
+# On startup OpenNMS runs Liquibase, which takes the databasechangeloglock row.
+# A prior interrupted install/start can leave it held, making the next start
+# wait Liquibase's default 5 minutes and then System.exit(1). Reset a stale lock
+# here (after schema init, so the table exists) so startup self-heals. The DO
+# guard makes it a no-op if the table is not present yet.
+- name: Ensure psycopg2 is available for the changelog-lock reset
+  ansible.builtin.apt:
+    name: python3-psycopg2
+    state: present
+  tags:
+    - opennms
+    - database
+
+- name: Clear a stale Liquibase changelog lock before startup
+  community.postgresql.postgresql_query:
+    login_host: "{{ opennms_datasource_db_host }}"
+    login_port: "{{ opennms_datasource_db_port | default(5432) }}"
+    login_user: "{{ postgres_user }}"
+    login_password: "{{ postgres_password }}"
+    db: "{{ opennms_datasource_db_name }}"
+    query: |
+      DO $$
+      BEGIN
+        IF to_regclass('public.databasechangeloglock') IS NOT NULL THEN
+          UPDATE databasechangeloglock
+          SET locked = false, lockgranted = NULL, lockedby = NULL;
+        END IF;
+      END $$;
+  changed_when: false
+  no_log: true
+  tags:
+    - opennms
+    - database
