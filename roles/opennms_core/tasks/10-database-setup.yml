@@ -163,7 +163,11 @@
     ADDITIONAL_MANAGER_OPTIONS: "-Dopennms.postgresql.maxVersion={{ (pg_version | int + 1) }}.0"
   register: database_init
   when: not initialized_schema.stat.exists
-  changed_when: database_init.rc != 0
+  # install -dis returns 0 on success and performs the schema migration, so a
+  # successful run IS a change; any non-zero rc is a migration failure that must
+  # fail the play rather than silently proceed to a broken startup.
+  changed_when: database_init.rc == 0
+  failed_when: database_init.rc != 0
   tags:
     - opennms
     - initialize
