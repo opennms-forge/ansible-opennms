@@ -5,6 +5,30 @@
   tags:
     - mimir
     - systemd
+- name: Ensure the Mimir data directory exists
+  ansible.builtin.file:
+    path: "{{ mimir_data_dir }}"
+    state: directory
+    owner: mimir
+    group: mimir
+    mode: "0750"
+  tags:
+    - mimir
+    - configuration
+
+- name: Configure Mimir as a single-node monolithic backend
+  ansible.builtin.template:
+    src: config.yml.j2
+    dest: /etc/mimir/config.yml
+    owner: mimir
+    group: mimir
+    mode: "0640"
+  notify:
+    - Restart mimir
+  tags:
+    - mimir
+    - configuration
+
 - name: Enable and start systemd unit for Mimir
   ansible.builtin.service:
     name: mimir.service
