@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Ansible collection for deploying OpenNMS Horizon monitoring infrastructure on Debian/Ubuntu systems. Supports single-node and distributed topologies. Not yet production-ready — stub roles (PostgreSQL, Kafka, Elasticsearch, Grafana, Mimir) are for POC/testing only.
+Ansible collection for deploying OpenNMS Horizon monitoring infrastructure on Debian/Ubuntu systems. Supports single-node and distributed topologies. Not yet production-ready — stub roles (PostgreSQL, Kafka, Elasticsearch, Grafana, Mimir, VictoriaMetrics) are for POC/testing only.
 
 **Design constraint**: Roles only configure system-level files, not settings modifiable via web UI or APIs.
 
@@ -68,7 +68,8 @@ ansible-playbook -i inventory/opennms-stack.yml hzn-sentinel-deployment.yml
 - `stub_pgsql` — PostgreSQL 18 with OpenNMS database/user
 - `stub_kafka` — Kafka 4.2.0 in KRaft mode
 - `stub_elasticsearch` — Elasticsearch for flow data
-- `stub_mimir` — Grafana Mimir 3.0.4
+- `stub_mimir` — Grafana Mimir 3.0.4, single-node monolithic mode
+- `stub_victoriametrics` — VictoriaMetrics 1.148.0, single-node
 
 **External collection roles** (replacing stubs where mature alternatives exist):
 - `grafana.grafana.grafana` — Grafana 12.x (replaces `stub_grafana`); configured via `inventory/group_vars/grafana/vars.yml`
@@ -90,6 +91,7 @@ Role defaults live in `roles/<role>/defaults/main.yml`.
 - `10-database-setup.yml` — PostgreSQL schema init via `community.postgresql`
 - `20-config.yml` — Core configuration files
 - `21-kafka.yml` — Kafka IPC configuration
+- `22-timeseries-plugin.yml` — Prometheus remote_write time-series plugin (opt-in via `opennms_remotewrite.enabled`)
 - `50-firewall.yml` — UFW rules
 
 Templates for OpenNMS config go in `roles/opennms_core/templates/etc/opennms.properties.d/`.
@@ -111,4 +113,6 @@ External collections (`requirements.yml`):
 | OpenJDK | 21 |
 | Grafana | 12.x |
 | Grafana Mimir | 3.0.4 |
+| VictoriaMetrics | 1.148.0 |
 | Prometheus JMX Exporter | 1.6.0 |
+| OpenNMS Prometheus remote_write plugin | 2.1.0 |

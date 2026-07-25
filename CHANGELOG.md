@@ -4,6 +4,19 @@ All notable changes to the `indigo423.opennms` collection are documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Each entry below is a short index; the corresponding GitHub release contains the full notes including the Component Versions table and upgrade instructions.
 
+## [0.6.0] - 2026-07-25
+
+### Added
+- `opennms_core`: persist metrics to any Prometheus remote_write backend (Mimir, VictoriaMetrics, Cortex, Thanos) via the `opennms-prometheus-remotewrite-plugin`. New `22-timeseries-plugin.yml` downloads the plugin KAR, boots the Karaf feature, and templates the `org.opennms.plugins.tss.prometheus` PID; the time-series strategy is switched to `integration` through the existing `opennms_properties_timeseries` mechanism. Opt-in via `opennms_remotewrite.enabled` (default `false`), with `write_url`/`read_url`/`organization_id` and a Renovate-managed `opennms_remotewrite_version` (`2.1.0`) (#118).
+- `stub_victoriametrics`: new stub role deploying single-node VictoriaMetrics (`1.148.0`) as a remote_write backend, with a systemd unit, configurable `victoriametrics_http_port` (8428), `victoriametrics_data_path`, and `victoriametrics_retention` (#119).
+
+### Fixed
+- `stub_mimir`: ship a working single-node monolithic config. The role installed the Mimir `.deb` and left its empty default config in place, so Mimir started with `replication_factor: 3` against a single ingester and answered every request with `too many unhealthy instances in the ring` / HTTP 503 — never a usable backend. Now templates `/etc/mimir/config.yml` (the path the deb's unit reads) with in-memory rings, `replication_factor: 1`, and per-component filesystem storage in distinct directories. New `mimir_http_port`/`mimir_data_dir` defaults and a `Restart mimir` handler (#120).
+- `opennms_core`, `stub_victoriametrics`: make version bumps actually take effect. The plugin KAR was downloaded to a version-independent filename, so `get_url` skipped the download once the file existed and raising `opennms_remotewrite_version` was a silent no-op; the KAR filename is now versioned and superseded KARs are removed. `stub_victoriametrics` had the same trap in its `creates:` guard — the tarball now unpacks into a version-scoped directory with a symlink into `PATH`, so a bump re-extracts (#121).
+- `stub_mimir`: raise the per-tenant limits (`ingestion_rate`, series caps) for the `anonymous` tenant. Mimir's defaults returned HTTP 429 and dropped samples under a 10k-node load, skewing cross-engine comparisons against VictoriaMetrics (#121).
+- `stub_mimir`, `stub_victoriametrics`: tag the `Restart mimir` and `Restart victoriametrics` handlers so `--tags`-filtered runs still restart the service after a config change (#121).
+- `opennms_core`: tighten the remote_write plugin's cfg/boot/KAR files to `0640` to match sibling managed files, correct a stale header comment, and order the `21-kafka`/`22-timeseries-plugin` includes to match their numeric task-file prefixes (#121).
+
 ## [0.5.0] - 2026-07-25
 
 ### Added
@@ -115,6 +128,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Renovate configuration for automated Ansible Galaxy collection updates.
 - CI on standard GitHub-hosted runners with SHA-pinned actions and Dependabot.
 
+[0.6.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.6.0
 [0.5.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.5.0
 [0.4.7]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.4.7
 [0.4.6]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.4.6
