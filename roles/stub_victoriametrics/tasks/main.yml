@@ -1,0 +1,62 @@
+---
+- name: Create the victoriametrics system group
+  ansible.builtin.group:
+    name: victoriametrics
+    system: true
+  tags:
+    - victoriametrics
+
+- name: Create the victoriametrics system user
+  ansible.builtin.user:
+    name: victoriametrics
+    group: victoriametrics
+    system: true
+    shell: /usr/sbin/nologin
+    home: "{{ victoriametrics_data_path }}"
+    create_home: false
+  tags:
+    - victoriametrics
+
+- name: Create the VictoriaMetrics data directory
+  ansible.builtin.file:
+    path: "{{ victoriametrics_data_path }}"
+    state: directory
+    owner: victoriametrics
+    group: victoriametrics
+    mode: "0750"
+  tags:
+    - victoriametrics
+
+- name: Install the victoria-metrics-prod binary
+  ansible.builtin.unarchive:
+    src: "{{ victoriametrics_pkg_url }}"
+    dest: /usr/local/bin
+    remote_src: true
+    creates: /usr/local/bin/victoria-metrics-prod
+    owner: root
+    group: root
+    mode: "0755"
+  tags:
+    - victoriametrics
+
+- name: Install the VictoriaMetrics systemd unit
+  ansible.builtin.template:
+    src: victoria-metrics.service.j2
+    dest: /etc/systemd/system/victoria-metrics.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart victoriametrics
+  tags:
+    - victoriametrics
+    - systemd
+
+- name: Enable and start VictoriaMetrics
+  ansible.builtin.systemd:
+    name: victoria-metrics.service
+    enabled: true
+    state: started
+    daemon_reload: true
+  tags:
+    - victoriametrics
+    - systemd
