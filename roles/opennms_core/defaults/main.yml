@@ -152,3 +152,16 @@ opennms_properties_webapp:
   # org.eclipse.jetty.server.Request.maxFormKeys: 2000
   # org.eclipse.jetty.server.Request.maxFormContentSize: 200000
   # org.opennms.netmgt.jetty.relativeRedirectAllowed=true
+
+# Prometheus remote_write time-series plugin (opennms-prometheus-remotewrite-plugin).
+# Enable per-deployment. Serves any remote_write backend — Mimir, VictoriaMetrics,
+# Cortex, Thanos — via write_url.
+opennms_remotewrite:
+  enabled: false
+  write_url: "http://localhost:8080/api/v1/push"
+  read_url: "http://localhost:8080/prometheus/api/v1"
+  organization_id: ""
+# renovate: datasource=github-releases depName=OpenNMS-Plugins/opennms-prometheus-remotewrite-plugin
+opennms_remotewrite_version: "2.1.0"
+opennms_remotewrite_kar_url: "https://github.com/OpenNMS-Plugins/opennms-prometheus-remotewrite-plugin/releases/download/v{{ opennms_remotewrite_version }}/opennms-prometheus-remotewrite-plugin.kar"
+opennms_remotewrite_feature: "opennms-plugins-prometheus-remotewrite"
