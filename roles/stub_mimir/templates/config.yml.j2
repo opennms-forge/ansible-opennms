@@ -5,6 +5,11 @@ multitenancy_enabled: false
 server:
   http_listen_port: {{ mimir_http_port }}
   log_level: warn
+limits:
+  ingestion_rate: {{ mimir_ingestion_rate }}
+  ingestion_burst_size: {{ mimir_ingestion_burst_size }}
+  max_global_series_per_user: {{ mimir_max_global_series_per_user }}
+  max_global_series_per_metric: {{ mimir_max_global_series_per_metric }}
 blocks_storage:
   backend: filesystem
   filesystem:
