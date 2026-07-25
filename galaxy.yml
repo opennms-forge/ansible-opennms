@@ -31,3 +31,15 @@ build_ignore:
   - inventory
   - CLAUDE.md
   - RELEASING.md
+  # Gitignored working directories. CI publishes from a clean checkout and never
+  # sees these, but the manual-fallback publish in RELEASING.md runs from a
+  # working tree — without these entries it ships local IDE/agent state, and
+  # .ansible bundles a nested stale copy of this collection inside its own
+  # artifact. A published Galaxy version cannot be withdrawn, so exclude at build.
+  - .ansible          # local collection install root (collection install -r)
+  - .claude           # agent config, incl. settings.local.json
+  - .idea
+  - '*.iml'
+  - _bmad
+  - _bmad-output
+  - openspec
