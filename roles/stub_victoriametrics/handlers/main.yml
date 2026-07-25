@@ -4,3 +4,6 @@
     name: victoria-metrics.service
     state: restarted
     daemon_reload: true
+  tags:
+    - victoriametrics
+    - systemd

@@ -1,8 +1,11 @@
 ---
 # Install + configure the opennms-prometheus-remotewrite-plugin so OpenNMS writes
 # metrics to any Prometheus remote_write backend (Mimir, VictoriaMetrics, ...).
-# The time-series strategy itself (org.opennms.timeseries.strategy=integration)
-# is set via opennms_properties_timeseries (see 20-config.yml).
+# This task also sets the time-series strategy to the integration layer via
+# _ansible.remotewrite.properties (org.opennms.timeseries.strategy=integration).
+# Note: the default opennms_properties_timeseries dict still renders the RRD
+# strategy/graph-engine props in 20-config.yml; under the integration strategy
+# those RRD settings are inert, but they are not removed here.
 - name: Enable the OSGi time-series integration layer for remote_write
   ansible.builtin.template:
     src: etc/opennms.properties.d/_ansible.remotewrite.properties.j2
@@ -15,13 +18,39 @@
     - core
     - timeseries
 
+# The KAR filename carries the plugin version so bumping opennms_remotewrite_version
+# lands a new artifact instead of silently reusing the old one (get_url only
+# downloads when dest is absent). Superseded KARs are removed first so Karaf never
+# has two versions of the feature in deploy/ at once.
+- name: Remove superseded Prometheus remote_write plugin KARs
+  ansible.builtin.find:
+    paths: "{{ opennms_home }}/deploy"
+    patterns: "opennms-prometheus-remotewrite-plugin-*.kar"
+    excludes: "opennms-prometheus-remotewrite-plugin-{{ opennms_remotewrite_version }}.kar"
+  register: opennms_remotewrite_stale_kars
+  tags:
+    - core
+    - timeseries
+
+- name: Delete superseded Prometheus remote_write plugin KARs
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ opennms_remotewrite_stale_kars.files }}"
+  loop_control:
+    label: "{{ item.path }}"
+  notify: Restart opennms
+  tags:
+    - core
+    - timeseries
+
 - name: Download the Prometheus remote_write plugin KAR
   ansible.builtin.get_url:
     url: "{{ opennms_remotewrite_kar_url }}"
-    dest: "{{ opennms_home }}/deploy/opennms-prometheus-remotewrite-plugin.kar"
+    dest: "{{ opennms_home }}/deploy/opennms-prometheus-remotewrite-plugin-{{ opennms_remotewrite_version }}.kar"
     owner: opennms
     group: opennms
-    mode: "0644"
+    mode: "0640"
   notify: Restart opennms
   tags:
     - core
@@ -33,7 +62,7 @@
     content: "{{ opennms_remotewrite_feature }}\n"
     owner: opennms
     group: opennms
-    mode: "0644"
+    mode: "0640"
   notify: Restart opennms
   tags:
     - core
@@ -45,7 +74,7 @@
     dest: "{{ opennms_home }}/etc/org.opennms.plugins.tss.prometheus.cfg"
     owner: opennms
     group: opennms
-    mode: "0644"
+    mode: "0640"
   notify: Restart opennms
   tags:
     - core

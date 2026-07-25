@@ -4,3 +4,12 @@ mimir_arch: amd64
 mimir_pkg_url: "https://github.com/grafana/mimir/releases/download/mimir-{{ mimir_version }}/mimir-{{ mimir_version }}_{{ mimir_arch }}.deb"
 mimir_http_port: 8080
 mimir_data_dir: /var/lib/mimir
+
+# Per-tenant limits for the single anonymous tenant (multitenancy disabled).
+# Mimir's defaults (ingestion_rate ~10k samples/s, max_global_series_per_user
+# ~150k) throttle and 429 a large benchmark; raise them so a 10k-node OpenNMS
+# remote_write load is measured un-throttled (0 = unlimited for the series caps).
+mimir_ingestion_rate: 1000000
+mimir_ingestion_burst_size: 2000000
+mimir_max_global_series_per_user: 0
+mimir_max_global_series_per_metric: 0

@@ -27,15 +27,38 @@
   tags:
     - victoriametrics
 
-- name: Install the victoria-metrics-prod binary
-  ansible.builtin.unarchive:
-    src: "{{ victoriametrics_pkg_url }}"
-    dest: /usr/local/bin
-    remote_src: true
-    creates: /usr/local/bin/victoria-metrics-prod
+# Unpack into a version-scoped directory and expose it through a stable symlink,
+# so bumping victoriametrics_version extracts the new binary (the version-independent
+# creates: guard on /usr/local/bin/victoria-metrics-prod would otherwise skip it) and
+# flips the symlink to trigger a restart.
+- name: Create the VictoriaMetrics versioned install directory
+  ansible.builtin.file:
+    path: "/opt/victoria-metrics/{{ victoriametrics_version }}"
+    state: directory
     owner: root
     group: root
     mode: "0755"
+  tags:
+    - victoriametrics
+
+- name: Install the victoria-metrics-prod binary
+  ansible.builtin.unarchive:
+    src: "{{ victoriametrics_pkg_url }}"
+    dest: "/opt/victoria-metrics/{{ victoriametrics_version }}"
+    remote_src: true
+    creates: "/opt/victoria-metrics/{{ victoriametrics_version }}/victoria-metrics-prod"
+    owner: root
+    group: root
+    mode: "0755"
+  tags:
+    - victoriametrics
+
+- name: Link victoria-metrics-prod into PATH
+  ansible.builtin.file:
+    src: "/opt/victoria-metrics/{{ victoriametrics_version }}/victoria-metrics-prod"
+    dest: /usr/local/bin/victoria-metrics-prod
+    state: link
+  notify: Restart victoriametrics
   tags:
     - victoriametrics
 
