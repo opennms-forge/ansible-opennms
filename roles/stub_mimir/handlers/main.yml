@@ -3,6 +3,3 @@
   ansible.builtin.service:
     name: mimir.service
     state: restarted
-  tags:
-    - mimir
-    - systemd

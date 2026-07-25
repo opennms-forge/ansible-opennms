@@ -1,0 +1,46 @@
+# Managed by Ansible (indigo423.opennms.stub_mimir) — single-node monolithic.
+# Minimal functional config: replication_factor 1 + in-memory rings (single
+# process) + per-component filesystem storage (distinct dirs, no overlap).
+multitenancy_enabled: false
+server:
+  http_listen_port: {{ mimir_http_port }}
+  log_level: warn
+blocks_storage:
+  backend: filesystem
+  filesystem:
+    dir: {{ mimir_data_dir }}/blocks
+  tsdb:
+    dir: {{ mimir_data_dir }}/tsdb
+  bucket_store:
+    sync_dir: {{ mimir_data_dir }}/tsdb-sync
+ruler_storage:
+  backend: filesystem
+  filesystem:
+    dir: {{ mimir_data_dir }}/ruler
+alertmanager_storage:
+  backend: filesystem
+  filesystem:
+    dir: {{ mimir_data_dir }}/alertmanager
+ingester:
+  ring:
+    replication_factor: 1
+    kvstore:
+      store: inmemory
+distributor:
+  ring:
+    kvstore:
+      store: inmemory
+store_gateway:
+  sharding_ring:
+    replication_factor: 1
+    kvstore:
+      store: inmemory
+compactor:
+  data_dir: {{ mimir_data_dir }}/compactor
+  sharding_ring:
+    kvstore:
+      store: inmemory
+ruler:
+  ring:
+    kvstore:
+      store: inmemory
