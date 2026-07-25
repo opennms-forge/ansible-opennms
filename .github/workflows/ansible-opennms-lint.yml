@@ -3,7 +3,13 @@ name: ansible-opennms-lint
 run-name: Validate the Ansible playbook
 on:
   workflow_dispatch:
+  # Fork PRs never fire `push` in this repo, so a push-only trigger left the
+  # required `ansible-lint` check permanently pending on outside contributions.
+  # Scoping push to main and adding pull_request gives one run per PR and one
+  # per merge, instead of two runs for every branch push.
   push:
+    branches: [main]
+  pull_request:
 
 jobs:
   ansible-lint:
