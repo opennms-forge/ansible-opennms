@@ -1,0 +1,72 @@
+---
+- name: Assert an external ClickHouse is configured
+  ansible.builtin.assert:
+    that:
+      - akvorado_clickhouse_servers | length > 0
+    fail_msg: >-
+      akvorado_clickhouse_servers is empty. The bundled ClickHouse container is
+      disabled, so Akvorado has nowhere to write flows. Set it to the
+      stub_clickhouse host, e.g. ["ch-benchmark-01:9000"].
+  tags:
+    - akvorado
+
+- name: Create the Akvorado install directory
+  ansible.builtin.file:
+    path: "{{ akvorado_install_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  tags:
+    - akvorado
+
+# Unpacked per version so that bumping akvorado_version fetches the new tree
+# rather than being skipped by a version-independent creates: guard.
+- name: Unpack the Akvorado source tree for version {{ akvorado_version }}
+  ansible.builtin.unarchive:
+    src: "{{ akvorado_src_url }}"
+    dest: "{{ akvorado_install_dir }}"
+    remote_src: true
+    creates: "{{ _akvorado_project_dir }}/docker/docker-compose.yml"
+    owner: root
+    group: root
+  tags:
+    - akvorado
+
+# Upstream already lists docker-compose-local.yml in the COMPOSE_FILE chain in
+# its shipped .env, so the override applies without touching .env.
+- name: Configure the Akvorado compose override
+  ansible.builtin.template:
+    src: docker-compose-local.yml.j2
+    dest: "{{ _akvorado_project_dir }}/docker/docker-compose-local.yml"
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Restart akvorado
+  tags:
+    - akvorado
+    - configuration
+
+- name: Configure the Akvorado orchestrator
+  ansible.builtin.template:
+    src: akvorado.yaml.j2
+    dest: "{{ _akvorado_project_dir }}/config/akvorado.yaml"
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Restart akvorado
+  tags:
+    - akvorado
+    - configuration
+
+- name: Start the Akvorado stack
+  community.docker.docker_compose_v2:
+    project_src: "{{ _akvorado_project_dir }}"
+    profiles: "{{ ['demo'] if akvorado_demo_exporters else omit }}"
+    state: present
+    wait: true
+  tags:
+    - akvorado
+    - docker

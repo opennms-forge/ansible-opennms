@@ -1,0 +1,46 @@
+{# Managed by the akvorado Ansible role — local changes are overwritten. #}
+{# Replaces upstream config/akvorado.yaml. inlet/outlet/console keep their #}
+{# upstream !include files; only the parts the lab varies live here.       #}
+---
+kafka:
+  topic: {{ akvorado_kafka_topic }}
+  brokers:
+{% for broker in akvorado_kafka_brokers %}
+    - {{ broker }}
+{% endfor %}
+  topic-configuration:
+    num-partitions: {{ akvorado_kafka_partitions }}
+    replication-factor: {{ akvorado_kafka_replication_factor }}
+    config-entries:
+      segment.bytes: 1073741824
+      retention.ms: 86400000
+      cleanup.policy: delete
+      compression.type: producer
+
+geoip:
+  optional: true
+  asn-database:
+    - /usr/share/GeoIP/asn.mmdb
+  geo-database:
+    - /usr/share/GeoIP/country.mmdb
+
+clickhousedb:
+  servers:
+{% for server in akvorado_clickhouse_servers %}
+    - {{ server }}
+{% endfor %}
+
+clickhouse:
+  orchestrator-url: http://akvorado-orchestrator:8080
+  prometheus-endpoint: /metrics
+  networks:
+{% for prefix, attrs in akvorado_networks.items() %}
+    {{ prefix }}:
+{% for key, value in attrs.items() %}
+      {{ key }}: {{ value }}
+{% endfor %}
+{% endfor %}
+
+inlet: !include "inlet.yaml"
+outlet: !include "outlet.yaml"
+console: !include "console.yaml"
