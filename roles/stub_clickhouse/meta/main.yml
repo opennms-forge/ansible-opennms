@@ -1,0 +1,22 @@
+---
+galaxy_info:
+  role_name: stub_clickhouse
+  author: Ronny Trommer
+  description: POC/test stub that deploys single-node ClickHouse as a flow-storage backend for Akvorado. Not for production use.
+  license: GPL-3.0-or-later
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+        - trixie
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+  galaxy_tags:
+    - clickhouse
+    - flows
+    - stub
+
+dependencies: []

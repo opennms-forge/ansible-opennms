@@ -1,0 +1,17 @@
+---
+# renovate: datasource=deb depName=clickhouse-server
+clickhouse_version: "26.7.1.1315"
+
+clickhouse_apt_key_url: "https://packages.clickhouse.com/rpm/lts/repodata/repomd.xml.key"
+clickhouse_apt_repo_uri: "https://packages.clickhouse.com/deb"
+clickhouse_apt_suite: stable
+
+clickhouse_http_port: 8123
+clickhouse_tcp_port: 9000
+clickhouse_data_dir: /var/lib/clickhouse
+
+# ClickHouse binds loopback only out of the box. Akvorado runs on a separate
+# host in this lab, so the stub listens on all interfaces — acceptable because
+# the lab sits on a private subnet, and the reason this is a stub, not a
+# production deployment.
+clickhouse_listen_host: "0.0.0.0"
