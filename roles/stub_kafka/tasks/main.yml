@@ -84,15 +84,59 @@
     - kafka
     - config
 
-- name: Generate Cluster UUID
+# Every broker in a KRaft cluster must be formatted with the SAME cluster ID.
+# Generating one per host, as this role used to, leaves brokers unable to join
+# each other (INCONSISTENT_CLUSTER_ID). Establish it once for the whole cluster
+# on the first member — reusing the ID already on disk if that member has been
+# formatted before, so re-runs and added nodes converge on the existing cluster.
+- name: Read the cluster ID already on the first broker
+  ansible.builtin.slurp:
+    src: "{{ kafka_home }}/ansible_cluster_id"
+  delegate_to: "{{ _kafka_members[0] }}"
+  run_once: true
+  register: _kafka_existing_cluster_id
+  failed_when: false
+  when: kafka_cluster_id | length == 0
+  tags:
+    - opennms
+    - kafka
+    - config
+
+- name: Generate a cluster ID for the cluster
+  ansible.builtin.command: "{{ kafka_home }}/bin/kafka-storage.sh random-uuid"
+  delegate_to: "{{ _kafka_members[0] }}"
+  run_once: true
+  register: _kafka_generated_cluster_id
+  changed_when: false
+  when:
+    - kafka_cluster_id | length == 0
+    - _kafka_existing_cluster_id.content is not defined
+  tags:
+    - opennms
+    - kafka
+    - config
+
+- name: Resolve the effective cluster ID
+  ansible.builtin.set_fact:
+    _kafka_effective_cluster_id: >-
+      {{ kafka_cluster_id if (kafka_cluster_id | length > 0)
+         else (_kafka_existing_cluster_id.content | b64decode | trim
+               if _kafka_existing_cluster_id.content is defined
+               else _kafka_generated_cluster_id.stdout | trim) }}
+  tags:
+    - opennms
+    - kafka
+    - config
+
+- name: Format the Kafka storage directory
   ansible.builtin.shell: |
     cd {{ kafka_home }}
-    bin/kafka-storage.sh random-uuid > ansible_cluster_id
+    printf '%s\n' "{{ _kafka_effective_cluster_id }}" > ansible_cluster_id
     chown "{{ kafka_user }}:{{ kafka_group }}" ansible_cluster_id
-    bin/kafka-storage.sh format --ignore-formatted -t $(cat ansible_cluster_id) -c config/kraft/server.properties
+    bin/kafka-storage.sh format --ignore-formatted -t "{{ _kafka_effective_cluster_id }}" -c config/kraft/server.properties
   when: not initialized_cluster_uuid.stat.exists
   register: cluster_uuid_output
-  changed_when: cluster_uuid_output.rc != 0
+  changed_when: cluster_uuid_output.rc == 0
   tags:
     - opennms
     - kafka

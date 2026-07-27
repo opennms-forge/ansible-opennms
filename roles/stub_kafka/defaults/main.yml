@@ -10,6 +10,23 @@ kafka_user: kafka
 kafka_group: kafka
 kafka_log_dir: /var/log/kafka/combined-logs
 
+# Inventory group whose members form the KRaft cluster. One member keeps the
+# previous single-broker behaviour; more than one derives node ids, quorum
+# voters, advertised listeners and replication factors from the group.
+kafka_cluster_group: message_broker
+kafka_broker_port: 9092
+kafka_controller_port: 9093
+
+# All brokers in a KRaft cluster must be formatted with the same cluster ID.
+# Left empty, the role establishes one for the cluster — reusing the ID already
+# on the first member if it has been formatted before, otherwise generating one
+# — and applies it to every member. Set explicitly to pin it.
+kafka_cluster_id: ""
+
+# Replication for the internal topics. Derived from the member count, capped at
+# 3, with min.isr at a majority once there is more than one broker. Kafka
+# refuses to start if these exceed the number of brokers.
+
 kafka_server_properties:
   "process.roles": broker,controller
   "node.id": 1
