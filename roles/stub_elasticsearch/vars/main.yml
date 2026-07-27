@@ -1,0 +1,28 @@
+---
+# Cluster members, in a stable order so every node renders the same seed list.
+# Falls back to this host alone when the group is absent, which keeps the role
+# usable on an inventory that does not define es_cluster_group.
+_es_members: "{{ groups[es_cluster_group] | default([inventory_hostname]) | sort }}"
+
+# Discovery is derived, not configured. A single member keeps the previous
+# behaviour (discovery.type: single-node, which Elasticsearch requires instead
+# of — not alongside — seed hosts). Two or more switch to real cluster
+# formation.
+#
+# Seed and master lists use inventory hostnames rather than addresses: node.name
+# defaults to ansible_hostname, so cluster.initial_master_nodes must match those
+# names, and the lab writes every host into /etc/hosts. Elasticsearch runs as a
+# host process, so that resolution applies to it (unlike containerised roles).
+_es_discovery: >-
+  {{
+    {'discovery.type': 'single-node'}
+    if (_es_members | length) < 2 else
+    {
+      'discovery.seed_hosts': _es_members | to_json,
+      'cluster.initial_master_nodes': _es_members | to_json,
+    }
+  }}
+
+# What the template renders. Derived discovery wins over es_configuration so a
+# stale discovery.type in a user override cannot silently break formation.
+_es_effective_configuration: "{{ es_configuration | combine(_es_discovery) }}"

@@ -100,6 +100,6 @@
 # Managed by Ansible
 ######
 
-{% for (key, value) in es_configuration.items() %}
+{% for (key, value) in _es_effective_configuration.items() | sort %}
 {{ key }}: {{ value }}
 {% endfor %}

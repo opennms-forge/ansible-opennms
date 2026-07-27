@@ -8,14 +8,19 @@ drift_version: 2.0.7
 es_pkg_version: "{{ es_version }}*"
 onms_drift_plugin_dir: /usr/share/elasticsearch/plugins/drift
 es_etc_dir: /etc/elasticsearch
+# Inventory group whose members form the cluster. One member -> single-node
+# discovery; more than one -> seed hosts and initial master nodes are derived
+# from it, so scaling the group is the only change needed.
+es_cluster_group: elasticsearch
+
+# Discovery keys are NOT set here — the role computes them from es_cluster_group
+# (see vars/main.yml) and merges them over this dict. Setting discovery.type or
+# discovery.seed_hosts here would be overridden.
 es_configuration:
   action.destructive_requires_name: true
   bootstrap.memory_lock: true
-  # cluster.initial_master_nodes: '["node-1", "node-2"]'
   cluster.max_shards_per_node: 6000
   cluster.name: opennms-flows
-  discovery.type: single-node
-  # discovery.seed_hosts: '["host1", "host2"]'
   http.port: 9200
   network.host: 0.0.0.0
   node.attr.rack: r1
