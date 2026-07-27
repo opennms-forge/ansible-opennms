@@ -1,3 +1,0 @@
----
-# The release tarball unpacks to a version-named directory.
-_akvorado_project_dir: "{{ akvorado_install_dir }}/akvorado-{{ akvorado_version }}"

@@ -55,6 +55,14 @@ ansible-playbook -i inventory/opennms-stack.yml hzn-sentinel-deployment.yml
 
 ### Roles
 
+**Scope rule.** A role belongs in this collection only if OpenNMS has a wire to
+the system it deploys — a database it queries, a broker it publishes to, a store
+it writes to. Systems OpenNMS is *measured against* do not belong here, however
+convenient it would be to reuse the stub pattern; they belong in the benchmark
+repository (`opennms-forge/opennms-benchmark`, under `deployments/roles/`).
+Every role below fits one of the three buckets; if a proposed role fits none of
+them, that is the signal.
+
 **Core OpenNMS components** (production targets):
 - `opennms_repositories` — APT repo and GPG key setup; must run before any package install
 - `openjdk` — Installs OpenJDK 21 for OpenNMS components and Kafka
