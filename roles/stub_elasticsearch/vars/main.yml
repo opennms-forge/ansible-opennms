@@ -23,6 +23,24 @@ _es_discovery: >-
     }
   }}
 
-# What the template renders. Derived discovery wins over es_configuration so a
-# stale discovery.type in a user override cannot silently break formation.
-_es_effective_configuration: "{{ es_configuration | combine(_es_discovery) }}"
+# What the template renders.
+#
+# combine() can only ADD keys, so merging is not enough: an operator-supplied
+# es_configuration that still carries discovery.type would keep it alongside the
+# derived cluster keys, and Elasticsearch refuses to boot with
+#   setting [cluster.initial_master_nodes] is not allowed when
+#   [discovery.type] is set to [single-node]
+# The benchmark lab does exactly that — it overrides the whole dict via
+# extra-vars, which outrank role defaults — so clustering strips discovery.type
+# from whatever es_configuration resolves to before merging. That is what makes
+# the two forms mutually exclusive by construction rather than by the operator
+# remembering to delete one.
+_es_effective_configuration: >-
+  {{
+    (es_configuration | dict2items
+                      | rejectattr('key', 'equalto', 'discovery.type')
+                      | items2dict
+                      | combine(_es_discovery))
+    if (_es_members | length) >= 2
+    else (es_configuration | combine(_es_discovery))
+  }}

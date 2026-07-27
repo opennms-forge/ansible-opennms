@@ -1,0 +1,8 @@
+# Managed by the stub_elasticsearch Ansible role — local changes are overwritten.
+#
+# bootstrap.memory_lock requires the service to be allowed to lock memory.
+# Single-node Elasticsearch skips bootstrap checks, so the setting was inert
+# and this limit was never needed; a real cluster enforces them and refuses to
+# start without it.
+[Service]
+LimitMEMLOCK=infinity

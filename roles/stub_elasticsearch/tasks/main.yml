@@ -51,6 +51,46 @@
     - plugin_drift
 # yamllint enable rule:line-length
 
+# bootstrap.memory_lock is only enforced once bootstrap checks run, which
+# single-node Elasticsearch skips. A cluster runs them, so without this limit
+# the node dies with "memory locking requested ... but memory is not locked".
+# Granted rather than disabling the lock: an Elasticsearch that swaps is
+# useless for benchmarking.
+- name: Create the Elasticsearch systemd drop-in directory
+  ansible.builtin.file:
+    path: /etc/systemd/system/elasticsearch.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  tags:
+    - elasticsearch
+    - configuration
+
+- name: Allow Elasticsearch to lock memory
+  ansible.builtin.template:
+    src: systemd/memlock.conf.j2
+    dest: /etc/systemd/system/elasticsearch.service.d/memlock.conf
+    owner: root
+    group: root
+    mode: "0644"
+  when: es_configuration['bootstrap.memory_lock'] | default(false) | bool
+  tags:
+    - elasticsearch
+    - configuration
+
+# Reloaded here rather than from a handler: handlers run at the end of the
+# play, but the service-start task below would fail first and abort the play,
+# leaving the drop-in on disk and unloaded. Unconditional and idempotent, so it
+# does not depend on change detection.
+- name: Reload systemd so the Elasticsearch limits apply
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+  changed_when: false
+  tags:
+    - elasticsearch
+    - configuration
+
 - name: Configure Elasticsearch
   ansible.builtin.template:
     src: elasticsearch.yml.j2
