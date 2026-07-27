@@ -1,8 +1,11 @@
 ---
 - name: Restart elasticsearch
-  ansible.builtin.service:
+  ansible.builtin.systemd_service:
     name: elasticsearch.service
     state: restarted
+    # The role may drop in a systemd override for LimitMEMLOCK, so reload the
+    # unit before restarting rather than leaving the change unapplied.
+    daemon_reload: true
   tags:
     - elasticsearch
     - systemd

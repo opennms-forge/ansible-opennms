@@ -1,0 +1,46 @@
+---
+# Cluster members, in a stable order so every node renders the same seed list.
+# Falls back to this host alone when the group is absent, which keeps the role
+# usable on an inventory that does not define es_cluster_group.
+_es_members: "{{ groups[es_cluster_group] | default([inventory_hostname]) | sort }}"
+
+# Discovery is derived, not configured. A single member keeps the previous
+# behaviour (discovery.type: single-node, which Elasticsearch requires instead
+# of — not alongside — seed hosts). Two or more switch to real cluster
+# formation.
+#
+# Seed and master lists use inventory hostnames rather than addresses: node.name
+# defaults to ansible_hostname, so cluster.initial_master_nodes must match those
+# names, and the lab writes every host into /etc/hosts. Elasticsearch runs as a
+# host process, so that resolution applies to it (unlike containerised roles).
+_es_discovery: >-
+  {{
+    {'discovery.type': 'single-node'}
+    if (_es_members | length) < 2 else
+    {
+      'discovery.seed_hosts': _es_members | to_json,
+      'cluster.initial_master_nodes': _es_members | to_json,
+    }
+  }}
+
+# What the template renders.
+#
+# combine() can only ADD keys, so merging is not enough: an operator-supplied
+# es_configuration that still carries discovery.type would keep it alongside the
+# derived cluster keys, and Elasticsearch refuses to boot with
+#   setting [cluster.initial_master_nodes] is not allowed when
+#   [discovery.type] is set to [single-node]
+# The benchmark lab does exactly that — it overrides the whole dict via
+# extra-vars, which outrank role defaults — so clustering strips discovery.type
+# from whatever es_configuration resolves to before merging. That is what makes
+# the two forms mutually exclusive by construction rather than by the operator
+# remembering to delete one.
+_es_effective_configuration: >-
+  {{
+    (es_configuration | dict2items
+                      | rejectattr('key', 'equalto', 'discovery.type')
+                      | items2dict
+                      | combine(_es_discovery))
+    if (_es_members | length) >= 2
+    else (es_configuration | combine(_es_discovery))
+  }}
