@@ -1,0 +1,12 @@
+---
+# Brokers in a stable order, so every Sentinel renders the same bootstrap list.
+_sentinel_brokers: "{{ groups[sentinel_kafka_group] | default([]) | sort }}"
+
+# host-01:9092,host-02:9092,... Falls back to the previous hard-coded value
+# when no broker group is present, so an inventory without one is unaffected.
+# Sentinel runs as a host process, so the lab's /etc/hosts resolves these names
+# — unlike the containerised roles, where Docker's resolver ignores that file.
+_sentinel_bootstrap_servers: >-
+  {{ (_sentinel_brokers | map('regex_replace', '$', ':' ~ sentinel_kafka_port) | join(','))
+     if (_sentinel_brokers | length) > 0
+     else 'localhost:' ~ sentinel_kafka_port }}

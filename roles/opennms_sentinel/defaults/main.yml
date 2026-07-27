@@ -32,6 +32,19 @@ opennms_sentinel_controller:
   id: "{{ ansible_facts['machine_id'] if ansible_facts['machine_id'] is defined else inventory_hostname }}"
   location: ANSIBLE_UNSET_SENTINEL_LOCATION
 
+# Inventory group holding the Kafka brokers, used to default
+# bootstrap.servers below. Empty or absent falls back to localhost:9092.
+sentinel_kafka_group: message_broker
+sentinel_kafka_port: 9092
+
 opennms_sentinel_kafka:
-  "bootstrap.servers": localhost:9092
+  # Defaulted from sentinel_kafka_group rather than hard-coded: Sentinel and
+  # Kafka are separate nodes in every topology that runs a Sentinel, so
+  # localhost:9092 is never right there. Being a default, an operator-supplied
+  # opennms_sentinel_kafka still wins outright.
+  "bootstrap.servers": "{{ _sentinel_bootstrap_servers }}"
+  # One shared group is what makes several Sentinels split the flow workload:
+  # Kafka assigns partitions across the consumers in a group, so instances
+  # divide the load rather than each processing every record. Giving them
+  # distinct group ids would duplicate the work instead.
   "group.id": OpenNMS
