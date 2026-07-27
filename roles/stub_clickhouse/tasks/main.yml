@@ -8,7 +8,7 @@
     components:
       - main
     architectures:
-      - amd64
+      - "{{ clickhouse_arch }}"
     signed_by: "{{ clickhouse_apt_key_url }}"
   tags:
     - clickhouse

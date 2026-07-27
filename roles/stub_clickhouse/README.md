@@ -31,6 +31,7 @@ migrates its own schema. Not a production-grade ClickHouse deployment.
 | `clickhouse_tcp_port` | `9000` | Native protocol |
 | `clickhouse_data_dir` | `/var/lib/clickhouse` | Storage path |
 | `clickhouse_listen_host` | `0.0.0.0` | Listen address |
+| `clickhouse_arch` | `amd64` | Repository architecture |
 | `clickhouse_apt_key_url` | ClickHouse `repomd.xml.key` | Repository signing key (served from the `rpm/lts` path, not `deb`) |
 
 ## Example

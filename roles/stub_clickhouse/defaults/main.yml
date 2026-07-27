@@ -2,6 +2,7 @@
 # renovate: datasource=deb depName=clickhouse-server
 clickhouse_version: "26.7.1.1315"
 
+clickhouse_arch: amd64
 clickhouse_apt_key_url: "https://packages.clickhouse.com/rpm/lts/repodata/repomd.xml.key"
 clickhouse_apt_repo_uri: "https://packages.clickhouse.com/deb"
 clickhouse_apt_suite: stable
