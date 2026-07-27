@@ -1,4 +1,21 @@
 ---
+# A cluster cannot use the filesystem backend: each node would write blocks to
+# its own disk, so ingesters, store-gateways and compactors would never see the
+# same data. Caught here rather than as confusing query gaps later.
+- name: Assert clustered Mimir has shared object storage
+  ansible.builtin.assert:
+    that:
+      - mimir_s3_endpoint | length > 0
+    fail_msg: >-
+      {{ _mimir_members | length }} Mimir nodes are configured but
+      mimir_s3_endpoint is empty. Multi-node Mimir needs a shared object store;
+      the filesystem backend is per-node and is only correct for a single node.
+      Point mimir_s3_endpoint at an S3-compatible endpoint and set
+      mimir_s3_access_key_id / mimir_s3_secret_access_key.
+  when: _mimir_clustered | bool
+  tags:
+    - always
+
 - name: Install a Mimir package
   ansible.builtin.apt:
     deb: '{{ mimir_pkg_url }}'

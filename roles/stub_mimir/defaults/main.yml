@@ -13,3 +13,39 @@ mimir_ingestion_rate: 1000000
 mimir_ingestion_burst_size: 2000000
 mimir_max_global_series_per_user: 0
 mimir_max_global_series_per_metric: 0
+
+# Inventory group whose members form the cluster. One member keeps the
+# single-node monolithic behaviour; more than one switches the rings to
+# memberlist and scales replication.
+mimir_cluster_group: mimir
+mimir_memberlist_port: 7946
+
+# Address each node advertises into the rings and to memberlist peers.
+#
+# Mimir's ring lifecycler defaults to finding an address on interfaces
+# [eth0, en0]. Modern predictable interface names (enp1s0, ...) match neither,
+# so a clustered node dies at startup with "no useable address found for
+# interfaces [eth0 en0] / invalid ring lifecycler config". Single-node never hit
+# this because in-memory rings need no advertisable address.
+#
+# Set explicitly rather than by listing interface names, which would only move
+# the guess from Mimir's list to ours. Defaults to the inventory's management
+# address; leave empty to fall back to Mimir's own interface detection.
+mimir_instance_addr: "{{ lab_mgmt_ip | default('') }}"
+
+# Shared object storage. Multi-node Mimir cannot use the filesystem backend:
+# every component must see the same blocks, and a per-node directory is not a
+# shared store. Set the endpoint to switch blocks/ruler/alertmanager storage to
+# S3; left empty, storage stays on the filesystem (correct only for one node).
+#
+# Deliberately generic rather than naming a product. Mimir talks S3, so this
+# works against AWS S3, MinIO, RustFS or anything else that does — the lab
+# chooses the implementation, the role does not.
+mimir_s3_endpoint: ""
+mimir_s3_bucket_blocks: mimir-blocks
+mimir_s3_bucket_ruler: mimir-ruler
+mimir_s3_bucket_alertmanager: mimir-alertmanager
+mimir_s3_access_key_id: ""
+mimir_s3_secret_access_key: ""
+# Lab object storage is typically plain HTTP on a private subnet.
+mimir_s3_insecure: true

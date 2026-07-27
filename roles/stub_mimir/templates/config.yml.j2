@@ -1,6 +1,14 @@
-# Managed by Ansible (indigo423.opennms.stub_mimir) — single-node monolithic.
-# Minimal functional config: replication_factor 1 + in-memory rings (single
+{# Keep every Jinja tag at column 0: Ansible templates with trim_blocks but   #}
+{# not lstrip_blocks, so leading whitespace on a tag line survives into the   #}
+{# output and would corrupt this file's indentation.                          #}
+# Managed by Ansible (indigo423.opennms.stub_mimir).
+{% if _mimir_clustered | bool %}
+# Clustered: memberlist rings across {{ _mimir_members | length }} members,
+# replication_factor {{ _mimir_replication_factor }}, shared object storage.
+{% else %}
+# Single-node monolithic: replication_factor 1 + in-memory rings (single
 # process) + per-component filesystem storage (distinct dirs, no overlap).
+{% endif %}
 multitenancy_enabled: false
 server:
   http_listen_port: {{ mimir_http_port }}
@@ -10,42 +18,114 @@ limits:
   ingestion_burst_size: {{ mimir_ingestion_burst_size }}
   max_global_series_per_user: {{ mimir_max_global_series_per_user }}
   max_global_series_per_metric: {{ mimir_max_global_series_per_metric }}
+{% if _mimir_clustered | bool %}
+memberlist:
+  bind_port: {{ mimir_memberlist_port }}
+{% if mimir_instance_addr | length > 0 %}
+  advertise_addr: {{ mimir_instance_addr }}
+  advertise_port: {{ mimir_memberlist_port }}
+{% endif %}
+  join_members:
+{% for member in _mimir_members %}
+    - {{ member }}:{{ mimir_memberlist_port }}
+{% endfor %}
+{% endif %}
 blocks_storage:
-  backend: filesystem
+  backend: {{ _mimir_storage_backend }}
+{% if _mimir_storage_backend == 's3' %}
+  s3:
+    endpoint: {{ mimir_s3_endpoint }}
+    bucket_name: {{ mimir_s3_bucket_blocks }}
+    access_key_id: {{ mimir_s3_access_key_id }}
+    secret_access_key: {{ mimir_s3_secret_access_key }}
+    insecure: {{ mimir_s3_insecure | bool | lower }}
+{% else %}
   filesystem:
     dir: {{ mimir_data_dir }}/blocks
+{% endif %}
   tsdb:
     dir: {{ mimir_data_dir }}/tsdb
   bucket_store:
     sync_dir: {{ mimir_data_dir }}/tsdb-sync
 ruler_storage:
-  backend: filesystem
+  backend: {{ _mimir_storage_backend }}
+{% if _mimir_storage_backend == 's3' %}
+  s3:
+    endpoint: {{ mimir_s3_endpoint }}
+    bucket_name: {{ mimir_s3_bucket_ruler }}
+    access_key_id: {{ mimir_s3_access_key_id }}
+    secret_access_key: {{ mimir_s3_secret_access_key }}
+    insecure: {{ mimir_s3_insecure | bool | lower }}
+{% else %}
   filesystem:
     dir: {{ mimir_data_dir }}/ruler
+{% endif %}
 alertmanager_storage:
-  backend: filesystem
+  backend: {{ _mimir_storage_backend }}
+{% if _mimir_storage_backend == 's3' %}
+  s3:
+    endpoint: {{ mimir_s3_endpoint }}
+    bucket_name: {{ mimir_s3_bucket_alertmanager }}
+    access_key_id: {{ mimir_s3_access_key_id }}
+    secret_access_key: {{ mimir_s3_secret_access_key }}
+    insecure: {{ mimir_s3_insecure | bool | lower }}
+{% else %}
   filesystem:
     dir: {{ mimir_data_dir }}/alertmanager
+{% endif %}
 ingester:
   ring:
-    replication_factor: 1
+    replication_factor: {{ _mimir_replication_factor }}
+{% if _mimir_clustered | bool and mimir_instance_addr | length > 0 %}
+    instance_addr: {{ mimir_instance_addr }}
+{% endif %}
     kvstore:
-      store: inmemory
+      store: {{ _mimir_kvstore }}
 distributor:
   ring:
+{% if _mimir_clustered | bool and mimir_instance_addr | length > 0 %}
+    instance_addr: {{ mimir_instance_addr }}
+{% endif %}
     kvstore:
-      store: inmemory
+      store: {{ _mimir_kvstore }}
 store_gateway:
   sharding_ring:
-    replication_factor: 1
+    replication_factor: {{ _mimir_replication_factor }}
+{% if _mimir_clustered | bool and mimir_instance_addr | length > 0 %}
+    instance_addr: {{ mimir_instance_addr }}
+{% endif %}
     kvstore:
-      store: inmemory
+      store: {{ _mimir_kvstore }}
 compactor:
   data_dir: {{ mimir_data_dir }}/compactor
   sharding_ring:
+{% if _mimir_clustered | bool and mimir_instance_addr | length > 0 %}
+    instance_addr: {{ mimir_instance_addr }}
+{% endif %}
     kvstore:
-      store: inmemory
+      store: {{ _mimir_kvstore }}
 ruler:
   ring:
+{% if _mimir_clustered | bool and mimir_instance_addr | length > 0 %}
+    instance_addr: {{ mimir_instance_addr }}
+{% endif %}
     kvstore:
-      store: inmemory
+      store: {{ _mimir_kvstore }}
+{% if _mimir_clustered | bool and mimir_instance_addr | length > 0 %}
+# The query-frontend and alertmanager resolve their own addresses too, by the
+# same interface probing as the rings — so they need telling as well, or Mimir
+# fails later in startup with "failed to get frontend address".
+#
+# "address", not "instance_addr": the query-frontend's config type
+# (frontend.CombinedFrontendConfig) has no instance_addr field and rejects it
+# outright, even though a -query-frontend.instance-addr flag exists. Verified
+# against the running binary; instance_interface_names also works but would
+# only move the guess from Mimir's interface list to ours.
+frontend:
+  address: {{ mimir_instance_addr }}
+alertmanager:
+  sharding_ring:
+    instance_addr: {{ mimir_instance_addr }}
+    kvstore:
+      store: {{ _mimir_kvstore }}
+{% endif %}

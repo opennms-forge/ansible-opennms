@@ -1,0 +1,14 @@
+---
+# Cluster members in a stable order, so every node renders the same join list.
+_mimir_members: "{{ groups[mimir_cluster_group] | default([inventory_hostname]) | sort }}"
+_mimir_clustered: "{{ (_mimir_members | length) > 1 }}"
+
+# inmemory rings only work inside one process. A cluster has to gossip, so the
+# kvstore switches to memberlist and every node joins the same peer list.
+_mimir_kvstore: "{{ 'memberlist' if (_mimir_members | length) > 1 else 'inmemory' }}"
+
+# Mimir refuses to start when replication exceeds the number of ingesters.
+_mimir_replication_factor: "{{ [_mimir_members | length, 3] | min }}"
+
+# S3 when an endpoint is configured, filesystem otherwise.
+_mimir_storage_backend: "{{ 's3' if (mimir_s3_endpoint | length > 0) else 'filesystem' }}"
