@@ -43,7 +43,7 @@ rather than merged, otherwise Compose pulls the disabled service back in.
 | `akvorado_clickhouse_servers` | `[]` | **Required.** External ClickHouse, e.g. `["ch-benchmark-01:9000"]` |
 | `akvorado_kafka_brokers` | `[kafka:9092]` | In-stack Kafka, Akvorado's own inlet → outlet buffer |
 | `akvorado_http_port` | `8080` | Host port for the console, published from Traefik |
-| `akvorado_networks` | `192.0.2.0/24` → lab | Populates `Src/DstNetName` in the console |
+| `akvorado_networks` | `{}` | Populates `Src/DstNetName/Role` in the console; omitted from the config when empty |
 | `akvorado_demo_exporters` | `false` | Enable upstream's synthetic flow exporters |
 
 `akvorado_demo_exporters` exists because the lab's Deployment H has no load

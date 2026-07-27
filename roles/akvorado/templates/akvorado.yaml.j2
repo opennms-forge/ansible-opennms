@@ -33,6 +33,7 @@ clickhousedb:
 clickhouse:
   orchestrator-url: http://akvorado-orchestrator:8080
   prometheus-endpoint: /metrics
+{% if akvorado_networks %}
   networks:
 {% for prefix, attrs in akvorado_networks.items() %}
     {{ prefix }}:
@@ -40,6 +41,7 @@ clickhouse:
       {{ key }}: {{ value }}
 {% endfor %}
 {% endfor %}
+{% endif %}
 
 inlet: !include "inlet.yaml"
 outlet: !include "outlet.yaml"

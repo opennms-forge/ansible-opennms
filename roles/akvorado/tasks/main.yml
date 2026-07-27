@@ -7,8 +7,11 @@
       akvorado_clickhouse_servers is empty. The bundled ClickHouse container is
       disabled, so Akvorado has nowhere to write flows. Set it to the
       stub_clickhouse host, e.g. ["ch-benchmark-01:9000"].
+  # always, not the role tag: a --tags docker or --tags configuration run would
+  # otherwise skip the guard and still template the config and start the stack,
+  # which is exactly the confusing failure this assert exists to prevent.
   tags:
-    - akvorado
+    - always
 
 - name: Create the Akvorado install directory
   ansible.builtin.file:

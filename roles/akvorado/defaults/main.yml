@@ -23,11 +23,15 @@ akvorado_kafka_replication_factor: 1
 # authenticates with, which is why it is kept rather than bypassed.
 akvorado_http_port: 8080
 
-# Networks reported as Src/DstNetName in the console.
-akvorado_networks:
-  192.0.2.0/24:
-    name: lab
-    role: customers
+# Networks reported as Src/DstNetName/Role in the console. Site-specific, so
+# there is no sensible default — left empty, the section is omitted entirely
+# and Akvorado simply reports no network names.
+# Example:
+#   akvorado_networks:
+#     198.51.100.0/24:
+#       name: customers
+#       role: customers
+akvorado_networks: {}
 
 # Synthetic flow exporters shipped by upstream. The lab's Deployment H has no
 # load generator, so this is how the flow path is exercised end to end.
