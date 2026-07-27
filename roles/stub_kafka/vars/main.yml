@@ -1,0 +1,48 @@
+---
+# Cluster members in a stable order. Sorting matters: node ids are positional,
+# so an unstable order would renumber brokers between runs and corrupt the
+# quorum. Falls back to this host alone when the group is absent.
+_kafka_members: "{{ groups[kafka_cluster_group] | default([inventory_hostname]) | sort }}"
+
+# 1-based position in the sorted member list.
+_kafka_node_id: "{{ _kafka_members.index(inventory_hostname) + 1 }}"
+
+# "1@host-01:9093,2@host-02:9093,..." — every member, as KRaft requires each
+# node to know the whole controller quorum.
+_kafka_quorum_voters: >-
+  {{ range(1, (_kafka_members | length) + 1)
+     | zip(_kafka_members | map('regex_replace', '$', ':' ~ kafka_controller_port))
+     | map('join', '@') | join(',') }}
+
+# Kafka refuses to start when an internal topic's replication factor exceeds the
+# broker count, so this tracks the member count up to 3.
+_kafka_replication_factor: "{{ [_kafka_members | length, 3] | min }}"
+_kafka_min_isr: "{{ 2 if (_kafka_members | length) > 1 else 1 }}"
+
+# Derived settings, merged over kafka_server_properties — but ONLY when there
+# is actually a cluster. A single broker derives nothing, so an operator's
+# explicit single-node values (the benchmark lab overrides this dict wholesale,
+# including advertised.listeners) are left exactly as written. Deriving
+# unconditionally would silently rewrite deliberate configuration on every
+# existing single-broker deployment.
+#
+# For a real cluster the derived values must win: node ids have to be distinct
+# and every broker has to agree on the same quorum, which a copied single-node
+# dict cannot express. Advertising the inventory hostname rather than localhost
+# is what lets peers and clients reach this broker; Kafka runs as a host
+# process, so the lab's /etc/hosts resolves it.
+_kafka_cluster_properties: >-
+  {{
+    {}
+    if (_kafka_members | length) < 2 else
+    {
+      'node.id': _kafka_node_id,
+      'controller.quorum.voters': _kafka_quorum_voters,
+      'advertised.listeners': 'PLAINTEXT://' ~ inventory_hostname ~ ':' ~ kafka_broker_port,
+      'offsets.topic.replication.factor': _kafka_replication_factor,
+      'transaction.state.log.replication.factor': _kafka_replication_factor,
+      'transaction.state.log.min.isr': _kafka_min_isr,
+    }
+  }}
+
+_kafka_effective_properties: "{{ kafka_server_properties | combine(_kafka_cluster_properties) }}"
