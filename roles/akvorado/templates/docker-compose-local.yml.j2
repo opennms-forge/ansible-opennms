@@ -1,0 +1,32 @@
+{# Managed by the akvorado Ansible role — local changes are overwritten. #}
+{# docker-compose-local.yml is upstream's documented override slot and is #}
+{# already part of the COMPOSE_FILE chain in the shipped .env.            #}
+---
+services:
+  # The lab measures a dedicated ClickHouse node (stub_clickhouse), so the
+  # bundled one is parked in an unused profile — upstream's documented way to
+  # disable a service. Because console and outlet declare a healthcheck
+  # dependency on it, their depends_on is replaced rather than merged, or
+  # Compose would pull the disabled service back in.
+  clickhouse:
+    profiles: [disabled]
+
+  akvorado-console:
+    depends_on: !override
+      akvorado-orchestrator:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  akvorado-outlet:
+    depends_on: !override
+      akvorado-orchestrator:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+  # Publish the console on the host. Traefik is kept because it injects the
+  # Remote-User header the console authenticates with.
+  traefik:
+    ports:
+      - {{ akvorado_http_port }}:8081/tcp
