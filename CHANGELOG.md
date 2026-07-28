@@ -4,6 +4,28 @@ All notable changes to the `indigo423.opennms` collection are documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Each entry below is a short index; the corresponding GitHub release contains the full notes including the Component Versions table and upgrade instructions.
 
+## [0.7.0] - 2026-07-28
+
+Multi-node support for the stub infrastructure roles and Sentinel. Every role
+derives its cluster shape from inventory group membership, so scaling a
+deployment is the only change required, and a single-member group renders
+exactly as before — `baseline`, `es-nostore`, `vm-cluster-es`, `mimir-single`
+and `vm-single` are unaffected.
+
+### Added
+- `stub_elasticsearch`: derive discovery from `es_cluster_group` — `discovery.type: single-node` for one member, `discovery.seed_hosts` and `cluster.initial_master_nodes` for two or more. The two forms are mutually exclusive in Elasticsearch, so clustering strips `discovery.type` from whatever `es_configuration` resolves to rather than assuming it is absent (#130).
+- `stub_kafka`: form a KRaft cluster from `kafka_cluster_group` — positional `node.id`, full `controller.quorum.voters`, per-broker `advertised.listeners`, and replication scaled to the member count capped at 3. The cluster ID is established once for the cluster and reused from disk on re-runs; previously each host generated its own, so brokers would have formed separate clusters and refused to join with `INCONSISTENT_CLUSTER_ID`. Derived values apply only at two or more members, leaving deliberate single-broker configuration untouched (#131).
+- `opennms_sentinel`: default `bootstrap.servers` from `sentinel_kafka_group` instead of `localhost:9092`, which is never correct when Sentinel and Kafka are separate nodes. Controller ids already derive per host, and the shared `group.id` is what makes several Sentinels split the flow workload rather than each processing every record (#132).
+- `stub_mimir`: distributed mode — memberlist rings across the member group, replication scaled to the member count, and generic S3 blocks/ruler/alertmanager storage via `mimir_s3_endpoint`, which works against AWS S3, MinIO, RustFS or anything else that speaks S3. Clustered with no endpoint is asserted rather than left to surface as unexplained query gaps, because the filesystem backend is per-node and cannot be shared (#133).
+
+### Fixed
+- `stub_elasticsearch`: grant `LimitMEMLOCK` via a systemd drop-in when `bootstrap.memory_lock` is set. Single-node Elasticsearch skips bootstrap checks, so the setting had been inert; a cluster enforces them and refused to start (#130).
+- `stub_mimir`: give clustered components an explicit `instance_addr`, and the query-frontend an `address`. Mimir resolves its own address by probing interfaces `[eth0, en0]`, which modern predictable names do not match (#133).
+- `galaxy.yml`: exclude gitignored working directories from `build_ignore`, so they no longer reach the published artifact (#123).
+
+### Changed
+- CI runs `ansible-lint` on pull requests, with pushes scoped to `main` (#124).
+
 ## [0.6.0] - 2026-07-25
 
 ### Added
