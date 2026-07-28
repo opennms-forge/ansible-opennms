@@ -74,10 +74,14 @@ them, that is the signal.
 
 **Stub infrastructure roles** (POC/testing only, not production):
 - `stub_pgsql` — PostgreSQL 18 with OpenNMS database/user
-- `stub_kafka` — Kafka 4.2.0 in KRaft mode
-- `stub_elasticsearch` — Elasticsearch for flow data
-- `stub_mimir` — Grafana Mimir 3.0.4, single-node monolithic mode
+- `stub_kafka` — Kafka 4.2.0 in KRaft mode; single broker, or a cluster derived from `kafka_cluster_group`
+- `stub_elasticsearch` — Elasticsearch for flow data; single node, or a cluster derived from `es_cluster_group`
+- `stub_mimir` — Grafana Mimir 3.0.4; single-node monolithic, or distributed via memberlist with shared S3 storage (`mimir_s3_endpoint`)
 - `stub_victoriametrics` — VictoriaMetrics 1.148.0, single-node
+
+Multi-node roles derive their cluster shape from inventory group membership, so
+scaling a deployment is the only change needed. A single-member group renders
+exactly as it did before clustering was added.
 
 **External collection roles** (replacing stubs where mature alternatives exist):
 - `grafana.grafana.grafana` — Grafana 12.x (replaces `stub_grafana`); configured via `inventory/group_vars/grafana/vars.yml`
