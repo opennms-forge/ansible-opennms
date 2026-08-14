@@ -1,6 +1,6 @@
 ---
 # renovate: datasource=github-releases depName=VictoriaMetrics/VictoriaMetrics
-victoriametrics_version: "1.148.0"
+victoriametrics_version: v1.149.0
 victoriametrics_arch: amd64
 victoriametrics_pkg_url: "https://github.com/VictoriaMetrics/VictoriaMetrics/releases/download/v{{ victoriametrics_version }}/victoria-metrics-linux-{{ victoriametrics_arch }}-v{{ victoriametrics_version }}.tar.gz"
 victoriametrics_http_port: 8428
