@@ -17,6 +17,8 @@
 
 # Private scratch space for the key material; see the same note in
 # opennms_repositories for why a fixed /tmp path is not good enough.
+#
+# Created outside the block below so the `always` can still reference its path.
 - name: Create a private working directory for PostgreSQL key material
   ansible.builtin.tempfile:
     state: directory
@@ -29,117 +31,100 @@
     - postgresql
     - repository
 
-- name: Download PostgreSQL repository key
-  ansible.builtin.get_url:
-    url: "{{ pgsql_key_url }}"
-    dest: "{{ pgsql_key_workdir.path }}/gpg.ACCC4CF8.key"
-    mode: "0600"
-    # Always re-fetch; see the same note in opennms_repositories.
-    force: true
-    checksum: "{{ ('sha256:' ~ pgsql_key_sha256) if pgsql_key_sha256 else omit }}"
-  changed_when: false
-  check_mode: false
+# Everything that touches the working directory sits in this block so `always`
+# removes it even when verification fails. A plain cleanup task after the
+# asserts only runs on success, so a rejected key left its directory behind and
+# repeated failures — exactly what happens while working through a key
+# rotation — accumulated them.
+- name: Verify and install the PostgreSQL repository key
   tags:
     - opennms
     - postgresql
     - repository
+  block:
+    - name: Download PostgreSQL repository key
+      ansible.builtin.get_url:
+        url: "{{ pgsql_key_url }}"
+        dest: "{{ pgsql_key_workdir.path }}/gpg.ACCC4CF8.key"
+        mode: "0600"
+        # Always re-fetch; see the same note in opennms_repositories.
+        force: true
+        checksum: "{{ ('sha256:' ~ pgsql_key_sha256) if pgsql_key_sha256 else omit }}"
+      changed_when: false
+      check_mode: false
 
-# Dearmored to a private temp path, not straight into the keyring directory, so
-# the fingerprint check below runs before anything reaches a trusted location.
-- name: Convert the PostgreSQL repository key to GPG format
-  ansible.builtin.command: >-
-    gpg --batch --yes --dearmor
-    -o {{ pgsql_key_workdir.path }}/pgsql-repo-keyring.gpg
-    {{ pgsql_key_workdir.path }}/gpg.ACCC4CF8.key
-  changed_when: false
-  check_mode: false
-  tags:
-    - opennms
-    - postgresql
-    - repository
+    # Dearmored to a private temp path, not straight into the keyring directory,
+    # so the fingerprint check below runs before anything reaches a trusted
+    # location.
+    - name: Convert the PostgreSQL repository key to GPG format
+      ansible.builtin.command: >-
+        gpg --batch --yes --dearmor
+        -o {{ pgsql_key_workdir.path }}/pgsql-repo-keyring.gpg
+        {{ pgsql_key_workdir.path }}/gpg.ACCC4CF8.key
+      changed_when: false
+      check_mode: false
 
-- name: Read the fingerprints of the PostgreSQL repository key
-  ansible.builtin.command: "gpg --show-keys --with-colons {{ pgsql_key_workdir.path }}/pgsql-repo-keyring.gpg"
-  register: pgsql_key_show
-  changed_when: false
-  check_mode: false
-  tags:
-    - opennms
-    - postgresql
-    - repository
+    - name: Read the fingerprints of the PostgreSQL repository key
+      ansible.builtin.command: "gpg --show-keys --with-colons {{ pgsql_key_workdir.path }}/pgsql-repo-keyring.gpg"
+      register: pgsql_key_show
+      changed_when: false
+      check_mode: false
 
-- name: Fail when no fingerprint can be read from the PostgreSQL repository key
-  ansible.builtin.assert:
-    that:
-      - pgsql_key_show.stdout_lines | select('match', '^fpr:') | list | length > 0
-    fail_msg: >-
-      No OpenPGP fingerprint could be read from {{ pgsql_key_url }}.
-      The downloaded file is not a usable public key, so its identity cannot
-      be established. Refusing to install it.
-    quiet: true
-  tags:
-    - opennms
-    - postgresql
-    - repository
+    - name: Fail when no fingerprint can be read from the PostgreSQL repository key
+      ansible.builtin.assert:
+        that:
+          - pgsql_key_show.stdout_lines | select('match', '^fpr:') | list | length > 0
+        fail_msg: >-
+          No OpenPGP fingerprint could be read from {{ pgsql_key_url }}.
+          The downloaded file is not a usable public key, so its identity cannot
+          be established. Refusing to install it.
+        quiet: true
 
-- name: Fail when the accepted PostgreSQL fingerprints are not a list
-  ansible.builtin.assert:
-    that:
-      - pgsql_key_fingerprints is not string
-      - pgsql_key_fingerprints is sequence
-    fail_msg: >-
-      `pgsql_key_fingerprints` must be a list, but it is
-      {{ pgsql_key_fingerprints | type_debug }}. A bare string makes the
-      comparison iterate characters instead of fingerprints, so the mismatch
-      message below would be unreadable. Wrap the value in a list.
-    quiet: true
-  tags:
-    - opennms
-    - postgresql
-    - repository
+    - name: Fail when the accepted PostgreSQL fingerprints are not a list
+      ansible.builtin.assert:
+        that:
+          - pgsql_key_fingerprints is not string
+          - pgsql_key_fingerprints is sequence
+        fail_msg: >-
+          `pgsql_key_fingerprints` must be a list, but it is
+          {{ pgsql_key_fingerprints | type_debug }}. A bare string makes the
+          comparison iterate characters instead of fingerprints, so the mismatch
+          message below would be unreadable. Wrap the value in a list.
+        quiet: true
 
-- name: Verify the PostgreSQL repository key matches an accepted fingerprint
-  vars:
-    # First `fpr:` record is the primary key; later ones are subkeys.
-    pgsql_key_fpr_found: "{{ (pgsql_key_show.stdout_lines | select('match', '^fpr:') | first).split(':')[9] | upper }}"
-    pgsql_key_fpr_accepted: "{{ pgsql_key_fingerprints | map('replace', ' ', '') | map('upper') | list }}"
-  ansible.builtin.assert:
-    that:
-      - pgsql_key_fpr_found in pgsql_key_fpr_accepted
-    fail_msg: >-
-      The key served by {{ pgsql_key_url }} has fingerprint
-      {{ pgsql_key_fpr_found }}, which is not accepted.
-      Expected one of: {{ pgsql_key_fpr_accepted | join(', ') }}.
-      Refusing to install it. If PostgreSQL has rotated its signing key,
-      verify the new fingerprint out-of-band and add it to
-      `pgsql_key_fingerprints`.
-    quiet: true
-  tags:
-    - opennms
-    - postgresql
-    - repository
+    - name: Verify the PostgreSQL repository key matches an accepted fingerprint
+      vars:
+        # First `fpr:` record is the primary key; later ones are subkeys.
+        pgsql_key_fpr_found: "{{ (pgsql_key_show.stdout_lines | select('match', '^fpr:') | first).split(':')[9] | upper }}"
+        pgsql_key_fpr_accepted: "{{ pgsql_key_fingerprints | map('replace', ' ', '') | map('upper') | list }}"
+      ansible.builtin.assert:
+        that:
+          - pgsql_key_fpr_found in pgsql_key_fpr_accepted
+        fail_msg: >-
+          The key served by {{ pgsql_key_url }} has fingerprint
+          {{ pgsql_key_fpr_found }}, which is not accepted.
+          Expected one of: {{ pgsql_key_fpr_accepted | join(', ') }}.
+          Refusing to install it. If PostgreSQL has rotated its signing key,
+          verify the new fingerprint out-of-band and add it to
+          `pgsql_key_fingerprints`.
+        quiet: true
 
-- name: Install PostgreSQL repository keyring
-  ansible.builtin.copy:
-    src: "{{ pgsql_key_workdir.path }}/pgsql-repo-keyring.gpg"
-    dest: "{{ pgsql_key_ring_file }}"
-    mode: "0644"
-    remote_src: true
-  tags:
-    - opennms
-    - postgresql
-    - repository
-
-- name: Remove the private working directory for PostgreSQL key material
-  ansible.builtin.file:
-    path: "{{ pgsql_key_workdir.path }}"
-    state: absent
-  changed_when: false
-  check_mode: false
-  tags:
-    - opennms
-    - postgresql
-    - repository
+    - name: Install PostgreSQL repository keyring
+      ansible.builtin.copy:
+        src: "{{ pgsql_key_workdir.path }}/pgsql-repo-keyring.gpg"
+        dest: "{{ pgsql_key_ring_file }}"
+        mode: "0644"
+        remote_src: true
+  always:
+    # Guarded so a missing path cannot raise inside `always` and mask the real
+    # failure that brought us here.
+    - name: Remove the private working directory for PostgreSQL key material
+      ansible.builtin.file:
+        path: "{{ pgsql_key_workdir.path }}"
+        state: absent
+      when: pgsql_key_workdir.path is defined
+      changed_when: false
+      check_mode: false
 
 - name: Add PostgreSQL repo to sources list
   ansible.builtin.apt_repository:
