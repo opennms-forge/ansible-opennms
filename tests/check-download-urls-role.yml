@@ -1,0 +1,50 @@
+---
+# Included once per role by check-download-urls.yml.
+#
+# The defaults are loaded into the play namespace so that each URL is rendered
+# by the same Jinja that renders it at deploy time, rather than by a
+# re-implementation of the templating in a shell script.
+- name: Load defaults from {{ role_defaults_file }}
+  ansible.builtin.include_vars:
+    file: "{{ role_defaults_file }}"
+
+# Key names come from the raw YAML rather than the loaded namespace, so that a
+# role only ever contributes the URLs it actually declares. Nested keys (such as
+# the runtime write_url/read_url endpoints inside opennms_remotewrite) are not
+# top-level and are therefore not picked up.
+- name: Collect URL variables declared by {{ role_defaults_file }}
+  ansible.builtin.set_fact:
+    role_url_vars: >-
+      {{ (lookup('file', role_defaults_file) | from_yaml | default({}, true)).keys()
+         | select('match', '.*_url$')
+         | reject('in', download_url_exclusions)
+         | list }}
+
+# A variable that cannot be rendered fails this task by name. That is
+# deliberate: silently skipping an unrenderable URL would let the check report
+# success over a URL it never looked at. Nothing in the collection currently
+# needs host facts to render, so there is no skip list to maintain — if that
+# changes, this fails loudly and the decision gets made explicitly.
+- name: Resolve the download URLs declared by {{ role_defaults_file }}
+  ansible.builtin.uri:
+    url: "{{ lookup('vars', item) }}"
+    method: HEAD
+    follow_redirects: all
+    status_code: [200]
+  loop: "{{ role_url_vars }}"
+  register: url_check
+  retries: 3
+  delay: 5
+  until: url_check.status | default(0) == 200
+  changed_when: false
+  check_mode: false
+
+# Records the composed URL, not `item.url`: the uri module returns the final URL
+# after redirects, which for GitHub releases is a signed asset link. Those are
+# unreadable and would put short-lived signed tokens in the CI log.
+- name: Record the URLs checked for {{ role_defaults_file }}
+  ansible.builtin.set_fact:
+    checked_urls: "{{ checked_urls | default([]) + [item.item ~ ' [' ~ item.status ~ '] ' ~ lookup('vars', item.item)] }}"
+  loop: "{{ url_check.results | default([]) }}"
+  loop_control:
+    label: "{{ item.item }}"
