@@ -1,0 +1,91 @@
+name: Bug report
+description: Something in this collection behaves incorrectly
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For a **security vulnerability**, stop here and use
+        [private vulnerability reporting](https://github.com/opennms-forge/ansible-opennms/security/advisories/new)
+        instead — see [SECURITY.md](https://github.com/opennms-forge/ansible-opennms/blob/main/SECURITY.md).
+
+  - type: textarea
+    id: what-happens
+    attributes:
+      label: What happens
+      description: What went wrong, and what did you expect instead?
+      placeholder: |
+        `opennms_repositories` fails on a fresh Ubuntu 24.04 host at the key download step.
+    validations:
+      required: true
+
+  - type: textarea
+    id: output
+    attributes:
+      label: Ansible output
+      description: |
+        The failing task and its error. Paste the whole task result rather than a summary —
+        the module arguments in it are usually what identifies the cause.
+
+        Scrub credentials and internal hostnames before pasting.
+      render: text
+    validations:
+      required: true
+
+  - type: input
+    id: role
+    attributes:
+      label: Which role
+      placeholder: opennms_core
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Collection version
+      description: The release, or the commit SHA if running from a checkout.
+      placeholder: v0.8.0
+    validations:
+      required: true
+
+  - type: input
+    id: target
+    attributes:
+      label: Target distribution
+      placeholder: Ubuntu 24.04 (noble cloud image)
+    validations:
+      required: true
+
+  - type: input
+    id: ansible
+    attributes:
+      label: ansible-core version
+      description: Output of `ansible --version`, first line.
+      placeholder: ansible-core 2.20.4
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How to reproduce
+      description: |
+        The playbook and inventory shape, and any overridden variables. A minimal
+        reproduction is ideal, but a description of your setup is far better than nothing.
+      placeholder: |
+        ansible-playbook -i inventory/opennms-stack.yml opennms-playbook.yml
+
+        Overrides: opennms_message_broker=kafka
+    validations:
+      required: false
+
+  - type: textarea
+    id: investigation
+    attributes:
+      label: What you already checked
+      description: |
+        Optional, and genuinely useful. Anything you ruled out saves a round trip —
+        and if you found the cause, say so.
+    validations:
+      required: false

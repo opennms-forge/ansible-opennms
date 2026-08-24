@@ -144,7 +144,9 @@ This destroys the existing `vault.yml`. After it completes, you must also reset 
 * Gives users the possibility to deploy the components following best-practices
 * Given the current contribution and resources, adding OS variants is not such a high priority right now
 
-We are open and welcome constructive contributions.
+We are open and welcome constructive contributions. See [CONTRIBUTING.md](CONTRIBUTING.md) for how to get a change merged — commits need a DCO sign-off (`git commit -s`), and AI-assisted work needs an `Assisted-by:` trailer.
+
+Found a security issue? Please don't open a public issue — see [SECURITY.md](SECURITY.md).
 
 ## 🗺 Design principle
 
@@ -159,3 +161,7 @@ You can find us at:
 * Public OpenNMS [Mattermost Chat](https://chat.opennms.com/opennms/channels/opennms-discussion)
 * If you have longer discussions to share ideas use our [OpenNMS Discourse](https://opennms.discourse.group) and tag your post with `sig-ansible`
 * If you want to get an idea of what we are working on, have a look at the public [Project board](https://github.com/orgs/opennms-forge/projects/4)
+
+## 📄 License
+
+GPL-3.0-or-later — see [LICENSE](LICENSE).
