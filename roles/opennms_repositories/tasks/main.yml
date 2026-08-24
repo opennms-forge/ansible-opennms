@@ -14,23 +14,49 @@
     - opennms
     - repository
 
+# Private scratch space for the key material. A fixed path under /tmp would be
+# world-readable, and lets an unprivileged user pre-create the dearmor target so
+# they own it and can swap it between the check and the install. Kernel
+# hardening (fs.protected_regular, fs.protected_symlinks) blocks that on current
+# Debian and Ubuntu, but a trust control should not depend on a sysctl. A fresh
+# 0700 directory also guarantees no leftovers from an earlier run are read.
+- name: Create a private working directory for OpenNMS key material
+  ansible.builtin.tempfile:
+    state: directory
+    suffix: opennms-repo-key
+  register: opennms_key_workdir
+  changed_when: false
+  check_mode: false
+  tags:
+    - opennms
+    - repository
+
+# Download, dearmor and verification all run even under --check. They touch
+# nothing outside the private directory above, and skipping them would make a
+# check run report success having verified nothing.
 - name: Download OpenNMS repository key
   ansible.builtin.get_url:
     url: "{{ opennms_key_url }}"
-    dest: /tmp/opennms-repo.key
-    mode: "0644"
+    dest: "{{ opennms_key_workdir.path }}/opennms-repo.key"
+    mode: "0600"
     # Always re-fetch. Without this, get_url issues a conditional request and
     # keeps a previously downloaded file, so a run would verify and install
     # stale bytes rather than what the configured URL serves today.
     force: true
     checksum: "{{ ('sha256:' ~ opennms_key_sha256) if opennms_key_sha256 else omit }}"
+  changed_when: false
+  check_mode: false
   tags:
     - opennms
     - repository
 
 - name: Convert the OpenNMS repository key to GPG format
-  ansible.builtin.command: "gpg --batch --yes --dearmor -o /tmp/opennms-repo-keyring.gpg /tmp/opennms-repo.key"
+  ansible.builtin.command: >-
+    gpg --batch --yes --dearmor
+    -o {{ opennms_key_workdir.path }}/opennms-repo-keyring.gpg
+    {{ opennms_key_workdir.path }}/opennms-repo.key
   changed_when: false
+  check_mode: false
   tags:
     - opennms
     - repository
@@ -41,7 +67,7 @@
 # directory. The check reads the dearmored file rather than the download,
 # because that is the exact byte sequence the install copies.
 - name: Read the fingerprints of the OpenNMS repository key
-  ansible.builtin.command: "gpg --show-keys --with-colons /tmp/opennms-repo-keyring.gpg"
+  ansible.builtin.command: "gpg --show-keys --with-colons {{ opennms_key_workdir.path }}/opennms-repo-keyring.gpg"
   register: opennms_key_show
   changed_when: false
   check_mode: false
@@ -101,10 +127,20 @@
 
 - name: Install OpenNMS repository keyring
   ansible.builtin.copy:
-    src: /tmp/opennms-repo-keyring.gpg
+    src: "{{ opennms_key_workdir.path }}/opennms-repo-keyring.gpg"
     dest: "{{ opennms_key_ring_file }}"
     mode: "0644"
     remote_src: true
+  tags:
+    - opennms
+    - repository
+
+- name: Remove the private working directory for OpenNMS key material
+  ansible.builtin.file:
+    path: "{{ opennms_key_workdir.path }}"
+    state: absent
+  changed_when: false
+  check_mode: false
   tags:
     - opennms
     - repository

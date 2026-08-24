@@ -15,31 +15,51 @@
   ansible.builtin.include_role:
     name: opennms_repositories
 
-- name: Download PostgreSQL repository key
-  ansible.builtin.get_url:
-    url: "{{ pgsql_key_url }}"
-    dest: /tmp/gpg.ACCC4CF8.key
-    mode: "0644"
-    # Always re-fetch; see the same note in opennms_repositories.
-    force: true
-    checksum: "{{ ('sha256:' ~ pgsql_key_sha256) if pgsql_key_sha256 else omit }}"
+# Private scratch space for the key material; see the same note in
+# opennms_repositories for why a fixed /tmp path is not good enough.
+- name: Create a private working directory for PostgreSQL key material
+  ansible.builtin.tempfile:
+    state: directory
+    suffix: pgsql-repo-key
+  register: pgsql_key_workdir
+  changed_when: false
+  check_mode: false
   tags:
     - opennms
     - postgresql
     - repository
 
-# Dearmored to a temp path, not straight into the keyring directory, so the
-# fingerprint check below runs before anything reaches a trusted location.
-- name: Convert the PostgreSQL repository key to GPG format
-  ansible.builtin.command: "gpg --batch --yes --dearmor -o /tmp/pgsql-repo-keyring.gpg /tmp/gpg.ACCC4CF8.key"
+- name: Download PostgreSQL repository key
+  ansible.builtin.get_url:
+    url: "{{ pgsql_key_url }}"
+    dest: "{{ pgsql_key_workdir.path }}/gpg.ACCC4CF8.key"
+    mode: "0600"
+    # Always re-fetch; see the same note in opennms_repositories.
+    force: true
+    checksum: "{{ ('sha256:' ~ pgsql_key_sha256) if pgsql_key_sha256 else omit }}"
   changed_when: false
+  check_mode: false
+  tags:
+    - opennms
+    - postgresql
+    - repository
+
+# Dearmored to a private temp path, not straight into the keyring directory, so
+# the fingerprint check below runs before anything reaches a trusted location.
+- name: Convert the PostgreSQL repository key to GPG format
+  ansible.builtin.command: >-
+    gpg --batch --yes --dearmor
+    -o {{ pgsql_key_workdir.path }}/pgsql-repo-keyring.gpg
+    {{ pgsql_key_workdir.path }}/gpg.ACCC4CF8.key
+  changed_when: false
+  check_mode: false
   tags:
     - opennms
     - postgresql
     - repository
 
 - name: Read the fingerprints of the PostgreSQL repository key
-  ansible.builtin.command: "gpg --show-keys --with-colons /tmp/pgsql-repo-keyring.gpg"
+  ansible.builtin.command: "gpg --show-keys --with-colons {{ pgsql_key_workdir.path }}/pgsql-repo-keyring.gpg"
   register: pgsql_key_show
   changed_when: false
   check_mode: false
@@ -101,10 +121,21 @@
 
 - name: Install PostgreSQL repository keyring
   ansible.builtin.copy:
-    src: /tmp/pgsql-repo-keyring.gpg
+    src: "{{ pgsql_key_workdir.path }}/pgsql-repo-keyring.gpg"
     dest: "{{ pgsql_key_ring_file }}"
     mode: "0644"
     remote_src: true
+  tags:
+    - opennms
+    - postgresql
+    - repository
+
+- name: Remove the private working directory for PostgreSQL key material
+  ansible.builtin.file:
+    path: "{{ pgsql_key_workdir.path }}"
+    state: absent
+  changed_when: false
+  check_mode: false
   tags:
     - opennms
     - postgresql
