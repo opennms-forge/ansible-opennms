@@ -176,3 +176,13 @@ opennms_remotewrite:
 opennms_remotewrite_version: "2.1.0"
 opennms_remotewrite_kar_url: "https://github.com/OpenNMS-Plugins/opennms-prometheus-remotewrite-plugin/releases/download/v{{ opennms_remotewrite_version }}/opennms-prometheus-remotewrite-plugin.kar"
 opennms_remotewrite_feature: "opennms-plugins-prometheus-remotewrite"
+
+# OpenNMS packages pinned by the APT preferences file this role writes, so a
+# routine `apt upgrade` cannot move them. System packages (rrdtool, jrrd2,
+# iplike) are deliberately excluded — they should still receive security fixes.
+opennms_pinned_packages:
+  - opennms-common
+  - opennms-server
+  - opennms-webapp-jetty
+  - opennms-webapp-hawtio
+opennms_apt_preferences_file: /etc/apt/preferences.d/99-opennms-core.pref

@@ -4,6 +4,12 @@ All notable changes to the `indigo423.opennms` collection are documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Each entry below is a short index; the corresponding GitHub release contains the full notes including the Component Versions table and upgrade instructions.
 
+## [Unreleased]
+
+### Changed
+- **`apt upgrade` no longer moves OpenNMS packages.** `opennms_core`, `opennms_minion` and `opennms_sentinel` write an APT preferences file pinning the OpenNMS packages to `opennms_version`. To upgrade deliberately, change `opennms_version` and re-run — the pin is rewritten before installation, so the new version is permitted in the same run. `rrdtool`, `jrrd2` and `iplike` are not pinned and still receive security updates (#38).
+- `opennms_repositories`: the APT source targets an explicit per-major dist (`opennms-36`) instead of the floating `stable` alias, derived from `opennms_version`. `stable` resolves to `opennms-36` today but has moved before, so a plain `apt upgrade` could have offered a major version jump once it follows `opennms-37`. Also silences apt's `Conflicting distribution` warning (#38).
+
 ## [0.8.0] - 2026-08-24
 
 Repository signing keys are verified by fingerprint, and composed download URLs

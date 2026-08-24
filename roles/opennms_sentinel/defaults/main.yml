@@ -48,3 +48,10 @@ opennms_sentinel_kafka:
   # divide the load rather than each processing every record. Giving them
   # distinct group ids would duplicate the work instead.
   "group.id": OpenNMS
+
+# OpenNMS packages pinned by the APT preferences file this role writes, so a
+# routine `apt upgrade` cannot move them. System packages (rrdtool, jrrd2,
+# iplike) are deliberately excluded — they should still receive security fixes.
+opennms_pinned_packages:
+  - opennms-sentinel
+opennms_apt_preferences_file: /etc/apt/preferences.d/99-opennms-sentinel.pref

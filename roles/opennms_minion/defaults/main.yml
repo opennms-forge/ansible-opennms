@@ -11,3 +11,10 @@ opennms_minion_controller:
 
 opennms_minion_kafka:
   "bootstrap.servers": localhost:9092
+
+# OpenNMS packages pinned by the APT preferences file this role writes, so a
+# routine `apt upgrade` cannot move them. System packages (rrdtool, jrrd2,
+# iplike) are deliberately excluded — they should still receive security fixes.
+opennms_pinned_packages:
+  - opennms-minion
+opennms_apt_preferences_file: /etc/apt/preferences.d/99-opennms-minion.pref

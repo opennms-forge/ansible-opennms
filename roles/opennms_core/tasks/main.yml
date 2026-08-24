@@ -12,10 +12,29 @@
 - name: Include OpenNMS repository roles
   ansible.builtin.include_role:
     name: opennms_repositories
+  vars:
+    # This role's own OpenNMS release decides which repository major to use.
+    # Passed at include time rather than left to defaults precedence between
+    # two roles, which depends on load order.
+    opennms_repo_major: "{{ opennms_version.split('.')[0] }}"
 
 - name: Include OpenNMS ICMP setup roles
   ansible.builtin.include_role:
     name: opennms_icmp
+
+# Written before the packages are installed, so a deliberate `opennms_version`
+# bump rewrites the pin and permits the new version in the same run. Reversing
+# these two would mean the old pin blocks the upgrade the run is trying to make.
+- name: Pin OpenNMS packages to {{ opennms_version }}
+  ansible.builtin.template:
+    src: etc/apt-preferences-opennms.j2
+    dest: "{{ opennms_apt_preferences_file }}"
+    owner: root
+    group: root
+    mode: "0644"
+  tags:
+    - opennms
+    - packages
 
 - name: Include tasks to install packages
   ansible.builtin.include_tasks: 01-packages.yml
