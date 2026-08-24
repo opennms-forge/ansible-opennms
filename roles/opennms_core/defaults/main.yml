@@ -20,8 +20,11 @@ prom_jmx_exporter_owner: opennms
 prom_jmx_exporter_group: opennms
 # renovate: datasource=github-releases depName=prometheus/jmx_exporter extractVersion=^v?(?<version>.+)$
 prom_jmx_exporter_version: 1.6.0
-# Upstream tags gained a "v" prefix with 1.6.0: the release path needs it, the jar name does not
-prom_jmx_exporter_url: "https://github.com/prometheus/jmx_exporter/releases/download/{{ 'v' if prom_jmx_exporter_version is version('1.6.0', '>=') else '' }}{{ prom_jmx_exporter_version }}/jmx_prometheus_javaagent-{{ prom_jmx_exporter_version }}.jar"
+# The release path carries NO "v" prefix. Upstream does have a stray `v1.6.0`
+# git tag, but no release is attached to it, and download URLs resolve against
+# the release's tag_name — which is bare for every 1.x release. Reading the tag
+# list and concluding otherwise is what broke this before (issue #135).
+prom_jmx_exporter_url: "https://github.com/prometheus/jmx_exporter/releases/download/{{ prom_jmx_exporter_version }}/jmx_prometheus_javaagent-{{ prom_jmx_exporter_version }}.jar"
 prom_jmx_exporter_sha256: sha256:a95983fd96e865d2bcdf911cc500e7c82808c27ab9fd226bf96732b6c3d8c46e
 prom_jmx_exporter_home: /opt/prom-jmx-exporter
 prom_jmx_exporter_config:
@@ -161,7 +164,10 @@ opennms_remotewrite:
   write_url: "http://localhost:8080/api/v1/push"
   read_url: "http://localhost:8080/prometheus/api/v1"
   organization_id: ""
-# renovate: datasource=github-releases depName=OpenNMS-Plugins/opennms-prometheus-remotewrite-plugin
+# Bare version; the URL below supplies the "v" that upstream's release tags use.
+# extractVersion keeps Renovate from writing the raw `v`-prefixed tag, which
+# would compose a double-"v" URL that 404s.
+# renovate: datasource=github-releases depName=OpenNMS-Plugins/opennms-prometheus-remotewrite-plugin extractVersion=^v?(?<version>.+)$
 opennms_remotewrite_version: "2.1.0"
 opennms_remotewrite_kar_url: "https://github.com/OpenNMS-Plugins/opennms-prometheus-remotewrite-plugin/releases/download/v{{ opennms_remotewrite_version }}/opennms-prometheus-remotewrite-plugin.kar"
 opennms_remotewrite_feature: "opennms-plugins-prometheus-remotewrite"
