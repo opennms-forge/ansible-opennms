@@ -4,6 +4,19 @@
 arch: amd64
 
 opennms_key_url: https://debian.opennms.org/OPENNMS-GPG-KEY
-opennms_key_sha256: 8383524acbcbe8cf860259fe8c4184c355bfd0c6350b6852534df8dbfbe8c406
+
+# Accepted signing-key fingerprints. This is the authoritative trust control:
+# a fingerprint is the key's identity, so it survives re-exports and host
+# migrations that change the key *file*'s bytes without changing the key.
+# A list, not a scalar, so a key rollover is an append rather than a swap.
+# See README.md for the provenance of the pinned value.
+opennms_key_fingerprints:
+  - "701E145FE26283F8C073BAAE697677243260D071"
+
+# Optional file-hash pin, off by default. Pinning the bytes of a live-served
+# key file breaks on harmless re-exports (see issue #139), so the collection
+# ships no default. Set it to opt into a second, stricter gate.
+opennms_key_sha256: null
+
 opennms_key_ring_file: /usr/share/keyrings/opennms-stable-archive-keyring.gpg
 opennms_repo_url: https://debian.opennms.org
