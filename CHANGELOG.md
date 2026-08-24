@@ -4,6 +4,35 @@ All notable changes to the `indigo423.opennms` collection are documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Each entry below is a short index; the corresponding GitHub release contains the full notes including the Component Versions table and upgrade instructions.
 
+## [0.8.0] - 2026-08-24
+
+Repository signing keys are verified by fingerprint, and composed download URLs
+are checked in CI. Two independent defects made v0.7.0 impossible to install on
+a fresh host: the OpenNMS key pin no longer matched the bytes upstream serves,
+and the JMX exporter URL was composed with a `v` prefix that upstream does not
+use. Both are fixed, and the class of defect is closed off rather than patched
+case by case.
+
+### Security
+- `opennms_repositories`, `stub_pgsql`, `stub_elasticsearch`: verify the repository signing key by **fingerprint** rather than by the key file's SHA-256. A fingerprint is the key's identity, so it survives re-exports and host migrations that change the file's bytes without changing the key; a file hash breaks on those and never establishes which key was trusted. Verification runs between the dearmor and the install, so a rejected key never reaches `/usr/share/keyrings/` (#141, #146).
+- `stub_elasticsearch`: previously installed its key with `apt_key` straight from a URL, with no verification at all. This was the collection's last `apt_key` call, a module scheduled for removal in `ansible.builtin` 2.25 (#146).
+
+### Added
+- `*_key_fingerprints` in all three repository roles — a list, so a key rotation is an append rather than a swap. Pinned values are documented in each role's README with the evidence corroborating them (#141, #146).
+- `make check-urls` and a `download-urls` CI workflow that render every `*_url` variable in role defaults and verify each resolves. `ansible-lint` validates YAML shape and cannot see a 404, which is how all of these shipped green. Runs on push, PR and weekly, since upstream can break the collection with no commit here (#145).
+- `es_drift_plugin_url` in `stub_elasticsearch`, moved out of an inline task so the URL check covers it (#145).
+
+### Fixed
+- `opennms_core`: the JMX exporter URL added a `v` prefix for versions `>= 1.6.0`, but upstream tags every 1.x release bare, so the default 404'd and every fresh Core deploy failed. Upstream carries a stray `v1.6.0` git tag with no release attached, which is what the conditional was written from (#135, #143).
+- `stub_victoriametrics`: Renovate wrote a `v`-prefixed tag into a variable the URL template already prefixed, composing `download/vv1.150.0/…`. The role had been uninstallable since 2026-08-14 (#143).
+- `opennms_core`: `opennms_remotewrite_version` gained `extractVersion`, so the next Renovate bump cannot break its URL the same way (#143).
+- All three repository roles: the private key working directory is now removed even when verification fails, instead of accumulating on every failed run (#147).
+
+### Changed
+- **`victoriametrics_version` now holds a bare version** (`1.150.0`, not `v1.150.0`); the URL template supplies the prefix. A `v`-prefixed override still resolves identically, because the value is normalised where it is consumed (#143).
+- `opennms_key_sha256` and `pgsql_key_sha256` default to `null` and are omitted rather than shipping a pinned hash. The fingerprint check is the authoritative control; a shipped hash pin breaks on harmless re-exports. Existing overrides continue to work (#141).
+- Upstream: OpenNMS Horizon 36.0.3, VictoriaMetrics 1.150.0, `community.general` 13.3.0.
+
 ## [0.7.0] - 2026-07-28
 
 Multi-node support for the stub infrastructure roles and Sentinel. Every role
@@ -150,6 +179,8 @@ and `vm-single` are unaffected.
 - Renovate configuration for automated Ansible Galaxy collection updates.
 - CI on standard GitHub-hosted runners with SHA-pinned actions and Dependabot.
 
+[0.8.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.8.0
+[0.7.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.7.0
 [0.6.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.6.0
 [0.5.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.5.0
 [0.4.7]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.4.7
