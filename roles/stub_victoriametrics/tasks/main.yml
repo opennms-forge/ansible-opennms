@@ -33,7 +33,7 @@
 # flips the symlink to trigger a restart.
 - name: Create the VictoriaMetrics versioned install directory
   ansible.builtin.file:
-    path: "/opt/victoria-metrics/{{ victoriametrics_version }}"
+    path: "/opt/victoria-metrics/{{ victoriametrics_version_bare }}"
     state: directory
     owner: root
     group: root
@@ -44,9 +44,9 @@
 - name: Install the victoria-metrics-prod binary
   ansible.builtin.unarchive:
     src: "{{ victoriametrics_pkg_url }}"
-    dest: "/opt/victoria-metrics/{{ victoriametrics_version }}"
+    dest: "/opt/victoria-metrics/{{ victoriametrics_version_bare }}"
     remote_src: true
-    creates: "/opt/victoria-metrics/{{ victoriametrics_version }}/victoria-metrics-prod"
+    creates: "/opt/victoria-metrics/{{ victoriametrics_version_bare }}/victoria-metrics-prod"
     owner: root
     group: root
     mode: "0755"
@@ -55,7 +55,7 @@
 
 - name: Link victoria-metrics-prod into PATH
   ansible.builtin.file:
-    src: "/opt/victoria-metrics/{{ victoriametrics_version }}/victoria-metrics-prod"
+    src: "/opt/victoria-metrics/{{ victoriametrics_version_bare }}/victoria-metrics-prod"
     dest: /usr/local/bin/victoria-metrics-prod
     state: link
   notify: Restart victoriametrics

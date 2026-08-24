@@ -1,8 +1,18 @@
 ---
-# renovate: datasource=github-releases depName=VictoriaMetrics/VictoriaMetrics
-victoriametrics_version: v1.150.0
+# Bare version; the URL below supplies the "v" that upstream's release tags use.
+# extractVersion keeps Renovate from writing the raw `v`-prefixed tag, which
+# would compose a double-"v" URL that 404s (it did, from 2026-08-14).
+# renovate: datasource=github-releases depName=VictoriaMetrics/VictoriaMetrics extractVersion=^v?(?<version>.+)$
+victoriametrics_version: 1.150.0
 victoriametrics_arch: amd64
-victoriametrics_pkg_url: "https://github.com/VictoriaMetrics/VictoriaMetrics/releases/download/v{{ victoriametrics_version }}/victoria-metrics-linux-{{ victoriametrics_arch }}-v{{ victoriametrics_version }}.tar.gz"
+# `v1.150.0` was the published default for ten days, so an override may still
+# carry the prefix. Strip a leading "v" and use this everywhere the version is
+# consumed — the URL *and* the versioned install path. Applying it to only the
+# URL would leave a `v`-prefixed override installing to /opt/victoria-metrics/v1.150.0
+# while the bare default uses .../1.150.0, re-extracting the same tarball and
+# flipping the symlink for no version change.
+victoriametrics_version_bare: "{{ victoriametrics_version | regex_replace('^v', '') }}"
+victoriametrics_pkg_url: "https://github.com/VictoriaMetrics/VictoriaMetrics/releases/download/v{{ victoriametrics_version_bare }}/victoria-metrics-linux-{{ victoriametrics_arch }}-v{{ victoriametrics_version_bare }}.tar.gz"
 victoriametrics_http_port: 8428
 victoriametrics_data_path: /var/lib/victoria-metrics
 victoriametrics_retention: "1d"
