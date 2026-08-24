@@ -45,3 +45,9 @@ build_ignore:
   - openspec
   - tests             # CI-only checks; not part of the published collection
   - Makefile          # local/CI entry points, not consumed by Galaxy installs
+  # Contributor-facing process doc: it references `make` targets and a branch
+  # workflow that only exist in the source repo, so shipping it would point a
+  # Galaxy consumer at files the artifact deliberately excludes. SECURITY.md is
+  # kept, since a consumer who finds a vulnerability does need to know where to
+  # send it.
+  - CONTRIBUTING.md
