@@ -19,7 +19,11 @@
     url: "{{ opennms_key_url }}"
     dest: /tmp/opennms-repo.key
     mode: "0644"
-    checksum: "sha256:{{ opennms_key_sha256 }}"
+    # Always re-fetch. Without this, get_url issues a conditional request and
+    # keeps a previously downloaded file, so a run would verify and install
+    # stale bytes rather than what the configured URL serves today.
+    force: true
+    checksum: "{{ ('sha256:' ~ opennms_key_sha256) if opennms_key_sha256 else omit }}"
   tags:
     - opennms
     - repository
@@ -27,6 +31,70 @@
 - name: Convert the OpenNMS repository key to GPG format
   ansible.builtin.command: "gpg --batch --yes --dearmor -o /tmp/opennms-repo-keyring.gpg /tmp/opennms-repo.key"
   changed_when: false
+  tags:
+    - opennms
+    - repository
+
+# The next three tasks verify the key's identity, and they must stay *between*
+# the dearmor above and the install below. Verifying after the install would
+# fail the play with an unexpected key already sitting in a trusted keyring
+# directory. The check reads the dearmored file rather than the download,
+# because that is the exact byte sequence the install copies.
+- name: Read the fingerprints of the OpenNMS repository key
+  ansible.builtin.command: "gpg --show-keys --with-colons /tmp/opennms-repo-keyring.gpg"
+  register: opennms_key_show
+  changed_when: false
+  check_mode: false
+  tags:
+    - opennms
+    - repository
+
+- name: Fail when no fingerprint can be read from the OpenNMS repository key
+  ansible.builtin.assert:
+    that:
+      - opennms_key_show.stdout_lines | select('match', '^fpr:') | list | length > 0
+    fail_msg: >-
+      No OpenPGP fingerprint could be read from {{ opennms_key_url }}.
+      The downloaded file is not a usable public key, so its identity cannot
+      be established. Refusing to install it.
+    quiet: true
+  tags:
+    - opennms
+    - repository
+
+- name: Fail when the accepted OpenNMS fingerprints are not a list
+  ansible.builtin.assert:
+    that:
+      - opennms_key_fingerprints is not string
+      - opennms_key_fingerprints is sequence
+    fail_msg: >-
+      `opennms_key_fingerprints` must be a list, but it is
+      {{ opennms_key_fingerprints | type_debug }}. A bare string makes the
+      comparison iterate characters instead of fingerprints, so the mismatch
+      message below would be unreadable. Wrap the value in a list.
+    quiet: true
+  tags:
+    - opennms
+    - repository
+
+- name: Verify the OpenNMS repository key matches an accepted fingerprint
+  vars:
+    # gpg emits one `fpr:` record per key *and* per subkey; the primary key's
+    # record comes first, right after `pub:`. Taking the first match is
+    # load-bearing — this key has a subkey, and matching any `fpr:` line would
+    # accept a subkey fingerprint as though it were the key's identity.
+    opennms_key_fpr_found: "{{ (opennms_key_show.stdout_lines | select('match', '^fpr:') | first).split(':')[9] | upper }}"
+    opennms_key_fpr_accepted: "{{ opennms_key_fingerprints | map('replace', ' ', '') | map('upper') | list }}"
+  ansible.builtin.assert:
+    that:
+      - opennms_key_fpr_found in opennms_key_fpr_accepted
+    fail_msg: >-
+      The key served by {{ opennms_key_url }} has fingerprint
+      {{ opennms_key_fpr_found }}, which is not accepted.
+      Expected one of: {{ opennms_key_fpr_accepted | join(', ') }}.
+      Refusing to install it. If OpenNMS has rotated its signing key, verify
+      the new fingerprint out-of-band and add it to `opennms_key_fingerprints`.
+    quiet: true
   tags:
     - opennms
     - repository

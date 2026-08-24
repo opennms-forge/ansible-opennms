@@ -1,6 +1,15 @@
 ---
 pgsql_key_url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
-pgsql_key_sha256: 0144068502a1eddd2a0280ede10ef607d1ec592ce819940991203941564e8e76
+
+# Accepted signing-key fingerprints, the authoritative trust control.
+# See roles/opennms_repositories/README.md for why the fingerprint is pinned
+# rather than the key file's hash.
+pgsql_key_fingerprints:
+  - "B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8"
+
+# Optional file-hash pin, off by default. See opennms_key_sha256.
+pgsql_key_sha256: null
+
 pgsql_key_ring_file: /usr/share/keyrings/pgsql-keyring.gpg
 pgsql_repo_url: https://apt.postgresql.org/pub/repos/apt
 arch: amd64
