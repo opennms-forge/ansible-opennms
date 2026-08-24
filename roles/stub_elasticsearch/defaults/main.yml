@@ -1,5 +1,19 @@
 ---
 es_key_url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+
+# Accepted signing-key fingerprints. This is the authoritative trust control:
+# a fingerprint is the key's identity, so it survives re-exports that change
+# the key *file*'s bytes without changing the key. A list, not a scalar, so a
+# rollover is an append rather than a swap — which matters more here than for
+# the OpenNMS key, since this one is RSA-2048 from 2013.
+# See README.md for the provenance of the pinned value.
+es_key_fingerprints:
+  - "46095ACC8548582C1A2699A9D27D666CD88E42B4"
+
+# Optional file-hash pin, off by default. Pinning the bytes of a live-served
+# key file breaks on harmless re-exports (see issue #139), so no default ships.
+es_key_sha256: null
+
 es_key_ring_file: /usr/share/keyrings/elasticsearch-keyring.gpg
 es_repo_url: https://artifacts.elastic.co/packages/8.x/apt
 arch: amd64

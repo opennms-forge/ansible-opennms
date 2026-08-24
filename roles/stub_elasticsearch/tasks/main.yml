@@ -1,8 +1,146 @@
 ---
-- name: Add Elasticsearch key to a keyring file
-  ansible.builtin.apt_key:
+# Installed here rather than relying on another role: this role is now the gpg
+# consumer, and unlike stub_pgsql it does not include opennms_repositories (it
+# has no reason to add the OpenNMS APT repo to an Elasticsearch host). Minimal
+# cloud images ship without gnupg, and the dearmor below fails without it.
+- name: Install gnupg for repository key handling
+  ansible.builtin.apt:
+    pkg:
+      - gnupg
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  tags:
+    - elasticsearch
+    - repository
+
+# Private scratch space for the key material. A fixed path under /tmp would be
+# world-readable, and lets an unprivileged user pre-create the dearmor target so
+# they own it and can swap it between the check and the install. Kernel
+# hardening blocks that on current Debian and Ubuntu, but a trust control should
+# not depend on a sysctl. A fresh 0700 directory also guarantees no leftovers
+# from an earlier run are read.
+- name: Create a private working directory for Elasticsearch key material
+  ansible.builtin.tempfile:
+    state: directory
+    suffix: es-repo-key
+  register: es_key_workdir
+  changed_when: false
+  check_mode: false
+  tags:
+    - elasticsearch
+    - repository
+
+# Download, dearmor and verification all run even under --check. They touch
+# nothing outside the private directory above, and skipping them would make a
+# check run report success having verified nothing.
+- name: Download Elasticsearch repository key
+  ansible.builtin.get_url:
     url: "{{ es_key_url }}"
-    keyring: "{{ es_key_ring_file }}"
+    dest: "{{ es_key_workdir.path }}/es-repo.key"
+    mode: "0600"
+    # Always re-fetch. Without this, get_url issues a conditional request and
+    # keeps a previously downloaded file, so a run would verify and install
+    # stale bytes rather than what the configured URL serves today.
+    force: true
+    checksum: "{{ ('sha256:' ~ es_key_sha256) if es_key_sha256 else omit }}"
+  changed_when: false
+  check_mode: false
+  tags:
+    - elasticsearch
+    - repository
+
+- name: Convert the Elasticsearch repository key to GPG format
+  ansible.builtin.command: >-
+    gpg --batch --yes --dearmor
+    -o {{ es_key_workdir.path }}/es-repo-keyring.gpg
+    {{ es_key_workdir.path }}/es-repo.key
+  changed_when: false
+  check_mode: false
+  tags:
+    - elasticsearch
+    - repository
+
+# The next four tasks verify the key's identity, and they must stay *between*
+# the dearmor above and the install below. Verifying after the install would
+# fail the play with an unexpected key already sitting in a trusted keyring
+# directory. The check reads the dearmored file rather than the download,
+# because that is the exact byte sequence the install copies.
+- name: Read the fingerprints of the Elasticsearch repository key
+  ansible.builtin.command: "gpg --show-keys --with-colons {{ es_key_workdir.path }}/es-repo-keyring.gpg"
+  register: es_key_show
+  changed_when: false
+  check_mode: false
+  tags:
+    - elasticsearch
+    - repository
+
+- name: Fail when no fingerprint can be read from the Elasticsearch repository key
+  ansible.builtin.assert:
+    that:
+      - es_key_show.stdout_lines | select('match', '^fpr:') | list | length > 0
+    fail_msg: >-
+      No OpenPGP fingerprint could be read from {{ es_key_url }}.
+      The downloaded file is not a usable public key, so its identity cannot
+      be established. Refusing to install it.
+    quiet: true
+  tags:
+    - elasticsearch
+    - repository
+
+- name: Fail when the accepted Elasticsearch fingerprints are not a list
+  ansible.builtin.assert:
+    that:
+      - es_key_fingerprints is not string
+      - es_key_fingerprints is sequence
+    fail_msg: >-
+      `es_key_fingerprints` must be a list, but it is
+      {{ es_key_fingerprints | type_debug }}. A bare string makes the
+      comparison iterate characters instead of fingerprints, so the mismatch
+      message below would be unreadable. Wrap the value in a list.
+    quiet: true
+  tags:
+    - elasticsearch
+    - repository
+
+- name: Verify the Elasticsearch repository key matches an accepted fingerprint
+  vars:
+    # gpg emits one `fpr:` record per key *and* per subkey; the primary key's
+    # record comes first, right after `pub:`. Taking the first match is
+    # load-bearing — this key has a subkey (3B0C6695...), and matching any
+    # `fpr:` line would accept a subkey fingerprint as the key's identity.
+    es_key_fpr_found: "{{ (es_key_show.stdout_lines | select('match', '^fpr:') | first).split(':')[9] | upper }}"
+    es_key_fpr_accepted: "{{ es_key_fingerprints | map('replace', ' ', '') | map('upper') | list }}"
+  ansible.builtin.assert:
+    that:
+      - es_key_fpr_found in es_key_fpr_accepted
+    fail_msg: >-
+      The key served by {{ es_key_url }} has fingerprint
+      {{ es_key_fpr_found }}, which is not accepted.
+      Expected one of: {{ es_key_fpr_accepted | join(', ') }}.
+      Refusing to install it. If Elastic has rotated its signing key, verify
+      the new fingerprint out-of-band and add it to `es_key_fingerprints`.
+    quiet: true
+  tags:
+    - elasticsearch
+    - repository
+
+- name: Install Elasticsearch repository keyring
+  ansible.builtin.copy:
+    src: "{{ es_key_workdir.path }}/es-repo-keyring.gpg"
+    dest: "{{ es_key_ring_file }}"
+    mode: "0644"
+    remote_src: true
+  tags:
+    - elasticsearch
+    - repository
+
+- name: Remove the private working directory for Elasticsearch key material
+  ansible.builtin.file:
+    path: "{{ es_key_workdir.path }}"
+    state: absent
+  changed_when: false
+  check_mode: false
   tags:
     - elasticsearch
     - repository
