@@ -59,3 +59,47 @@
     - minion
     - configuration
     - kafka
+
+# Runs before the module files are written, so a configuration OpenNMS would
+# silently ignore never reaches disk. Without this the failure is invisible at
+# every layer: Ansible succeeds, the file contains exactly what was asked for,
+# the Minion starts cleanly — and the module quietly uses the common config.
+- name: Verify per-module Kafka configuration is self-contained
+  ansible.builtin.assert:
+    that:
+      - "'bootstrap.servers' in item.properties"
+    fail_msg: >-
+      `{{ item.var }}` is set but does not define `bootstrap.servers`.
+      OpenNMS selects a whole config file, not individual keys: it uses
+      {{ item.pid }} in full only when that PID defines `bootstrap.servers`,
+      and otherwise ignores the file entirely and falls back to the common
+      org.opennms.core.ipc.kafka configuration. A module file without it has
+      no effect at all. Add `bootstrap.servers` to `{{ item.var }}`, or remove
+      the variable to use the common configuration deliberately.
+    quiet: true
+  loop: "{{ _opennms_minion_kafka_modules | selectattr('properties') | list }}"
+  loop_control:
+    label: "{{ item.var }}"
+  tags:
+    - opennms
+    - minion
+    - configuration
+    - kafka
+
+- name: Configure per-module Kafka message brokers
+  ansible.builtin.template:
+    src: org.opennms.core.ipc.module.kafka.cfg.j2
+    dest: "{{ opennms_minion_home }}/etc/{{ item.pid }}.cfg"
+    owner: minion
+    group: minion
+    mode: "0640"
+  loop: "{{ _opennms_minion_kafka_modules | selectattr('properties') | list }}"
+  loop_control:
+    label: "{{ item.pid }}"
+  notify:
+    - Restart minion
+  tags:
+    - opennms
+    - minion
+    - configuration
+    - kafka

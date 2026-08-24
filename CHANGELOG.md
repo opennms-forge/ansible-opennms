@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+- `opennms_minion`: per-module Kafka configuration via `opennms_minion_kafka_sink`, `_rpc` and `_twin`, each rendering its own Karaf PID file, so sink, rpc and twin can target different brokers. Empty by default — a deployment that does not opt in renders exactly as before. Each module dictionary must define `bootstrap.servers`: OpenNMS selects a whole config file rather than merging keys, so a module file without it is ignored entirely and the module silently falls back to the common configuration. The role fails rather than rendering one (#49).
+
 ### Changed
 - **`apt upgrade` no longer moves OpenNMS packages.** `opennms_core`, `opennms_minion` and `opennms_sentinel` write an APT preferences file pinning the OpenNMS packages to `opennms_version`. To upgrade deliberately, change `opennms_version` and re-run — the pin is rewritten before installation, so the new version is permitted in the same run. `rrdtool`, `jrrd2` and `iplike` are not pinned and still receive security updates (#38).
 - `opennms_repositories`: the APT source targets an explicit per-major dist (`opennms-36`) instead of the floating `stable` alias, derived from `opennms_version`. `stable` resolves to `opennms-36` today but has moved before, so a plain `apt upgrade` could have offered a major version jump once it follows `opennms-37`. Also silences apt's `Conflicting distribution` warning (#38).
