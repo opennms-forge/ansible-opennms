@@ -9,6 +9,10 @@
   tags:
     - "jmx-prometheus-exporter"
 
+# The agent is loaded into the OpenNMS JVM at startup, so a new jar or a changed
+# config only takes effect after a restart. Both tasks notify the shared handler
+# rather than restarting inline, so several changes in one run collapse into a
+# single restart at the end of the play.
 - name: Installing JMX Prometheus Exporter
   ansible.builtin.get_url:
     url: "{{ prom_jmx_exporter_url }}"
@@ -17,6 +21,8 @@
     owner: "{{ prom_jmx_exporter_owner }}"
     group: "{{ prom_jmx_exporter_group }}"
     mode: "0640"
+  notify:
+    - Restart opennms
   tags:
     - "jmx-prometheus-exporter"
 
@@ -27,5 +33,7 @@
     owner: "{{ prom_jmx_exporter_owner }}"
     group: "{{ prom_jmx_exporter_group }}"
     mode: "0640"
+  notify:
+    - Restart opennms
   tags:
     - "jmx-prometheus-exporter"
