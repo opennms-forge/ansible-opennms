@@ -118,7 +118,12 @@ opennms_jvm_conf:
   PYROSCOPE_AGENT_ENABLED: 0
   PYROSCOPE_APPLICATION_NAME: Horizon-Core
   PYROSCOPE_SERVER_ADDRESS: http://localhost:4040
-  # ADDITIONAL_MANAGER_OPTIONS="-javaagent:/usr/share/opennms/lib/jmx_prometheus_javaagent-0.20.0.jar=9299:/usr/share/opennms/etc/jmx-exporter-config.yaml"
+  # The JMX Prometheus exporter jar and config are installed by this role, but
+  # nothing loads them until the agent is added to the JVM options. Uncomment to
+  # enable, and pick the port to expose metrics on. Paths must match
+  # prom_jmx_exporter_home; the template renders KEY="value", so this is a plain
+  # YAML mapping, not a shell assignment.
+  # ADDITIONAL_MANAGER_OPTIONS: "-javaagent:/opt/prom-jmx-exporter/jmx_prometheus_javaagent.jar=9299:/opt/prom-jmx-exporter/config.yaml"
 
 opennms_properties_timeseries:
   org.opennms.rrd.strategyClass: org.opennms.netmgt.rrd.rrdtool.MultithreadedJniRrdStrategy
