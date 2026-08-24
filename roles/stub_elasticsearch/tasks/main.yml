@@ -40,16 +40,14 @@
     - elasticsearch
     - plugin_drift
 
-# yamllint disable rule:line-length
 - name: Install OpenNMS Drift plugin
   ansible.builtin.unarchive:
-    src: "https://github.com/OpenNMS/elasticsearch-drift-plugin/releases/download/v{{ drift_version }}_es-{{ es_version }}/elasticsearch-drift-plugin-{{ es_version }}-{{ drift_version }}.zip"
+    src: "{{ es_drift_plugin_url }}"
     dest: '{{ onms_drift_plugin_dir }}'
     remote_src: true
   tags:
     - elasticsearch
     - plugin_drift
-# yamllint enable rule:line-length
 
 # bootstrap.memory_lock is only enforced once bootstrap checks run, which
 # single-node Elasticsearch skips. A cluster runs them, so without this limit

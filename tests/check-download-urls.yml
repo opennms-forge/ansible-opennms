@@ -1,0 +1,68 @@
+---
+# Verifies that every artifact download URL composed in a role's defaults
+# actually resolves upstream.
+#
+# Why this exists: ansible-lint validates YAML shape, not whether the thing at
+# the other end of a URL exists. A version variable and the template that
+# consumes it can disagree about a tag prefix and still lint clean, which is how
+# issue #135 and the stub_victoriametrics double-"v" both shipped green.
+#
+# Runs against localhost. No target host, no credentials, no downloads — HEAD
+# requests only.
+- name: Verify composed download URLs resolve
+  hosts: localhost
+  gather_facts: false
+  connection: local
+  vars:
+    # Repository base URLs. These are apt repository roots, not fetchable
+    # artifacts, so a HEAD against them proves nothing. Excluded by name rather
+    # than by pattern, so adding a new one is a deliberate act.
+    download_url_exclusions:
+      - opennms_repo_url
+      - pgsql_repo_url
+      - es_repo_url
+  tasks:
+    # `find` rather than the fileglob lookup: fileglob only globs the basename,
+    # so `roles/*/defaults/main.yml` silently matches nothing.
+    - name: Locate role defaults
+      ansible.builtin.find:
+        paths: "{{ playbook_dir }}/../roles"
+        patterns: main.yml
+        recurse: true
+        file_type: file
+      register: found_defaults
+
+    - name: Keep only defaults/main.yml
+      ansible.builtin.set_fact:
+        role_defaults_files: "{{ found_defaults.files | map(attribute='path') | select('search', '/defaults/main[.]yml$') | sort | list }}"
+
+    - name: Fail when no role defaults were found
+      ansible.builtin.assert:
+        that:
+          - role_defaults_files | length > 0
+        fail_msg: >-
+          Found no role defaults under roles/*/defaults/main.yml. The repository
+          layout has drifted, so this check would pass having verified nothing.
+          Fix the path rather than letting it succeed vacuously.
+        quiet: true
+
+    - name: Check the download URLs declared by each role
+      ansible.builtin.include_tasks: check-download-urls-role.yml
+      loop: "{{ role_defaults_files }}"
+      loop_control:
+        loop_var: role_defaults_file
+        label: "{{ role_defaults_file | dirname | dirname | basename }}"
+
+    - name: Report every URL that was checked
+      ansible.builtin.debug:
+        var: checked_urls
+
+    - name: Fail when no URLs were checked
+      ansible.builtin.assert:
+        that:
+          - checked_urls | default([]) | length > 0
+        fail_msg: >-
+          No download URLs were checked. Either the naming convention changed or
+          the exclusion list has swallowed everything. This check must never
+          report success without having resolved at least one URL.
+        quiet: true
