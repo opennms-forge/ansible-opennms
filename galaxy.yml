@@ -43,3 +43,5 @@ build_ignore:
   - _bmad
   - _bmad-output
   - openspec
+  - tests             # CI-only checks; not part of the published collection
+  - Makefile          # local/CI entry points, not consumed by Galaxy installs

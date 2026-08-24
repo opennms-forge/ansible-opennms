@@ -1,0 +1,34 @@
+---
+name: download-urls
+run-name: Resolve composed download URLs
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+  # Upstream can break this repository without anyone touching it, by deleting
+  # or retagging a release. A PR-only trigger would only surface that the next
+  # time someone happened to open a PR.
+  schedule:
+    - cron: '17 5 * * 1'
+
+# The job only reads the checkout and makes outbound HEAD requests.
+permissions:
+  contents: read
+
+jobs:
+  download-urls:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.14'
+      - name: Install Ansible
+        run: pip install ansible-core==2.20.4
+      # Renders every *_url variable in role defaults through the same Jinja the
+      # roles use, then HEADs it. Catches a version variable and its URL template
+      # disagreeing about a tag prefix, which ansible-lint cannot see because the
+      # YAML is valid either way.
+      - name: Resolve composed download URLs
+        run: make check-urls
