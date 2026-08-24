@@ -12,6 +12,10 @@ on:
   schedule:
     - cron: '17 5 * * 1'
 
+# The job only reads the checkout and makes outbound HEAD requests.
+permissions:
+  contents: read
+
 jobs:
   download-urls:
     runs-on: ubuntu-latest

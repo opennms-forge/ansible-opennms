@@ -48,3 +48,11 @@
   loop: "{{ url_check.results | default([]) }}"
   loop_control:
     label: "{{ item.item }}"
+
+# Printed per role rather than only in a summary at the end, so a failure part
+# way through still leaves the URLs verified so far in the log — which is
+# exactly when someone is reading it.
+- name: Coverage so far
+  ansible.builtin.debug:
+    var: checked_urls
+  when: checked_urls | default([]) | length > 0

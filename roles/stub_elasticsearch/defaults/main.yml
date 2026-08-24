@@ -6,6 +6,10 @@ arch: amd64
 es_version: 8.18.2
 drift_version: 2.0.7
 es_pkg_version: "{{ es_version }}*"
+# Declared here rather than inline in the task so the download-URL check covers
+# it. Its release tag is a compound of both versions (`v2.0.7_es-8.18.2`), which
+# is exactly the shape that silently 404s when one of them moves.
+es_drift_plugin_url: "https://github.com/OpenNMS/elasticsearch-drift-plugin/releases/download/v{{ drift_version }}_es-{{ es_version }}/elasticsearch-drift-plugin-{{ es_version }}-{{ drift_version }}.zip"
 onms_drift_plugin_dir: /usr/share/elasticsearch/plugins/drift
 es_etc_dir: /etc/elasticsearch
 # Inventory group whose members form the cluster. One member -> single-node
