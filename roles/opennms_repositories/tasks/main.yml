@@ -138,7 +138,7 @@
 
 - name: Install OpenNMS APT repository for stable releases
   ansible.builtin.apt_repository:
-    repo: "deb [arch={{ arch }} signed-by={{ opennms_key_ring_file }}] {{ opennms_repo_url }} stable main"
+    repo: "deb [arch={{ arch }} signed-by={{ opennms_key_ring_file }}] {{ opennms_repo_url }} {{ opennms_repo_dist }} main"
     state: present
     update_cache: true
   tags:

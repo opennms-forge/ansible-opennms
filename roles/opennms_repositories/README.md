@@ -6,6 +6,21 @@ Must run before any OpenNMS package install.
 
 Part of the [`indigo423.opennms`](https://galaxy.ansible.com/ui/repo/published/indigo423/opennms/) collection.
 
+## Repository dist
+
+The APT source targets an explicit per-major dist, `opennms-<major>`, derived from the OpenNMS version.
+
+`stable` is deliberately **not** used. It is an alias that floats: it resolves to `opennms-36` today, and the presence of `opennms-34`, `opennms-35` and `opennms-36` shows it has moved before. Pointing a source at it means a plain `apt upgrade` could offer a *major* version jump once `stable` follows `opennms-37`. Using the explicit dist also silences apt's `Conflicting distribution … expected stable but got opennms-NN` warning.
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `opennms_repo_major` | `"36"` | Major release line of the repository. |
+| `opennms_repo_dist` | `opennms-{{ opennms_repo_major }}` | The dist used in the APT source line. Override for a mirror with a different layout. |
+
+The component roles (`opennms_core`, `opennms_minion`, `opennms_sentinel`) pass `opennms_repo_major` at include time, derived from their own `opennms_version`, so bumping the OpenNMS version moves the repository with it.
+
+The default covers consumers that reach this role without an OpenNMS version — `stub_pgsql`, which needs the repository only for `iplike`, and standalone Galaxy installs. It is a bare major rather than a full version on purpose: a full version here would be one more place the OpenNMS release is written down, and drift between a value and the thing consuming it is what this guards against.
+
 ## Key verification
 
 The role verifies the **fingerprint** of the downloaded signing key, not the SHA-256 of the key file.

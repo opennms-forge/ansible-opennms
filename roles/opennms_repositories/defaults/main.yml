@@ -20,3 +20,21 @@ opennms_key_sha256: null
 
 opennms_key_ring_file: /usr/share/keyrings/opennms-stable-archive-keyring.gpg
 opennms_repo_url: https://debian.opennms.org
+
+# Major release line of the OpenNMS APT repository. The component roles pass
+# this at include time, derived from their own `opennms_version`. The default
+# here covers consumers that reach this role without one: `stub_pgsql`, which
+# needs the repository only for `iplike`, and standalone Galaxy installs.
+#
+# Deliberately a bare major, not a full version — a full version would be a
+# fourth place the OpenNMS release is written down, and drift between a value
+# and the thing consuming it is exactly what this pinning work exists to stop.
+opennms_repo_major: "36"
+
+# Explicit per-major dist rather than the `stable` alias. `stable` floats: it
+# resolves to opennms-36 today, and dists opennms-34/35/36 show it has moved
+# before. Pointing at it means a plain `apt upgrade` could offer a *major*
+# version jump once `stable` follows opennms-37. Using the explicit dist also
+# silences apt's "Conflicting distribution ... expected stable but got
+# opennms-NN" warning.
+opennms_repo_dist: "opennms-{{ opennms_repo_major }}"
