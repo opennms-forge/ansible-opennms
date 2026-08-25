@@ -67,9 +67,17 @@
 - name: Verify per-module Kafka configuration is self-contained
   ansible.builtin.assert:
     that:
+      # Ordered deliberately: assert stops at the first false, so the mapping
+      # check runs before any lookup. Without it a scalar string would turn the
+      # `in` test into a substring match and only fail later, inside the
+      # template. An empty or null value is rejected too — the key being present
+      # is enough for OpenNMS to select this file, so `bootstrap.servers = `
+      # would point the module at an empty broker list rather than falling back.
+      - item.properties is mapping
       - "'bootstrap.servers' in item.properties"
+      - item.properties['bootstrap.servers'] | default('', true) | length > 0
     fail_msg: >-
-      `{{ item.var }}` is set but does not define `bootstrap.servers`.
+      `{{ item.var }}` is set but does not define a usable `bootstrap.servers`.
       OpenNMS selects a whole config file, not individual keys: it uses
       {{ item.pid }} in full only when that PID defines `bootstrap.servers`,
       and otherwise ignores the file entirely and falls back to the common
@@ -94,6 +102,27 @@
     group: minion
     mode: "0640"
   loop: "{{ _opennms_minion_kafka_modules | selectattr('properties') | list }}"
+  loop_control:
+    label: "{{ item.pid }}"
+  notify:
+    - Restart minion
+  tags:
+    - opennms
+    - minion
+    - configuration
+    - kafka
+
+# Clearing a module variable has to remove its file, not just stop writing it.
+# A leftover file still defines `bootstrap.servers`, so OpenNMS keeps selecting
+# that PID in full and the module carries on using a broker the operator
+# thought they had removed — with Ansible reporting the run clean. This is what
+# makes "remove the variable to use the common configuration" true on a host
+# that was previously configured.
+- name: Remove per-module Kafka configuration for modules that are not set
+  ansible.builtin.file:
+    path: "{{ opennms_minion_home }}/etc/{{ item.pid }}.cfg"
+    state: absent
+  loop: "{{ _opennms_minion_kafka_modules | rejectattr('properties') | list }}"
   loop_control:
     label: "{{ item.pid }}"
   notify:

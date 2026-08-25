@@ -71,6 +71,12 @@ opennms_minion_kafka_rpc:
 
 Twin is left unset here, so it keeps using the common configuration.
 
+### Going back to the common configuration
+
+Remove the module's variable and re-run. The role deletes that module's `.cfg` file, so the module falls back to the common PID.
+
+Deleting the file matters: a leftover module file still defines `bootstrap.servers`, and OpenNMS would keep selecting it in full — leaving the module pointed at a broker you thought you had removed, with the Ansible run reporting clean.
+
 ## Variables
 
 See [`defaults/main.yml`](defaults/main.yml).
