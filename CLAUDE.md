@@ -67,7 +67,8 @@ them, that is the signal.
 - `opennms_repositories` — APT repo and GPG key setup; must run before any package install
 - `openjdk` — Installs OpenJDK 21 for OpenNMS components and Kafka
 - `common` — Timezone, APT cache update, base system packages
-- `opennms_core` — OpenNMS Horizon Core (36.0.2): database init, Kafka config, JVM tuning, firewall rules
+- `timesync` — Verifies the host clock is synchronised; included by the three component roles and fails the play on skew (`timesync_required` to override)
+- `opennms_core` — OpenNMS Horizon Core (36.0.3): database init, Kafka config, JVM tuning, firewall rules
 - `opennms_minion` — Minion agent for isolated network segments
 - `opennms_sentinel` — Flow persistence and aggregation
 - `opennms_icmp` — ICMP monitoring configuration
