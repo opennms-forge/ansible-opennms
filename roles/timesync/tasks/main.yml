@@ -15,11 +15,20 @@
     - timesync
 
 - name: Enable and start chrony
-  ansible.builtin.systemd_service:
+  ansible.builtin.service:
     name: chrony
     enabled: true
     state: started
-  register: timesync_chrony
+  when: timesync_install_chrony | bool
+  tags:
+    - timesync
+
+# Re-read the state rather than trusting the start task's own report. The
+# service modules capture their `status` *before* acting and never refresh it,
+# so a unit they successfully started still comes back as `inactive` — asserting
+# on that would fail the very host where the remediation worked.
+- name: Read the chrony service state
+  ansible.builtin.service_facts:
   when: timesync_install_chrony | bool
   tags:
     - timesync
@@ -32,15 +41,15 @@
 - name: Fail when chrony was requested but is not running
   ansible.builtin.assert:
     that:
-      - (timesync_chrony.status.ActiveState | default('')) == 'active'
+      - (ansible_facts.services['chrony.service'].state | default('')) == 'running'
     fail_msg: >-
       `timesync_install_chrony` is enabled but chrony is not running on
-      {{ inventory_hostname }} (ActiveState is
-      '{{ timesync_chrony.status.ActiveState | default('unknown') }}'). systemd
-      most likely skipped the unit on an unmet condition: chrony refuses to run
-      in a container, where the host owns the clock rather than the guest. Leave
-      `timesync_install_chrony` at its default here and let the host or
-      hypervisor keep time.
+      {{ inventory_hostname }} (state is
+      '{{ ansible_facts.services['chrony.service'].state | default('unknown') }}').
+      systemd most likely skipped the unit on an unmet condition: chrony refuses
+      to run in a container, where the host owns the clock rather than the
+      guest. Leave `timesync_install_chrony` at its default here and let the
+      host or hypervisor keep time.
     quiet: true
   when: timesync_install_chrony | bool
   tags:
@@ -67,6 +76,11 @@
   retries: "{{ timesync_retries | int }}"
   delay: "{{ timesync_delay | int }}"
   until: timesync_state.rc != 0 or (timesync_state.stdout | trim) == 'yes'
+  # Skipped entirely when the check is not required, rather than run and then
+  # ignored. Otherwise a knowingly-unsynchronised host — the documented lab and
+  # air-gapped case — would burn the full retry window on every run and log a
+  # bare task failure before both asserts are skipped anyway.
+  when: timesync_required | bool
   tags:
     - timesync
 
