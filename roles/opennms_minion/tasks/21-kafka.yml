@@ -59,3 +59,76 @@
     - minion
     - configuration
     - kafka
+
+# Runs before the module files are written, so a configuration OpenNMS would
+# silently ignore never reaches disk. Without this the failure is invisible at
+# every layer: Ansible succeeds, the file contains exactly what was asked for,
+# the Minion starts cleanly — and the module quietly uses the common config.
+- name: Verify per-module Kafka configuration is self-contained
+  ansible.builtin.assert:
+    that:
+      # Ordered deliberately: assert stops at the first false, so the mapping
+      # check runs before any lookup. Without it a scalar string would turn the
+      # `in` test into a substring match and only fail later, inside the
+      # template. An empty or null value is rejected too — the key being present
+      # is enough for OpenNMS to select this file, so `bootstrap.servers = `
+      # would point the module at an empty broker list rather than falling back.
+      - item.properties is mapping
+      - "'bootstrap.servers' in item.properties"
+      - item.properties['bootstrap.servers'] | default('', true) | length > 0
+    fail_msg: >-
+      `{{ item.var }}` is set but does not define a usable `bootstrap.servers`.
+      OpenNMS selects a whole config file, not individual keys: it uses
+      {{ item.pid }} in full only when that PID defines `bootstrap.servers`,
+      and otherwise ignores the file entirely and falls back to the common
+      org.opennms.core.ipc.kafka configuration. A module file without it has
+      no effect at all. Add `bootstrap.servers` to `{{ item.var }}`, or remove
+      the variable to use the common configuration deliberately.
+    quiet: true
+  loop: "{{ _opennms_minion_kafka_modules | selectattr('properties') | list }}"
+  loop_control:
+    label: "{{ item.var }}"
+  tags:
+    - opennms
+    - minion
+    - configuration
+    - kafka
+
+- name: Configure per-module Kafka message brokers
+  ansible.builtin.template:
+    src: org.opennms.core.ipc.module.kafka.cfg.j2
+    dest: "{{ opennms_minion_home }}/etc/{{ item.pid }}.cfg"
+    owner: minion
+    group: minion
+    mode: "0640"
+  loop: "{{ _opennms_minion_kafka_modules | selectattr('properties') | list }}"
+  loop_control:
+    label: "{{ item.pid }}"
+  notify:
+    - Restart minion
+  tags:
+    - opennms
+    - minion
+    - configuration
+    - kafka
+
+# Clearing a module variable has to remove its file, not just stop writing it.
+# A leftover file still defines `bootstrap.servers`, so OpenNMS keeps selecting
+# that PID in full and the module carries on using a broker the operator
+# thought they had removed — with Ansible reporting the run clean. This is what
+# makes "remove the variable to use the common configuration" true on a host
+# that was previously configured.
+- name: Remove per-module Kafka configuration for modules that are not set
+  ansible.builtin.file:
+    path: "{{ opennms_minion_home }}/etc/{{ item.pid }}.cfg"
+    state: absent
+  loop: "{{ _opennms_minion_kafka_modules | rejectattr('properties') | list }}"
+  loop_control:
+    label: "{{ item.pid }}"
+  notify:
+    - Restart minion
+  tags:
+    - opennms
+    - minion
+    - configuration
+    - kafka

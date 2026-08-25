@@ -9,8 +9,44 @@ opennms_minion_controller:
   id: "{{ ansible_facts['machine_id'] if ansible_facts['machine_id'] is defined else inventory_hostname }}"
   location: ANSIBLE_UNSET_MINION_LOCATION
 
+# Common Kafka IPC configuration, rendered to org.opennms.core.ipc.kafka.cfg.
+# Used by the sink, rpc and twin modules unless a module below overrides it.
 opennms_minion_kafka:
   "bootstrap.servers": localhost:9092
+
+# Per-module Kafka configuration, for pointing sink, rpc or twin at different
+# brokers. Each renders its own Karaf PID file, and each is written only when
+# non-empty — leaving one empty keeps that module on the common config above.
+#
+# These are COMPLETE configurations, not deltas. OpenNMS selects a whole file:
+# `OsgiKafkaConfigProvider` uses the module PID in full if its properties contain
+# `bootstrap.servers`, and otherwise ignores the file entirely and falls back to
+# the common PID. There is no key-level merge, despite the upstream docs saying
+# module values "take precedence". A module file without `bootstrap.servers`
+# does nothing at all, so the role refuses to render one.
+#
+#   opennms_minion_kafka_sink:
+#     "bootstrap.servers": sink-kafka.example.org:9092   # required, not optional
+#     "group.id": HQ-Minion-Sink
+opennms_minion_kafka_sink: {}
+opennms_minion_kafka_rpc: {}
+opennms_minion_kafka_twin: {}
+
+# Maps each module variable to the Karaf PID whose .cfg file it renders. The PID
+# is the filename, which is why module settings cannot live as prefixed keys
+# inside the common file. Verified against the blueprints on opennms-36.0.3-1:
+# sink, rpc and twin each construct OsgiKafkaConfigProvider(<module pid>,
+# configAdmin, org.opennms.core.ipc.kafka).
+_opennms_minion_kafka_modules:
+  - var: opennms_minion_kafka_sink
+    pid: org.opennms.core.ipc.sink.kafka
+    properties: "{{ opennms_minion_kafka_sink }}"
+  - var: opennms_minion_kafka_rpc
+    pid: org.opennms.core.ipc.rpc.kafka
+    properties: "{{ opennms_minion_kafka_rpc }}"
+  - var: opennms_minion_kafka_twin
+    pid: org.opennms.core.ipc.twin.kafka
+    properties: "{{ opennms_minion_kafka_twin }}"
 
 # OpenNMS packages pinned by the APT preferences file this role writes, so a
 # routine `apt upgrade` cannot move them. System packages (rrdtool, jrrd2,
