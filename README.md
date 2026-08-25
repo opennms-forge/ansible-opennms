@@ -67,7 +67,9 @@ Reference roles by their fully-qualified name (`indigo423.opennms.<role>`). The 
     - indigo423.opennms.opennms_sentinel
 ```
 
-Each component role pulls in `openjdk`, `opennms_repositories`, and `opennms_icmp` via `include_role`, so those don't need to be declared explicitly. Per-role docs live in `roles/<name>/README.md`; configurable variables in `roles/<name>/defaults/main.yml`. See [`RELEASING.md`](RELEASING.md) for the publish flow.
+Each component role pulls in `openjdk`, `opennms_repositories`, `opennms_icmp` and `timesync` via `include_role`, so those don't need to be declared explicitly. Per-role docs live in `roles/<name>/README.md`; configurable variables in `roles/<name>/defaults/main.yml`. See [`RELEASING.md`](RELEASING.md) for the publish flow.
+
+> **`timesync` can fail a deployment.** Unlike the other auto-included roles, it verifies the host clock is synchronised and stops the play when it is not — clock skew between components breaks Kafka RPC expiry, flow timestamps and time-series data. Set `timesync_required: false` to proceed anyway. See [`roles/timesync/README.md`](roles/timesync/README.md).
 
 ### 🧪 Non-production testing
 

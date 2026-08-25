@@ -2,6 +2,10 @@
 - name: Verify credentials before anything else
   ansible.builtin.include_tasks: 00-credentials-check.yml
 
+- name: Verify the host clock is synchronised
+  ansible.builtin.include_role:
+    name: timesync
+
 - name: Include OpenNMS OpenJDK roles
   ansible.builtin.include_role:
     name: openjdk
