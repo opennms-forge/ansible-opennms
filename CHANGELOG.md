@@ -4,7 +4,13 @@ All notable changes to the `indigo423.opennms` collection are documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Each entry below is a short index; the corresponding GitHub release contains the full notes including the Component Versions table and upgrade instructions.
 
-## [Unreleased]
+## [0.9.0] - 2026-08-25
+
+Repository keys, download URLs and now host clocks are verified before a
+deployment proceeds. Two changes alter what an unchanged playbook does on an
+unchanged host — `apt upgrade` no longer moves OpenNMS packages, and a host with
+an unsynchronised clock now fails the run. Both are deliberate and both have an
+escape hatch; see **Changed**.
 
 ### Added
 - New `timesync` role, included by `opennms_core`, `opennms_minion` and `opennms_sentinel`: verifies the host clock is synchronised before a component is deployed. **A deployment against a host whose clock is not synchronised now fails where it previously proceeded** — set `timesync_required: false` to override. The check asserts `NTPSynchronized` rather than requiring an NTP client, so a VM synchronised by its hypervisor (`NTP=no`, `NTPSynchronized=yes`) passes correctly. Optional chrony installation via `timesync_install_chrony`, off by default so the role never displaces working synchronisation (#31).
@@ -13,6 +19,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Changed
 - **`apt upgrade` no longer moves OpenNMS packages.** `opennms_core`, `opennms_minion` and `opennms_sentinel` write an APT preferences file pinning the OpenNMS packages to `opennms_version`. To upgrade deliberately, change `opennms_version` and re-run — the pin is rewritten before installation, so the new version is permitted in the same run. `rrdtool`, `jrrd2` and `iplike` are not pinned and still receive security updates (#38).
 - `opennms_repositories`: the APT source targets an explicit per-major dist (`opennms-36`) instead of the floating `stable` alias, derived from `opennms_version`. `stable` resolves to `opennms-36` today but has moved before, so a plain `apt upgrade` could have offered a major version jump once it follows `opennms-37`. Also silences apt's `Conflicting distribution` warning (#38).
+
+### Fixed
+- `opennms_core`: installing or reconfiguring the JMX Prometheus exporter now restarts OpenNMS. The agent is loaded at JVM start, so a new jar or changed config previously took effect only when someone restarted by hand. The commented `ADDITIONAL_MANAGER_OPTIONS` example that wires the agent in is also corrected — it used shell assignment syntax inside a YAML mapping, paths this role never writes to, and a version six releases stale, so copying it produced a JVM that failed to start (#57).
+
+### Documentation
+- Added `CONTRIBUTING.md` (DCO sign-off and the `Assisted-by` AI-assistance policy), `SECURITY.md` (private vulnerability reporting and scope), issue forms and a pull request template, and a License section in the README (#149).
 
 ## [0.8.0] - 2026-08-24
 
@@ -189,6 +201,7 @@ and `vm-single` are unaffected.
 - Renovate configuration for automated Ansible Galaxy collection updates.
 - CI on standard GitHub-hosted runners with SHA-pinned actions and Dependabot.
 
+[0.9.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.9.0
 [0.8.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.8.0
 [0.7.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.7.0
 [0.6.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.6.0
