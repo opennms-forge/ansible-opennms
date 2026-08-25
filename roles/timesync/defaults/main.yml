@@ -1,0 +1,28 @@
+---
+# Fail the deployment when the host's clock is not synchronised. Default true:
+# clock skew between Core, Minion and Sentinel is not cosmetic — Kafka RPC
+# requests carry a TTL and expire outright, flow records land in the wrong
+# Elasticsearch buckets, and collectors write time-series points in the future.
+#
+# Set false for an environment where you know the clock is handled outside the
+# host's view, or where a deliberate offset exists. This is an exception to make
+# knowingly, not a way past a check that is telling you something true — unlike
+# a pin that fails on harmless events, this one only fires when the clock really
+# is unsynchronised.
+timesync_required: true
+
+# Install and enable chrony. Default false, deliberately.
+#
+# Installing chrony masks systemd-timesyncd and takes over timekeeping. On a VM
+# whose clock is kept by its hypervisor — which reports NTP=no with
+# NTPSynchronized=yes, and is the common case for this collection — that would
+# replace working synchronisation with chrony pointing at pool.ntp.org, which an
+# air-gapped or firewalled network may not reach. Enable it for hosts that
+# genuinely have no synchronisation at all.
+timesync_install_chrony: false
+
+# Retries before the check gives up. NTP can take a minute or two to converge
+# after boot, so a deploy immediately following provisioning should not report a
+# host as misconfigured when it is merely still settling.
+timesync_retries: 6
+timesync_delay: 10

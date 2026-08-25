@@ -1,0 +1,109 @@
+---
+# Optional remediation, and it runs *before* the check so that opting in can
+# actually fix what the check would otherwise fail on. Off by default: see the
+# note in defaults/main.yml for why installing chrony can make a
+# hypervisor-synced host worse rather than better.
+- name: Install chrony
+  ansible.builtin.apt:
+    pkg:
+      - chrony
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  when: timesync_install_chrony | bool
+  tags:
+    - timesync
+
+- name: Enable and start chrony
+  ansible.builtin.systemd_service:
+    name: chrony
+    enabled: true
+    state: started
+  register: timesync_chrony
+  when: timesync_install_chrony | bool
+  tags:
+    - timesync
+
+# `state: started` reports success even when systemd *skips* the unit on an
+# unmet condition, so without this the operator asks for chrony, gets nothing,
+# and hears nothing. chrony.service carries `ConditionVirtualization=|!container`
+# because a container cannot own the system clock — the host does — so opting in
+# on a containerised host is a request that cannot be honoured.
+- name: Fail when chrony was requested but is not running
+  ansible.builtin.assert:
+    that:
+      - (timesync_chrony.status.ActiveState | default('')) == 'active'
+    fail_msg: >-
+      `timesync_install_chrony` is enabled but chrony is not running on
+      {{ inventory_hostname }} (ActiveState is
+      '{{ timesync_chrony.status.ActiveState | default('unknown') }}'). systemd
+      most likely skipped the unit on an unmet condition: chrony refuses to run
+      in a container, where the host owns the clock rather than the guest. Leave
+      `timesync_install_chrony` at its default here and let the host or
+      hypervisor keep time.
+    quiet: true
+  when: timesync_install_chrony | bool
+  tags:
+    - timesync
+
+# `NTPSynchronized`, not `NTP`. They answer different questions: `NTP` reports
+# whether an NTP *client* is enabled, `NTPSynchronized` whether the clock is
+# actually synchronised. A VM whose clock is kept by its hypervisor reports
+# NTP=no with NTPSynchronized=yes — a correct, healthy state, and the common
+# case for this collection. Asserting on `NTP` would fail every such host.
+#
+# `--value` gives a bare yes/no, so there is no prose to scrape.
+#
+# `until` retries only while the command works and the clock is unsynchronised,
+# which is the state that may resolve on its own shortly after boot. A missing
+# or broken timedatectl (rc != 0) stops immediately — waiting will not conjure
+# the binary.
+- name: Read the host clock synchronisation state
+  ansible.builtin.command: timedatectl show --property=NTPSynchronized --value
+  register: timesync_state
+  changed_when: false
+  check_mode: false
+  failed_when: false
+  retries: "{{ timesync_retries | int }}"
+  delay: "{{ timesync_delay | int }}"
+  until: timesync_state.rc != 0 or (timesync_state.stdout | trim) == 'yes'
+  tags:
+    - timesync
+
+# Deliberately distinct from the unsynchronised failure below. A check that
+# could not run must never be mistaken for a check that passed — the whole point
+# of asserting here rather than letting an empty result compare as "not yes".
+- name: Fail when time synchronisation could not be verified
+  ansible.builtin.assert:
+    that:
+      - timesync_state.rc == 0
+      - (timesync_state.stdout | default('') | trim) | length > 0
+    fail_msg: >-
+      Time synchronisation could not be verified on {{ inventory_hostname }}:
+      `timedatectl` is unavailable or could not query the system clock
+      (rc={{ timesync_state.rc }}). This is not the same as the clock being
+      wrong — the check simply could not run, which typically means systemd is
+      not running, as in a container. Verify the clock by whatever means the
+      platform provides, or set `timesync_required: false` to proceed.
+    quiet: true
+  when: timesync_required | bool
+  tags:
+    - timesync
+
+- name: Verify the host clock is synchronised
+  ansible.builtin.assert:
+    that:
+      - (timesync_state.stdout | trim) == 'yes'
+    fail_msg: >-
+      {{ inventory_hostname }} reports its clock is not synchronised
+      (NTPSynchronized={{ timesync_state.stdout | trim }}). Clock skew between
+      OpenNMS components is not cosmetic: Kafka RPC requests carry a TTL and
+      expire outright when Core and Minion disagree, flow records land in the
+      wrong Elasticsearch buckets, and collectors write time-series points in
+      the future. Synchronise the clock by whatever means suits the platform,
+      set `timesync_install_chrony: true` for a host with no synchronisation at
+      all, or set `timesync_required: false` if you know this is expected here.
+    quiet: true
+  when: timesync_required | bool
+  tags:
+    - timesync

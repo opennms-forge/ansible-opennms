@@ -1,0 +1,23 @@
+---
+galaxy_info:
+  role_name: timesync
+  author: Ronny Trommer
+  description: Verifies the host clock is synchronised before deploying a distributed OpenNMS component, with optional chrony installation.
+  license: GPL-3.0-or-later
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+        - trixie
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+  galaxy_tags:
+    - opennms
+    - time
+    - ntp
+    - chrony
+
+dependencies: []

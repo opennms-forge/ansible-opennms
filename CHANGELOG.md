@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ## [Unreleased]
 
 ### Added
+- New `timesync` role, included by `opennms_core`, `opennms_minion` and `opennms_sentinel`: verifies the host clock is synchronised before a component is deployed. **A deployment against a host whose clock is not synchronised now fails where it previously proceeded** — set `timesync_required: false` to override. The check asserts `NTPSynchronized` rather than requiring an NTP client, so a VM synchronised by its hypervisor (`NTP=no`, `NTPSynchronized=yes`) passes correctly. Optional chrony installation via `timesync_install_chrony`, off by default so the role never displaces working synchronisation (#31).
 - `opennms_minion`: per-module Kafka configuration via `opennms_minion_kafka_sink`, `_rpc` and `_twin`, each rendering its own Karaf PID file, so sink, rpc and twin can target different brokers. Empty by default — a deployment that does not opt in renders exactly as before. Each module dictionary must define `bootstrap.servers`: OpenNMS selects a whole config file rather than merging keys, so a module file without it is ignored entirely and the module silently falls back to the common configuration. The role fails rather than rendering one (#49).
 
 ### Changed
