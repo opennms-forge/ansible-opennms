@@ -54,3 +54,13 @@ _opennms_minion_kafka_modules:
 opennms_pinned_packages:
   - opennms-minion
 opennms_apt_preferences_file: /etc/apt/preferences.d/99-opennms-minion.pref
+
+# The `Origin:` field the repository publishes, which the pin's exclusion tier
+# keys on. Not a hostname: `Pin: origin <host>` matches the site, so keying on
+# the URL would silently disable the tier for anyone pointing
+# `opennms_repo_url` at a mirror. See the template for the full reasoning.
+#
+# The same-major tier needs no variable at all — it is a version glob derived
+# from `opennms_version`, so it cannot diverge from the dist the source line
+# points at the way a Codename-keyed pin could.
+opennms_pin_origin: OpenNMS
