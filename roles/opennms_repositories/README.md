@@ -16,6 +16,28 @@ The APT source targets an explicit per-major dist, `opennms-<major>`, derived fr
 |---|---|---|
 | `opennms_repo_major` | `"36"` | Major release line of the repository. |
 | `opennms_repo_dist` | `opennms-{{ opennms_repo_major }}` | The dist used in the APT source line. Override for a mirror with a different layout. |
+| `opennms_repo_filename` | `opennms` | Name of the sources file the role owns, without the `.list` suffix. |
+
+## Which sources files the role owns
+
+The role writes exactly one file, `/etc/apt/sources.list.d/opennms.list`, and expects to be the only OpenNMS source on the host.
+
+The filename is fixed rather than derived from the source line, because a derived name embeds the dist.
+Left to Ansible, changing the dist wrote a *new* file and left the previous one enabled — so a host deployed before the explicit-dist change carried `stable` alongside `opennms-36`, and every later major bump would have added one more.
+A fixed name makes a dist change rewrite the entry in place.
+
+To clear what earlier runs left behind, the role removes files matching `/etc/apt/sources.list.d/debian_opennms_org_*.list`.
+
+That pattern is the shape Ansible derives from a `deb` line, so it selects only files this role wrote under an older dist.
+A file you named yourself is left alone: if you deliberately add a second OpenNMS source — a branch build, a testing dist — give it a name of your own such as `opennms-testing.list` and the role will not touch it.
+
+### First run on a host deployed before this change
+
+Three one-time effects, all expected:
+
+- The run reports `changed` for the source and the cleanup, even though the enabled dist is the same.
+- The source moves from `debian_opennms_org_<dist>_main.list` to `opennms.list`. Automation keying off the old path needs updating.
+- `apt-get update` stops printing `Conflicting distribution … expected stable but got opennms-NN`, because the entry that produced it is gone.
 
 The component roles (`opennms_core`, `opennms_minion`, `opennms_sentinel`) pass `opennms_repo_major` at include time, derived from their own `opennms_version`, so bumping the OpenNMS version moves the repository with it.
 
