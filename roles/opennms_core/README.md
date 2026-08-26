@@ -38,6 +38,31 @@ To upgrade deliberately, change `opennms_version` and re-run the role. The pin i
 
 The APT source also targets an explicit per-major dist (`opennms-36`) rather than the floating `stable` alias, so a major-version jump cannot happen even if the pin is removed. See [`opennms_repositories`](../opennms_repositories/README.md).
 
+### Unattended upgrades
+
+`unattended-upgrades` is not a wrapper around `apt upgrade`.
+It applies its own origin allowlist and its own package blacklist, and only part of its version selection consults APT policy.
+Its behaviour against this pin was therefore measured rather than inferred, on Ubuntu 24.04 with `unattended-upgrades` 2.9.1.
+
+**A cross-major move never happens.** With the preferences file present, no OpenNMS package was selected for a major upgrade, including on a host whose `Unattended-Upgrade::Origins-Pattern` had been deliberately widened to admit `o=OpenNMS`. The `-1` tier alone is sufficient: with every OpenNMS version at `-1` the package has no installation candidate, and `unattended-upgrades` does not select past that.
+
+**On a stock host, the pin is not what protects you.** Ubuntu's default `Unattended-Upgrade::Allowed-Origins` admits Ubuntu origins only, so a default host never considers `o=OpenNMS` packages and the pin is never reached. That protection belongs to the distribution's configuration, not to this collection, and it ends the moment an operator adds an origin pattern of their own.
+
+**The same-major move does happen, unattended.** The tier-2 allowance described above is not bounded by an operator being present. Once the configured `opennms_version` is withdrawn from the repository, an unattended host will move OpenNMS to a newer patch of the same major on its own schedule and restart the service. Under an interactive `apt upgrade` that cost is visible to whoever typed the command. Here it is not, and the first sign of it is usually a gap in the monitoring.
+
+If that is not an acceptable trade, add the pinned packages to `unattended-upgrades`' own blacklist. This was measured to stop it:
+
+```
+// /etc/apt/apt.conf.d/51-opennms-blacklist
+Unattended-Upgrade::Package-Blacklist {
+    "<package>$";
+};
+```
+
+One `$`-anchored entry per package in this role's `opennms_pinned_packages`, plus those of any other OpenNMS role applied to the same host. The blacklist is a gate separate from APT pinning, so it applies whatever the preferences file says, and it only bites in the window where tier 2 is live: tier 1 already holds everything while the configured version exists. This collection does not write that file.
+
+Not measured: Debian's stock origin set, and `unattended-upgrades` releases other than 2.9.1. If you run something else, the property to check is whether its candidate selection defers to APT policy.
+
 ## Variables
 
 See [`defaults/main.yml`](defaults/main.yml) for the full list. The most relevant variables for tuning datasource and service behavior are documented below.
