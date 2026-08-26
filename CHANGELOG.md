@@ -4,6 +4,17 @@ All notable changes to the `indigo423.opennms` collection are documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Each entry below is a short index; the corresponding GitHub release contains the full notes including the Component Versions table and upgrade instructions.
 
+## [Unreleased]
+
+### Changed
+- **The OpenNMS package pin no longer expires, and its guarantee is now stated accurately.** 0.9.0 said `apt upgrade` no longer moves OpenNMS packages. That held only while the repository still carried the pinned version — and it serves one point release per dist, so the pin stopped matching on the next point release, after which the preferences file behaved exactly like no file at all, including permitting a jump to a different *major*. The pin is now written in three tiers: the configured release at 1001, the same major at 900, every other major at -1. So `apt upgrade` never moves OpenNMS across a major; it may move it to a newer patch of the same major once the configured release is withdrawn from the repository. `opennms_core`, `opennms_minion` and `opennms_sentinel` (#160).
+
+### Fixed
+- The version pin matched more releases than the one configured. `Pin: version <version>*` is an fnmatch glob over the whole version string, so `opennms_version: 36.0.1` also matched 36.0.10 through 36.0.19 — at priority 1001, which apt applies as a forced change. Now `<version>-*`, matching only Debian revisions of the configured release (#160).
+
+### Documentation
+- Corrected the pinning exclusion rationale in the three role READMEs. `jrrd2` and `iplike` are published only by `debian.opennms.org` and exist in no Debian suite, so the claim that excluding them preserves their security updates was true only of `rrdtool` (#160).
+
 ## [0.9.0] - 2026-08-25
 
 Repository keys, download URLs and now host clocks are verified before a
@@ -17,7 +28,7 @@ escape hatch; see **Changed**.
 - `opennms_minion`: per-module Kafka configuration via `opennms_minion_kafka_sink`, `_rpc` and `_twin`, each rendering its own Karaf PID file, so sink, rpc and twin can target different brokers. Empty by default — a deployment that does not opt in renders exactly as before. Each module dictionary must define `bootstrap.servers`: OpenNMS selects a whole config file rather than merging keys, so a module file without it is ignored entirely and the module silently falls back to the common configuration. The role fails rather than rendering one (#49).
 
 ### Changed
-- **`apt upgrade` no longer moves OpenNMS packages.** `opennms_core`, `opennms_minion` and `opennms_sentinel` write an APT preferences file pinning the OpenNMS packages to `opennms_version`. To upgrade deliberately, change `opennms_version` and re-run — the pin is rewritten before installation, so the new version is permitted in the same run. `rrdtool`, `jrrd2` and `iplike` are not pinned and still receive security updates (#38).
+- **`apt upgrade` no longer moves OpenNMS packages.** `opennms_core`, `opennms_minion` and `opennms_sentinel` write an APT preferences file pinning the OpenNMS packages to `opennms_version`. To upgrade deliberately, change `opennms_version` and re-run — the pin is rewritten before installation, so the new version is permitted in the same run. `rrdtool`, `jrrd2` and `iplike` are not pinned (#38). *Corrected in Unreleased: only `rrdtool` has a Debian security stream to preserve.*
 - `opennms_repositories`: the APT source targets an explicit per-major dist (`opennms-36`) instead of the floating `stable` alias, derived from `opennms_version`. `stable` resolves to `opennms-36` today but has moved before, so a plain `apt upgrade` could have offered a major version jump once it follows `opennms-37`. Also silences apt's `Conflicting distribution` warning (#38).
 
 ### Fixed
