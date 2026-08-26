@@ -6,14 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.9.1] - 2026-08-26
+
+A patch release of fixes, three of them for failures that only showed up on
+particular inventories or at particular moments in a repository's lifecycle.
+Nothing here requires user action. The pinning change alters what `apt upgrade`
+does on an unchanged host, but only to restore a guarantee 0.9.0 stated and
+could not keep.
+
 ### Changed
 - **The OpenNMS package pin no longer expires, and its guarantee is now stated accurately.** 0.9.0 said `apt upgrade` no longer moves OpenNMS packages. That held only while the repository still carried the pinned version — and it serves one point release per dist, so the pin stopped matching on the next point release, after which the preferences file behaved exactly like no file at all, including permitting a jump to a different *major*. The pin is now written in three tiers: the configured release at 1001, the same major at 900, every other major at -1. So `apt upgrade` never moves OpenNMS across a major; it may move it to a newer patch of the same major once the configured release is withdrawn from the repository. `opennms_core`, `opennms_minion` and `opennms_sentinel` (#160).
 
 ### Fixed
 - The version pin matched more releases than the one configured. `Pin: version <version>*` is an fnmatch glob over the whole version string, so `opennms_version: 36.0.1` also matched 36.0.10 through 36.0.19 — at priority 1001, which apt applies as a forced change. Now `<version>-*`, matching only Debian revisions of the configured release (#160).
+- `stub_mimir`: intermittent deploy failures on clustered beds. The Mimir `.deb` starts `mimir.service` from its `postinst` against the effectively empty config it ships, and the unit declares `Restart=always` with no start-limit override, so systemd's default of five starts in ten seconds is exhausted in about two seconds and the unit is locked out before the role writes any configuration. Whether a deploy failed was a race against inventory size, and the symptom pointed at a configuration error in a configuration that was correct (#156, #159).
+- `stub_mimir`: Mimir was left to guess the address it advertises to the ring on every clustered deployment outside the benchmark lab. Its lifecycler resolves its own address by looking for an interface with a private address and falling back to a literal `[eth0, en0]`; this role exists to take that guess away, but all six places it wrote an address were gated so that they applied almost nowhere (#158, #165).
+- `opennms_repositories`: the role appended a new sources file per dist instead of owning one. With no explicit `filename:`, Ansible derived the name from the repo line, dist included, so changing `opennms_version` across a major left the previous dist's source file in place and enabled two majors at once (#157, #161).
 
 ### Documentation
 - Corrected the pinning exclusion rationale in the three role READMEs. `jrrd2` and `iplike` are published only by `debian.opennms.org` and exist in no Debian suite, so the claim that excluding them preserves their security updates was true only of `rrdtool` (#160).
+- The three role READMEs now state what `unattended-upgrades` does with the pin, measured rather than inferred. It never moves OpenNMS across a major. On a stock Ubuntu host the pin is not what protects you — the distribution's own origin allowlist is, and that ends when an operator widens it. Two within-major moves *are* permitted and happen with nobody watching: a newer patch once the configured version is withdrawn, and a new Debian revision of the configured version at any time. `Unattended-Upgrade::Package-Blacklist` stops both, and the READMEs give the entry (#163, #166).
 
 ## [0.9.0] - 2026-08-25
 
@@ -212,6 +224,7 @@ and `vm-single` are unaffected.
 - Renovate configuration for automated Ansible Galaxy collection updates.
 - CI on standard GitHub-hosted runners with SHA-pinned actions and Dependabot.
 
+[0.9.1]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.9.1
 [0.9.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.9.0
 [0.8.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.8.0
 [0.7.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.7.0

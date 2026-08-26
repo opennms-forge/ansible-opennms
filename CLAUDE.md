@@ -78,7 +78,7 @@ them, that is the signal.
 - `stub_kafka` — Kafka 4.2.0 in KRaft mode; single broker, or a cluster derived from `kafka_cluster_group`
 - `stub_elasticsearch` — Elasticsearch for flow data; single node, or a cluster derived from `es_cluster_group`
 - `stub_mimir` — Grafana Mimir 3.0.4; single-node monolithic, or distributed via memberlist with shared S3 storage (`mimir_s3_endpoint`)
-- `stub_victoriametrics` — VictoriaMetrics 1.148.0, single-node
+- `stub_victoriametrics` — VictoriaMetrics 1.150.0, single-node
 
 Multi-node roles derive their cluster shape from inventory group membership, so
 scaling a deployment is the only change needed. A single-member group renders
