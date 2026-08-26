@@ -37,11 +37,14 @@
 # the load-bearing half: without it `opennms-common` would also match a future
 # `opennms-common-extras` that nobody decided to blacklist.
 #
-# One file per role, named for the role. APT accumulates list entries across
-# apt.conf.d rather than letting the last definition win, so a single-host
-# stack running several OpenNMS roles gets the union of their packages. A
-# shared filename would instead mean whichever role ran last decided the
-# contents, silently dropping the other's packages.
+# One file per role by default, named for the role. APT accumulates list
+# entries across apt.conf.d rather than letting the last definition win, so a
+# single-host stack running several OpenNMS roles gets the union of their
+# packages. A shared filename would instead mean whichever role ran last
+# decided the contents, silently dropping the other's packages -- which is
+# what happens if opennms_unattended_blacklist_file is overridden once in
+# group_vars for a host running more than one of these roles. Override it per
+# role, or leave the defaults alone.
 #
 # Set opennms_unattended_upgrade_blacklist: false to remove this file. That
 # re-exposes both moves described above.
