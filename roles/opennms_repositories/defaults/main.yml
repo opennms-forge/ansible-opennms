@@ -21,6 +21,18 @@ opennms_key_sha256: null
 opennms_key_ring_file: /usr/share/keyrings/opennms-stable-archive-keyring.gpg
 opennms_repo_url: https://debian.opennms.org
 
+# Name of the sources file this role owns, without the .list suffix.
+#
+# Deliberately independent of the dist. Left to Ansible, the filename is derived
+# from the repo line — dist included — so every dist change wrote a *new* file
+# and left the previous one enabled: `stable` alongside `opennms-36`, and one
+# more orphan per major bump after that. A fixed name makes a dist change
+# rewrite the entry instead of adding one.
+#
+# Also chosen so it cannot match the `debian_opennms_org_*.list` cleanup below,
+# which reclaims the derived names earlier runs left behind.
+opennms_repo_filename: opennms
+
 # Major release line of the OpenNMS APT repository. The component roles pass
 # this at include time, derived from their own `opennms_version`. The default
 # here covers consumers that reach this role without one: `stub_pgsql`, which

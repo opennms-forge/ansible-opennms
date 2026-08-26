@@ -136,11 +136,74 @@
       changed_when: false
       check_mode: false
 
-- name: Install OpenNMS APT repository for stable releases
-  ansible.builtin.apt_repository:
-    repo: "deb [arch={{ arch }} signed-by={{ opennms_key_ring_file }}] {{ opennms_repo_url }} {{ opennms_repo_dist }} main"
-    state: present
+# Cleared *before* the install below, and the order is load-bearing.
+#
+# `apt_repository` is idempotent on the source *line*, not on the filename: it
+# scans every sources file, and if the line already exists anywhere it makes no
+# change and never creates the file it was asked for. A host deployed at this
+# same major after #152 already has that exact line in a derived file, so
+# installing first and cleaning up afterwards deleted the only copy of it and
+# left the host with no OpenNMS source at all — measured, not theorised.
+#
+# The pattern is bounded to the filenames Ansible itself derives from a repo
+# line (`debian_opennms_org_<dist>_main.list`). That shape is machine-generated;
+# an operator adding a second source by hand names the file themselves, so a
+# deliberate `opennms-testing.list` is left alone. Enumerating majors was the
+# alternative and it needs a range invented today to cover dists that do not
+# exist yet.
+- name: Find superseded OpenNMS sources files from earlier runs
+  ansible.builtin.find:
+    paths: /etc/apt/sources.list.d
+    patterns: "debian_opennms_org_*.list"
+    file_type: file
+  register: opennms_legacy_sources
+  changed_when: false
+  tags:
+    - opennms
+    - repository
+
+- name: Remove superseded OpenNMS sources files
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ opennms_legacy_sources.files }}"
+  loop_control:
+    label: "{{ item.path }}"
+  tags:
+    - opennms
+    - repository
+
+# Written declaratively rather than with `apt_repository`, because that module
+# cannot express "this file holds exactly one source line". It is append-only
+# within a file and a no-op across files, both measured here:
+#
+#   - asked for filename X while the identical line existed in file Y, it
+#     changed nothing and never created X;
+#   - asked for a new dist with the same filename, it appended, leaving the
+#     previous major's line enabled alongside the new one.
+#
+# Either behaviour defeats the point of owning the file. `copy` with explicit
+# content converges it in one step, whatever the previous dist was.
+- name: Install the OpenNMS APT source
+  ansible.builtin.copy:
+    dest: "/etc/apt/sources.list.d/{{ opennms_repo_filename }}.list"
+    content: "deb [arch={{ arch }} signed-by={{ opennms_key_ring_file }}] {{ opennms_repo_url }} {{ opennms_repo_dist }} main\n"
+    owner: root
+    group: root
+    mode: "0644"
+  tags:
+    - opennms
+    - repository
+
+# Unconditional and idempotent rather than gated on the tasks above, for the
+# reason `stub_elasticsearch` reloads systemd inline: a handler runs at the end
+# of the play, long after the package roles have resolved against a stale index.
+# Runs after the removal *and* the install, so APT's view matches the sources on
+# disk before anything installs a package.
+- name: Refresh the APT cache so the OpenNMS source is current
+  ansible.builtin.apt:
     update_cache: true
+  changed_when: false
   tags:
     - opennms
     - repository
