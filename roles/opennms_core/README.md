@@ -42,26 +42,35 @@ The APT source also targets an explicit per-major dist (`opennms-36`) rather tha
 
 `unattended-upgrades` is not a wrapper around `apt upgrade`.
 It applies its own origin allowlist and its own package blacklist, and only part of its version selection consults APT policy.
-Its behaviour against this pin was therefore measured rather than inferred, on Ubuntu 24.04 with `unattended-upgrades` 2.9.1.
+Its behaviour against this pin was therefore measured rather than inferred, on Ubuntu 24.04 with `unattended-upgrades` 2.9.1 and Debian 13 with 2.12.
 
-**A cross-major move never happens.** With the preferences file present, no OpenNMS package was selected for a major upgrade, including on a host whose `Unattended-Upgrade::Origins-Pattern` had been deliberately widened to admit `o=OpenNMS`. `unattended-upgrades` defers to APT policy when it picks a version, so the other major sitting at `-1` is never chosen. Measured in isolation, the `-1` tier produces that result on its own, but it is not a file to deploy on its own: without tiers 1 and 2 the package has no installation candidate at all and deliberate installs fail.
+**A cross-major move never happens.** With the preferences file present, no OpenNMS package was selected for a major upgrade, including on a host whose origin allowlist had been deliberately widened to admit `o=OpenNMS`. `unattended-upgrades` defers to APT policy when it picks a version, so the other major sitting at `-1` is never chosen.
 
-**On a stock host, the pin is not what protects you.** Ubuntu's default `Unattended-Upgrade::Allowed-Origins` admits Ubuntu origins only, so a default host never considers `o=OpenNMS` packages and the pin is never reached. That protection belongs to the distribution's configuration, not to this collection, and it ends the moment an operator adds an origin pattern of their own.
+**On a stock host, the pin is not what protects you.** Both Ubuntu's and Debian's default allowlists admit only their own origins, so a default host never considers `o=OpenNMS` packages and the pin is never reached. That protection belongs to the distribution's configuration, not to this collection, and it ends the moment an operator adds an origin pattern of their own.
 
-**Moves within the major do happen, unattended.** There are two, and neither is bounded by an operator being present. Once the configured `opennms_version` is withdrawn from the repository, tier 2 lets an unattended host move to a newer patch of the same major. Separately, because tier 1 matches any Debian revision of the configured release, a new revision of the exact version you pinned (`36.0.3-1` to `36.0.3-2`) is selected at priority 1001 while tier 1 is still live. Either way OpenNMS moves and the service restarts on its own schedule. Under an interactive `apt upgrade` that cost is visible to whoever typed the command. Here it is not, and the first sign of it is usually a gap in the monitoring.
+**Two within-major moves are prevented by default.** The preferences file cannot express *prefer exactly this version, and if it is gone, do nothing*: a `-1` on everything would say it, but it leaves the package with no installation candidate and breaks a deliberate install. So two of its tiers admit a version an unattended host will move to, and both were measured moving:
 
-If that is not an acceptable trade, add the pinned packages to `unattended-upgrades`' own blacklist. This was measured to stop it:
+| Path | When it fires |
+|---|---|
+| tier 1 at 1001 | a new Debian revision of the configured version ships, because the tier matches `<version>-*`. The exact version you pinned moves and the service restarts, on a day nothing here changed |
+| tier 2 at 900 | the configured version is withdrawn from the repository and a newer patch of the same major is available |
 
-```
-// /etc/apt/apt.conf.d/51-opennms-blacklist
-Unattended-Upgrade::Package-Blacklist {
-    "<package>$";
-};
-```
+Each installing role therefore also writes `/etc/apt/apt.conf.d/51-opennms-<role>-blacklist`, adding its `opennms_pinned_packages` to `Unattended-Upgrade::Package-Blacklist`. That is a gate separate from candidate selection, so it stops both moves without touching what APT will install when asked directly.
 
-One `$`-anchored entry per package in this role's `opennms_pinned_packages`, plus those of any other OpenNMS role applied to the same host. The blacklist is a gate separate from APT pinning, so it applies whatever the preferences file says, and it covers both of the moves above. This collection does not write that file.
+| Variable | Purpose |
+|---|---|
+| `opennms_unattended_upgrade_blacklist` | Whether to write the blacklist. Default `true`. Setting it `false` removes the file and re-exposes **both** moves above. |
+| `opennms_unattended_blacklist_file` | Where the drop-in is written. The **default** is named per role, so several OpenNMS roles on one host do not overwrite each other. The variable name is shared across the roles, as `opennms_apt_preferences_file` is, so setting it once in `group_vars` for a multi-role host points every role at one path and the last to run wins. Override it per role or not at all. |
 
-Not measured: Debian's stock origin set, and `unattended-upgrades` releases other than 2.9.1. If you run something else, the property to check is whether its candidate selection defers to APT policy.
+Several OpenNMS roles on one host each write their own file, at the per-role default paths. APT accumulates list entries across `apt.conf.d` rather than letting the last definition win, so the effective blacklist is the union of their package lists.
+
+If you previously followed this section's earlier advice and hand-wrote `/etc/apt/apt.conf.d/51-opennms-blacklist`, remove it. The roles do not manage that path, so it survives `opennms_unattended_upgrade_blacklist: false` and would keep blacklisting after you opted out.
+
+**The cost.** An OpenNMS patch that is also a security fix will not land unattended. To take it, change `opennms_version` and re-run: the blacklist gates `unattended-upgrades` and not APT, so a deliberate `apt-get install <package>=<version>` and this role's own versioned install both go through it untouched.
+
+Turning the blacklist off does not affect the cross-major protection. That is the preferences file's `-1` tier, and it was measured to govern `unattended-upgrades` on its own.
+
+Not measured: `unattended-upgrades` releases other than the two named above. If you run something else, the property to check is whether its candidate selection defers to APT policy.
 
 ## Variables
 

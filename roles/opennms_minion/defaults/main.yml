@@ -64,3 +64,23 @@ opennms_apt_preferences_file: /etc/apt/preferences.d/99-opennms-minion.pref
 # from `opennms_version`, so it cannot diverge from the dist the source line
 # points at the way a Codename-keyed pin could.
 opennms_pin_origin: OpenNMS
+
+# Removes the pinned packages from `unattended-upgrades` consideration. On by
+# default, because the preferences file cannot express "prefer exactly this
+# version, and if it is gone, do nothing": two of its tiers admit a version an
+# unattended host will move to with nobody watching. Tier 1 matches any Debian
+# revision of the configured release, so a reissued `-2` moves and restarts the
+# service on a day nothing here changed. Tier 2 admits a newer patch once the
+# configured version leaves the repository. Both measured, not assumed.
+#
+# Opt-out rather than opt-in: a control that stays off until someone reads a
+# README is off, and the pin itself is not opt-in. Setting this false accepts
+# both moves. It does not affect the cross-major protection, which is the
+# preferences file's -1 tier.
+opennms_unattended_upgrade_blacklist: true
+
+# One file per role. APT accumulates list entries across apt.conf.d rather than
+# letting the last definition win, so a single-host stack running several
+# OpenNMS roles gets the union of their packages. A shared filename would mean
+# whichever role ran last decided the contents.
+opennms_unattended_blacklist_file: /etc/apt/apt.conf.d/51-opennms-minion-blacklist

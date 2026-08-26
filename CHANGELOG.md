@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+- **`unattended-upgrades` no longer moves OpenNMS on a host that runs it.** The APT preferences file cannot express *prefer exactly this version, and if it is gone, do nothing*, so two of its tiers admitted a version an unattended host would move to with nobody watching: tier 1 matches any Debian revision of the configured release, so a reissued `-2` moved and restarted the service on a day nothing in the playbook changed, and tier 2 admitted a newer patch once the configured version left the repository. Both were measured moving. `opennms_core`, `opennms_minion` and `opennms_sentinel` now each write `/etc/apt/apt.conf.d/51-opennms-<role>-blacklist`, adding their pinned packages to `Unattended-Upgrade::Package-Blacklist` — a gate separate from candidate selection, so deliberate installs are untouched. **On an existing host running `unattended-upgrades`, a re-run stops movement that previously happened.** The cost is that an OpenNMS patch which is also a security fix will not land unattended; take it by changing `opennms_version` and re-running. Set `opennms_unattended_upgrade_blacklist: false` to opt out, which re-exposes both moves and does not affect the cross-major protection (#167).
+
 ## [0.9.1] - 2026-08-26
 
 A patch release of fixes, three of them for failures that only showed up on
