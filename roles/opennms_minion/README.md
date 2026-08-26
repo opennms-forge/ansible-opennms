@@ -42,82 +42,33 @@ The APT source also targets an explicit per-major dist (`opennms-36`) rather tha
 
 `unattended-upgrades` is not a wrapper around `apt upgrade`.
 It applies its own origin allowlist and its own package blacklist, and only part of its version selection consults APT policy.
-Its behaviour against this pin was therefore measured rather than inferred, on Ubuntu 24.04 with `unattended-upgrades` 2.9.1.
+Its behaviour against this pin was therefore measured rather than inferred, on Ubuntu 24.04 with `unattended-upgrades` 2.9.1 and Debian 13 with 2.12.
 
-**A cross-major move never happens.** With the preferences file present, no OpenNMS package was selected for a major upgrade, including on a host whose `Unattended-Upgrade::Origins-Pattern` had been deliberately widened to admit `o=OpenNMS`. `unattended-upgrades` defers to APT policy when it picks a version, so the other major sitting at `-1` is never chosen. Measured in isolation, the `-1` tier produces that result on its own, but it is not a file to deploy on its own: without tiers 1 and 2 the package has no installation candidate at all and deliberate installs fail.
+**A cross-major move never happens.** With the preferences file present, no OpenNMS package was selected for a major upgrade, including on a host whose origin allowlist had been deliberately widened to admit `o=OpenNMS`. `unattended-upgrades` defers to APT policy when it picks a version, so the other major sitting at `-1` is never chosen.
 
-**On a stock host, the pin is not what protects you.** Ubuntu's default `Unattended-Upgrade::Allowed-Origins` admits Ubuntu origins only, so a default host never considers `o=OpenNMS` packages and the pin is never reached. That protection belongs to the distribution's configuration, not to this collection, and it ends the moment an operator adds an origin pattern of their own.
+**On a stock host, the pin is not what protects you.** Both Ubuntu's and Debian's default allowlists admit only their own origins, so a default host never considers `o=OpenNMS` packages and the pin is never reached. That protection belongs to the distribution's configuration, not to this collection, and it ends the moment an operator adds an origin pattern of their own.
 
-**Moves within the major do happen, unattended.** There are two, and neither is bounded by an operator being present. Once the configured `opennms_version` is withdrawn from the repository, tier 2 lets an unattended host move to a newer patch of the same major. Separately, because tier 1 matches any Debian revision of the configured release, a new revision of the exact version you pinned (`36.0.3-1` to `36.0.3-2`) is selected at priority 1001 while tier 1 is still live. Either way OpenNMS moves and the service restarts on its own schedule. Under an interactive `apt upgrade` that cost is visible to whoever typed the command. Here it is not, and the first sign of it is usually a gap in the monitoring.
+**Two within-major moves are prevented by default.** The preferences file cannot express *prefer exactly this version, and if it is gone, do nothing*: a `-1` on everything would say it, but it leaves the package with no installation candidate and breaks a deliberate install. So two of its tiers admit a version an unattended host will move to, and both were measured moving:
 
-If that is not an acceptable trade, add the pinned packages to `unattended-upgrades`' own blacklist. This was measured to stop it:
-
-```
-// /etc/apt/apt.conf.d/51-opennms-blacklist
-Unattended-Upgrade::Package-Blacklist {
-    "<package>$";
-};
-```
-
-One `$`-anchored entry per package in this role's `opennms_pinned_packages`, plus those of any other OpenNMS role applied to the same host. The blacklist is a gate separate from APT pinning, so it applies whatever the preferences file says, and it covers both of the moves above. This collection does not write that file.
-
-Not measured: Debian's stock origin set, and `unattended-upgrades` releases other than 2.9.1. If you run something else, the property to check is whether its candidate selection defers to APT policy.
-
-## Kafka IPC configuration
-
-`opennms_minion_kafka` is the **common** configuration, rendered to `etc/org.opennms.core.ipc.kafka.cfg`. The sink, rpc and twin modules all use it unless given their own configuration.
-
-To point a module at a different broker, set its dictionary. Each renders its own Karaf PID file, and each is written only when non-empty:
-
-| Variable | Renders |
+| Path | When it fires |
 |---|---|
-| `opennms_minion_kafka` | `org.opennms.core.ipc.kafka.cfg` |
-| `opennms_minion_kafka_sink` | `org.opennms.core.ipc.sink.kafka.cfg` |
-| `opennms_minion_kafka_rpc` | `org.opennms.core.ipc.rpc.kafka.cfg` |
-| `opennms_minion_kafka_twin` | `org.opennms.core.ipc.twin.kafka.cfg` |
+| tier 1 at 1001 | a new Debian revision of the configured version ships, because the tier matches `<version>-*`. The exact version you pinned moves and the service restarts, on a day nothing here changed |
+| tier 2 at 900 | the configured version is withdrawn from the repository and a newer patch of the same major is available |
 
-### A module configuration is complete, not a delta
+Each installing role therefore also writes `/etc/apt/apt.conf.d/51-opennms-<role>-blacklist`, adding its `opennms_pinned_packages` to `Unattended-Upgrade::Package-Blacklist`. That is a gate separate from candidate selection, so it stops both moves without touching what APT will install when asked directly.
 
-This is the part that surprises people, and the upstream documentation is misleading about it. The docs say module values *"take precedence over common configuration values"*, which sounds like a key-level override. It is not. OpenNMS selects a **whole file**:
+| Variable | Purpose |
+|---|---|
+| `opennms_unattended_upgrade_blacklist` | Whether to write the blacklist. Default `true`. Setting it `false` removes the file and re-exposes **both** moves above. |
+| `opennms_unattended_blacklist_file` | Where the drop-in is written. Named per role, so several OpenNMS roles on one host do not overwrite each other. |
 
-```
-module file HAS bootstrap.servers    →  module file used in full, common file ignored
-module file LACKS bootstrap.servers  →  module file ignored in full, common file used
-```
+Several OpenNMS roles on one host each write their own file. APT accumulates list entries across `apt.conf.d` rather than letting the last definition win, so the effective blacklist is the union of their package lists.
 
-`OsgiKafkaConfigProvider` reads the module PID and checks for `bootstrap.servers`; if it is absent it discards those properties entirely and falls back to the common PID. So a module file containing only `group.id` has **no effect at all** — the module silently keeps using the common configuration.
+**The cost.** An OpenNMS patch that is also a security fix will not land unattended. To take it, change `opennms_version` and re-run: the blacklist gates `unattended-upgrades` and not APT, so a deliberate `apt-get install <package>=<version>` and this role's own versioned install both go through it untouched.
 
-Because of that, every module dictionary must repeat `bootstrap.servers` even when it matches the common one. That duplication is a runtime requirement, not a quirk of this role. The role refuses to render a module file without it, rather than let the misconfiguration pass silently:
+Turning the blacklist off does not affect the cross-major protection. That is the preferences file's `-1` tier, and it was measured to govern `unattended-upgrades` on its own.
 
-```
-`opennms_minion_kafka_sink` is set but does not define `bootstrap.servers`. …
-A module file without it has no effect at all.
-```
-
-Note also that module settings cannot be expressed as prefixed keys inside the common dictionary — in Karaf the `.cfg` filename *is* the PID, so `org.opennms.core.ipc.sink.kafka.group.id` placed in the common file is just an oddly-named property that nothing reads.
-
-### Example: sink and rpc on different clusters
-
-```yaml
-opennms_minion_kafka:
-  "bootstrap.servers": kafka.example.org:9092
-
-opennms_minion_kafka_sink:
-  "bootstrap.servers": sink-kafka.example.org:9092   # required, even to repeat
-  "group.id": HQ-Minion-Sink
-
-opennms_minion_kafka_rpc:
-  "bootstrap.servers": rpc-kafka.example.org:9092
-  "group.id": HQ-Minion-RPC
-```
-
-Twin is left unset here, so it keeps using the common configuration.
-
-### Going back to the common configuration
-
-Remove the module's variable and re-run. The role deletes that module's `.cfg` file, so the module falls back to the common PID.
-
-Deleting the file matters: a leftover module file still defines `bootstrap.servers`, and OpenNMS would keep selecting it in full — leaving the module pointed at a broker you thought you had removed, with the Ansible run reporting clean.
+Not measured: `unattended-upgrades` releases other than the two named above. If you run something else, the property to check is whether its candidate selection defers to APT policy.
 
 ## Variables
 

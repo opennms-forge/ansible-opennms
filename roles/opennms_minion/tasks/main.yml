@@ -37,6 +37,36 @@
     - opennms
     - packages
 
+# Written next to the pin, and for the same reason: it must be in place before
+# packages are installed so a run that bumps opennms_version is never racing a
+# stale policy. Unconditional in the sense that matters -- no check for whether
+# unattended-upgrades is installed. An apt.conf.d file declaring an option
+# nothing reads is inert, so a guard would cost a fact-gathering round trip to
+# decide something harmless either way.
+- name: Blacklist OpenNMS packages from unattended-upgrades
+  ansible.builtin.template:
+    src: etc/apt-unattended-blacklist.j2
+    dest: "{{ opennms_unattended_blacklist_file }}"
+    owner: root
+    group: root
+    mode: "0644"
+  when: opennms_unattended_upgrade_blacklist | bool
+  tags:
+    - opennms
+    - packages
+
+# Turning the variable off must take the file with it. Skipping the template
+# task alone would leave a host that was once blacklisted still blacklisted,
+# so the operator's opt-out would silently do nothing.
+- name: Remove the unattended-upgrades blacklist when disabled
+  ansible.builtin.file:
+    path: "{{ opennms_unattended_blacklist_file }}"
+    state: absent
+  when: not opennms_unattended_upgrade_blacklist | bool
+  tags:
+    - opennms
+    - packages
+
 - name: Installing OpenNMS Minion {{ opennms_version }}
   ansible.builtin.apt:
     name: "opennms-minion={{ opennms_pkg_version }}"
