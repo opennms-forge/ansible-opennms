@@ -46,15 +46,38 @@ mimir_memberlist_port: 7946
 # removing it again reproduces the failure. So the trigger is the absence of a
 # private address, not the absence of eth0.
 #
-# This applies to single-node deployments too, however few rings they use. The
-# gating below writes instance_addr only when clustered, and a single node on a
-# host with no private address fails the same way — verified on the lab's
-# mimir-single bed. See #156.
+# This applies to single-node deployments too, however few rings they use: the
+# ring lifecycler needs an address to register itself even when the KV store is
+# in-memory. Verified on the lab's mimir-single bed with the role's own rendered
+# config, so it is not a property of the package's shipped one (#158).
 #
-# Set explicitly rather than by listing interface names, which would only move
-# the guess from Mimir's list to ours. Defaults to the inventory's management
-# address; leave empty to fall back to Mimir's own interface detection.
-mimir_instance_addr: "{{ lab_mgmt_ip | default('') }}"
+# An address, not a list of interface names: a name is a prediction about the
+# host, an address is a fact about it, and a wrong prediction fails exactly the
+# same way Mimir's own list does.
+#
+# Precedence, most specific first:
+#
+#   1. this variable, set directly
+#   2. lab_mgmt_ip, from the benchmark lab's inventory
+#   3. the host's default-route address
+#
+# lab_mgmt_ip keeps precedence over the derived value on purpose. The benchmark
+# beds carry Mimir's peer traffic on the db subnet while the default route sits
+# elsewhere, so the derived address would name the wrong NIC there. It is no
+# longer the *only* source, though: it is defined in that lab's inventory and
+# nowhere in this collection, so every other consumer used to fall through to
+# an empty string — which silently disabled the addressing this variable exists
+# to provide, clustered deployments included.
+#
+# Empty is not a supported state: the role asserts a value is available rather
+# than rendering a config whose startup depends on interface detection.
+#
+# The `true` on each default is load-bearing. Jinja's default() falls through
+# only on an *undefined* value, so an inventory carrying `lab_mgmt_ip: ""` as a
+# placeholder would skip the derived address and fail the assert — with a
+# message blaming gather_facts, which would be wrong. The boolean form treats
+# empty as unset, which is what a placeholder means.
+mimir_instance_addr: "{{ lab_mgmt_ip | default(ansible_default_ipv4.address | default('', true), true) }}"
 
 # Shared object storage. Multi-node Mimir cannot use the filesystem backend:
 # every component must see the same blocks, and a per-node directory is not a

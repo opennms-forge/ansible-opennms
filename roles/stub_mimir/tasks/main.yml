@@ -16,6 +16,30 @@
   tags:
     - always
 
+# Mimir resolves its own address by detecting interfaces that carry a private
+# (RFC 1918) address, falling back to the literal list [eth0, en0] when it finds
+# none — so on a host addressed out of a non-private range it dies with "no
+# useable address found for interfaces [eth0 en0]". This role exists to take
+# that guess away, which it can only do with an address to write.
+#
+# Asserted rather than left to fall through: an empty value renders a config
+# whose startup depends on detection, and the operator then diagnoses a
+# crash-looping service instead of reading a message about a variable.
+- name: Assert an address is available for Mimir to advertise
+  ansible.builtin.assert:
+    that:
+      - mimir_instance_addr | length > 0
+    fail_msg: >-
+      mimir_instance_addr is empty, so Mimir would fall back to probing
+      interfaces [eth0, en0] and would not start on a host addressed outside
+      the RFC 1918 ranges. It defaults to lab_mgmt_ip, then to
+      ansible_default_ipv4.address — the latter is unavailable here, which
+      usually means the play runs with gather_facts disabled. Set
+      mimir_instance_addr to the address this node should advertise to its
+      peers and to its own rings.
+  tags:
+    - always
+
 # Laid down before the package, not after: the package's postinst starts
 # mimir.service on the empty config it ships, which crash-loops into systemd's
 # start limit and locks the unit out before this role writes anything. A
