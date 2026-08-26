@@ -1,0 +1,21 @@
+# Managed by Ansible (indigo423.opennms.stub_mimir).
+#
+# The Mimir package starts mimir.service from its postinst, on the empty
+# /etc/mimir/config.yml it ships. Mimir then probes interfaces [eth0, en0],
+# matches neither on predictable interface names, and exits. The vendor unit
+# declares Restart=always with no start-limit overrides, so systemd's default
+# of five starts in ten seconds is exhausted in about two seconds and the unit
+# is locked out — before this role has written a configuration at all.
+#
+# StartLimitIntervalSec=0 removes the lockout, so the role's start task always
+# runs against the config it has just written, whatever the timing.
+#
+# RestartSec is set with it: Restart=always and no rate limit would otherwise
+# leave a genuinely broken Mimir looping at systemd's 100ms default. Several
+# seconds keeps a failing unit retrying at a rate that reads as waiting rather
+# than thrashing.
+[Unit]
+StartLimitIntervalSec=0
+
+[Service]
+RestartSec={{ mimir_restart_sec }}

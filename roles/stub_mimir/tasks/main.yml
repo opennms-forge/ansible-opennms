@@ -16,6 +16,48 @@
   tags:
     - always
 
+# Laid down before the package, not after: the package's postinst starts
+# mimir.service on the empty config it ships, which crash-loops into systemd's
+# start limit and locks the unit out before this role writes anything. A
+# drop-in directory is honoured for a unit that does not exist yet, needs no
+# mimir user (the postinst creates it) and touches no conffile, so it is the
+# one intervention that fits between apt and the package's own behaviour.
+- name: Create the Mimir systemd drop-in directory
+  ansible.builtin.file:
+    path: /etc/systemd/system/mimir.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  tags:
+    - mimir
+    - systemd
+
+- name: Keep the Mimir unit out of systemd's start rate limit
+  ansible.builtin.template:
+    src: systemd/override.conf.j2
+    dest: /etc/systemd/system/mimir.service.d/override.conf
+    owner: root
+    group: root
+    mode: "0644"
+  tags:
+    - mimir
+    - systemd
+
+# Reloaded here rather than from a handler: handlers run at the end of the
+# play, long after the start task below. On a fresh host the package's postinst
+# reloads for us, but on a host that already carries the package apt is a no-op
+# and reloads nothing, so a drop-in written by this run would stay unloaded for
+# exactly the hosts that need it — those locked out by an earlier run.
+# Unconditional and idempotent, so it does not depend on change detection.
+- name: Reload systemd so the Mimir drop-in applies
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+  changed_when: false
+  tags:
+    - mimir
+    - systemd
+
 - name: Install a Mimir package
   ansible.builtin.apt:
     deb: '{{ mimir_pkg_url }}'
@@ -32,6 +74,24 @@
   tags:
     - mimir
     - configuration
+
+# Heals a host locked out by a run made before the drop-in existed: its unit is
+# in failed state with an exhausted start counter, and no amount of correct
+# configuration will start it until that is cleared. A no-op on a healthy unit.
+- name: Clear a failed state left on the Mimir unit
+  ansible.builtin.command: systemctl reset-failed mimir.service
+  register: _mimir_reset_failed
+  changed_when: false
+  # Tolerate only the benign failure: a unit systemd has never loaded, which is
+  # what a tag-filtered run that skipped the install task leaves behind. Every
+  # other non-zero exit — no systemctl, no privilege — still fails the play,
+  # rather than being swallowed and resurfacing as a confusing start failure.
+  failed_when:
+    - _mimir_reset_failed.rc != 0
+    - "'not loaded' not in _mimir_reset_failed.stderr"
+  tags:
+    - mimir
+    - systemd
 
 - name: Configure Mimir as a single-node monolithic backend
   ansible.builtin.template:
@@ -51,6 +111,31 @@
     name: mimir.service
     enabled: true
     state: started
+  tags:
+    - mimir
+    - systemd
+
+# Flushed here so the config-change restart happens before the readiness check
+# below, not after it. Otherwise the check would pass against whatever Mimir
+# was already running and the restart onto the new config would go unverified.
+- name: Restart Mimir now if its configuration changed
+  ansible.builtin.meta: flush_handlers
+
+# Disabling the unit's start rate limit (see the drop-in above) removed the
+# mechanism that used to make a broken Mimir visible: with Restart=always and
+# no limit the unit sits in "activating" forever, and ansible.builtin.service
+# treats that as started. Without this check the play would report success on a
+# host whose Mimir never serves a request. Waits for the endpoint rather than
+# the unit, so the role only claims success once Mimir is actually up.
+- name: Wait for Mimir to become ready
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ mimir_http_port }}/ready"
+    method: GET
+    status_code: 200
+  register: _mimir_ready
+  until: _mimir_ready.status | default(0) == 200
+  retries: "{{ mimir_startup_retries }}"
+  delay: "{{ mimir_startup_delay }}"
   tags:
     - mimir
     - systemd
