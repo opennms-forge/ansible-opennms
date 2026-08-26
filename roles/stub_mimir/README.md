@@ -13,6 +13,28 @@ See [`defaults/main.yml`](defaults/main.yml).
 `mimir_restart_sec` (default `5`) is the interval systemd waits between restarts of `mimir.service`.
 It exists because of the unit override described below.
 
+## Ring addressing
+
+Mimir resolves its own advertised address by detecting interfaces that carry a private (RFC 1918) address, falling back to the literal list `[eth0, en0]` when it finds none.
+On a host addressed only out of a non-private range — `192.0.2.0/24`, say — the detection finds nothing, the fallback matches no predictable interface name, and Mimir exits with `no useable address found for interfaces [eth0 en0]`.
+
+The role takes that guess away by writing the address explicitly into every ring, into memberlist, and into the query-frontend and alertmanager.
+It is chosen in this order:
+
+| Precedence | Source |
+|---|---|
+| 1 | `mimir_instance_addr`, set directly |
+| 2 | `lab_mgmt_ip`, from the benchmark lab's inventory |
+| 3 | the host's default-route address (`ansible_default_ipv4.address`) |
+
+`lab_mgmt_ip` keeps precedence over the derived value deliberately: the benchmark beds carry Mimir's peer traffic on a subnet other than the default route, so the derived address would name the wrong NIC there.
+
+If none of the three yields a value the role **fails**, rather than rendering a configuration whose startup depends on interface detection.
+In practice that means a play with `gather_facts: false` must set `mimir_instance_addr` itself.
+
+An address is written for single-node deployments too.
+In-memory rings do not exempt them: the ring lifecycler needs an address to register itself whatever the KV store is, which was measured on a single-node host after removing its only private-range address.
+
 ## Unit override
 
 The role installs a systemd drop-in at `/etc/systemd/system/mimir.service.d/override.conf`, before installing the package, setting `StartLimitIntervalSec=0` and `RestartSec`.

@@ -76,14 +76,14 @@ alertmanager_storage:
 ingester:
   ring:
     replication_factor: {{ _mimir_replication_factor }}
-{% if _mimir_clustered | bool and mimir_instance_addr | length > 0 %}
+{% if mimir_instance_addr | length > 0 %}
     instance_addr: {{ mimir_instance_addr }}
 {% endif %}
     kvstore:
       store: {{ _mimir_kvstore }}
 distributor:
   ring:
-{% if _mimir_clustered | bool and mimir_instance_addr | length > 0 %}
+{% if mimir_instance_addr | length > 0 %}
     instance_addr: {{ mimir_instance_addr }}
 {% endif %}
     kvstore:
@@ -91,7 +91,7 @@ distributor:
 store_gateway:
   sharding_ring:
     replication_factor: {{ _mimir_replication_factor }}
-{% if _mimir_clustered | bool and mimir_instance_addr | length > 0 %}
+{% if mimir_instance_addr | length > 0 %}
     instance_addr: {{ mimir_instance_addr }}
 {% endif %}
     kvstore:
@@ -99,19 +99,19 @@ store_gateway:
 compactor:
   data_dir: {{ mimir_data_dir }}/compactor
   sharding_ring:
-{% if _mimir_clustered | bool and mimir_instance_addr | length > 0 %}
+{% if mimir_instance_addr | length > 0 %}
     instance_addr: {{ mimir_instance_addr }}
 {% endif %}
     kvstore:
       store: {{ _mimir_kvstore }}
 ruler:
   ring:
-{% if _mimir_clustered | bool and mimir_instance_addr | length > 0 %}
+{% if mimir_instance_addr | length > 0 %}
     instance_addr: {{ mimir_instance_addr }}
 {% endif %}
     kvstore:
       store: {{ _mimir_kvstore }}
-{% if _mimir_clustered | bool and mimir_instance_addr | length > 0 %}
+{% if mimir_instance_addr | length > 0 %}
 # The query-frontend and alertmanager resolve their own addresses too, by the
 # same interface probing as the rings — so they need telling as well, or Mimir
 # fails later in startup with "failed to get frontend address".
