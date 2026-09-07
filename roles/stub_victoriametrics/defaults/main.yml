@@ -3,7 +3,7 @@
 # extractVersion keeps Renovate from writing the raw `v`-prefixed tag, which
 # would compose a double-"v" URL that 404s (it did, from 2026-08-14).
 # renovate: datasource=github-releases depName=VictoriaMetrics/VictoriaMetrics extractVersion=^v?(?<version>.+)$
-victoriametrics_version: 1.150.0
+victoriametrics_version: 1.151.0
 victoriametrics_arch: amd64
 # `v1.150.0` was the published default for ten days, so an override may still
 # carry the prefix. Strip a leading "v" and use this everywhere the version is
