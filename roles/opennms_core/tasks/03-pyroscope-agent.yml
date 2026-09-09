@@ -17,3 +17,10 @@
     pyroscope_agent_jar: "{{ opennms_home }}/agent/pyroscope-agent.jar"
     pyroscope_agent_notify:
       - Restart opennms
+  # Needed on this nested include too, not just on the one in main.yml: the tag
+  # filter is applied at every dynamic include on the way down, so a tagged
+  # include holding an untagged one still ends in a dead end.
+  tags:
+    - opennms
+    - core
+    - pyroscope
