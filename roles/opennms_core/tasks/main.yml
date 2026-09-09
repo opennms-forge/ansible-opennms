@@ -76,8 +76,15 @@
 - name: Include tasks to install JMX Prometheus exporter
   ansible.builtin.include_tasks: 02-jmx-prometheus-exporter.yml
 
+# Tagged, unlike the includes around it: a dynamic include has to match the tag
+# filter itself before anything inside it is considered, so without these
+# `--tags pyroscope` would select nothing at all.
 - name: Include tasks to install the Pyroscope Java agent
   ansible.builtin.include_tasks: 03-pyroscope-agent.yml
+  tags:
+    - opennms
+    - core
+    - pyroscope
 
 - name: Verify if Java configuration exists
   ansible.builtin.stat:

@@ -43,6 +43,11 @@ opennms_elastic_flows: {}
 # The agent reads its full configuration from the environment - profiling
 # interval, upload interval, event type, labels, auth token. See
 # https://github.com/grafana/pyroscope-java for the complete list.
+#
+# One key to leave out: PYROSCOPE_AGENT_ENABLED. Core's opennms_jvm_conf carries
+# it because bin/opennms reads it as a number, but here it reaches the agent,
+# which parses it as a boolean - so the `1` that means "on" for Core reads as
+# false and the agent disables itself right after attaching.
 opennms_sentinel_pyroscope: {}
 
 # Where the agent jar lands. Mirrors Core's packaged layout, which keeps its

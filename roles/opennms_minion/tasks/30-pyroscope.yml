@@ -17,6 +17,23 @@
     - minion
     - pyroscope
 
+- name: Verify no Pyroscope value carries a single quote
+  ansible.builtin.assert:
+    that:
+      - opennms_minion_pyroscope.values() | map('string') | select('search', "'") | list | length == 0
+    fail_msg: >-
+      A value in `opennms_minion_pyroscope` contains a single quote. The keys are
+      written single-quoted into /etc/default/minion, which both systemd and the
+      shell that sources it read literally, and a single quote cannot be escaped
+      inside them. Remove it or express the value another way.
+    quiet: true
+  when: opennms_minion_pyroscope | length > 0
+  tags:
+    - opennms
+    - minion
+    - pyroscope
+    - configuration
+
 # EXTRA_JAVA_OPTS, not JAVA_OPTS. Upstream's container.init sources this file and
 # then does `EXTRA_JAVA_OPTS="$JAVA_OPTS $EXTRA_JAVA_OPTS"; unset JAVA_OPTS`, so
 # either name reaches the Karaf JVM — but JAVA_OPTS is the operator knob the
@@ -30,14 +47,26 @@
 #
 # A block rather than one lineinfile per key, so that turning profiling back off
 # removes the whole stanza in one step instead of leaving orphaned keys behind.
+#
+# Values are single-quoted, because this file has two consumers with one shared
+# hazard: systemd parses it, *and* container.init sources it as shell. An
+# unquoted value carrying a space, a double quote, a `$` or a `#` mangles the
+# environment for the first and can be executed by the second.
+# PYROSCOPE_HTTP_HEADERS, which takes JSON for multi-tenant setups, is the
+# everyday case. Single quotes suit it better than the double quotes
+# opennms.conf.j2 uses: both consumers strip them and expand nothing inside, so
+# JSON, spaces and `$` all pass through with no escaping to get wrong.
+#
+# The one value they cannot carry is a single quote, which is what the assert
+# above rejects — there is no escape for it inside single quotes in shell.
 - name: Configure Pyroscope profiling for Minion
   ansible.builtin.blockinfile:
     path: /etc/default/minion
     marker: "# {mark} ANSIBLE MANAGED BLOCK: pyroscope"
     block: |
-      EXTRA_JAVA_OPTS=-javaagent:{{ opennms_minion_pyroscope_jar }}
+      EXTRA_JAVA_OPTS='-javaagent:{{ opennms_minion_pyroscope_jar }}'
       {% for key, value in opennms_minion_pyroscope.items() %}
-      {{ key }}={{ value }}
+      {{ key }}='{{ value }}'
       {% endfor %}
     state: "{{ 'present' if opennms_minion_pyroscope | length > 0 else 'absent' }}"
     owner: root

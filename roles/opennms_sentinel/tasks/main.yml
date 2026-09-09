@@ -181,8 +181,16 @@
     - sentinel
     - kafka
 
+# Tagged, unlike the includes above it: a dynamic include has to match the tag
+# filter itself before anything inside it is considered, so without these
+# `--tags pyroscope` would select nothing at all.
 - name: Configure Pyroscope continuous profiling
   ansible.builtin.include_tasks: 30-pyroscope.yml
+  tags:
+    - opennms
+    - sentinel
+    - pyroscope
+    - configuration
 
 - name: Enable systemd unit for OpenNMS Sentinel
   ansible.builtin.service:
