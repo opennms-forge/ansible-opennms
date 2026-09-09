@@ -1,0 +1,5 @@
+EXTRA_JAVA_OPTS='-javaagent:/opt/minion/agent/pyroscope-agent.jar'
+PYROSCOPE_APPLICATION_NAME='Horizon-Minion'
+PYROSCOPE_SERVER_ADDRESS='http://pyroscope.example.org:4040'
+PYROSCOPE_HTTP_HEADERS='{"X-Scope-OrgID": "tenant-a"}'
+PYROSCOPE_LABELS='region=eu west, cost="high" #1, home=$HOME'

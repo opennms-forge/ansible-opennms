@@ -1,0 +1,11 @@
+---
+# Which role this fixture renders, and which of its templates. Loaded before the
+# role's defaults, because the paths to those are built from it.
+render_role: opennms_core
+
+# opennms.conf is the escaping-sensitive file in this role: three separate dicts
+# merge into it, values are quoted and backslash-escaped, and a key defined in
+# two of the dicts must abort the render rather than being written twice.
+render_files:
+  - name: opennms.conf
+    src: etc/opennms.conf.j2

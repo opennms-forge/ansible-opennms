@@ -48,26 +48,21 @@
 # A block rather than one lineinfile per key, so that turning profiling back off
 # removes the whole stanza in one step instead of leaving orphaned keys behind.
 #
-# Values are single-quoted, because this file has two consumers with one shared
-# hazard: systemd parses it, *and* container.init sources it as shell. An
-# unquoted value carrying a space, a double quote, a `$` or a `#` mangles the
-# environment for the first and can be executed by the second.
-# PYROSCOPE_HTTP_HEADERS, which takes JSON for multi-tenant setups, is the
-# everyday case. Single quotes suit it better than the double quotes
-# opennms.conf.j2 uses: both consumers strip them and expand nothing inside, so
-# JSON, spaces and `$` all pass through with no escaping to get wrong.
+# The block's body comes from a template rather than being written inline here,
+# which is what lets tests/render/ check the rendering without a host. Its
+# quoting is the thing worth checking: two defects in this stanza shipped past
+# ansible-lint, and both were found by reading rendered output. The template
+# carries the reasoning.
 #
-# The one value they cannot carry is a single quote, which is what the assert
-# above rejects — there is no escape for it inside single quotes in shell.
+# `lookup('template', ...)` renders on the controller, which is where blockinfile
+# templates its `block` argument anyway — so this is the same work, moved
+# somewhere it can be inspected. Verified byte-identical to the previous inline
+# form, including a JSON value and one carrying `$` and embedded quotes.
 - name: Configure Pyroscope profiling for Minion
   ansible.builtin.blockinfile:
     path: /etc/default/minion
     marker: "# {mark} ANSIBLE MANAGED BLOCK: pyroscope"
-    block: |
-      EXTRA_JAVA_OPTS='-javaagent:{{ opennms_minion_pyroscope_jar }}'
-      {% for key, value in opennms_minion_pyroscope.items() %}
-      {{ key }}='{{ value }}'
-      {% endfor %}
+    block: "{{ lookup('template', 'pyroscope-env.j2') }}"
     state: "{{ 'present' if opennms_minion_pyroscope | length > 0 else 'absent' }}"
     owner: root
     group: root

@@ -1,0 +1,60 @@
+---
+# Renders one file for the current fixture and compares it to its expectation.
+# Included per entry in the fixture's `render_files`.
+
+- name: Render {{ render_file.name }}
+  ansible.builtin.template:
+    src: "{{ playbook_dir }}/../roles/{{ render_role }}/templates/{{ render_file.src }}"
+    dest: "{{ _render_tmp.path }}/{{ render_file.name }}"
+    mode: "0644"
+  changed_when: false
+
+# Recording is a separate, visible act rather than an automatic fallback for a
+# missing file. An expectation that appears on first run would make the check
+# self-confirming: whatever the roles rendered today becomes correct by
+# definition, including a defect.
+- name: Record the expectation for {{ render_file.name }}
+  ansible.builtin.copy:
+    src: "{{ _render_tmp.path }}/{{ render_file.name }}"
+    dest: "{{ _expected_dir }}/{{ render_file.name }}"
+    mode: "0644"
+  when: render_record | bool
+  tags:
+    - record
+
+- name: Read the recorded expectation for {{ render_file.name }}
+  ansible.builtin.slurp:
+    src: "{{ _expected_dir }}/{{ render_file.name }}"
+  register: _expected
+  when: not (render_record | bool)
+
+- name: Read what was rendered for {{ render_file.name }}
+  ansible.builtin.slurp:
+    src: "{{ _render_tmp.path }}/{{ render_file.name }}"
+  register: _rendered
+  when: not (render_record | bool)
+
+# Compared as exact content, not as a substring match. The doubled-backslash
+# defect that motivated this check would have passed a "contains the key"
+# reading: the key was present and the value was recognisable, and the escaping
+# around it was wrong.
+- name: Compare against the recorded expectation for {{ render_file.name }}
+  ansible.builtin.assert:
+    that:
+      - (_rendered.content | b64decode) == (_expected.content | b64decode)
+    fail_msg: |-
+      {{ fixture }}: {{ render_file.name }} does not match its expectation.
+
+      expected (tests/render/expected/{{ fixture }}/{{ render_file.name }}):
+      ----------------------------------------------------------------------
+      {{ _expected.content | b64decode }}
+      ----------------------------------------------------------------------
+      rendered from roles/{{ render_role }}/templates/{{ render_file.src }}:
+      ----------------------------------------------------------------------
+      {{ _rendered.content | b64decode }}
+      ----------------------------------------------------------------------
+      If this change is intended, re-record with:
+        make check-render-record
+      If it is not, the roles have started rendering something else.
+    quiet: true
+  when: not (render_record | bool)

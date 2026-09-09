@@ -1,0 +1,10 @@
+---
+render_role: opennms_minion
+
+# The stanza written into /etc/default/minion, which systemd parses *and*
+# upstream's container.init sources as shell. Two defects shipped here in one
+# afternoon — unquoted values, then a fix that doubled backslashes — so this is
+# the file the whole harness was built for.
+render_files:
+  - name: pyroscope-env
+    src: pyroscope-env.j2

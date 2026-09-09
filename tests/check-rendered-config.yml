@@ -1,0 +1,125 @@
+---
+# Renders a role's configuration templates against a fixture inventory and
+# compares the result to recorded expectations.
+#
+# Why this exists: ansible-lint validates YAML shape, not the content a template
+# produces. Two defects shipped past it in one afternoon — values written
+# unquoted into a file that systemd parses and a shell sources, and then a fix
+# for that which emitted doubled backslashes, because `'\\'` in a YAML-embedded
+# Jinja expression does not mean what it means inside a .j2 file. Both were
+# string-level mistakes in generated configuration, and both were found by
+# rendering the template and reading the output.
+#
+# What a template renders for a given set of variables is decidable with no
+# network. Whether the resulting address accepts a connection is not, and that
+# belongs to a smoke bed. Keeping the two apart is what makes this half runnable
+# in CI at all — and note that the bed cannot substitute for this check: a bed
+# whose DNS resolves the inventory's own names makes a wrong address work, so it
+# would pass on configuration this check rejects.
+#
+# Run via `make check-render`, which loops the fixtures. One process per fixture,
+# so no fixture can inherit another's variables.
+#
+#   ansible-playbook -i tests/render/fixtures/<name>/hosts.yml \
+#     tests/check-rendered-config.yml -e fixture=<name>
+#
+# Add `-e render_record=true` to write the expectations instead of comparing
+# them. That is how a deliberate change of rendered output is re-recorded, and
+# it is deliberately a separate, visible act.
+#
+# Targets the `render_target` group each fixture inventory declares, with
+# `connection: local`, so `inventory_hostname` and `groups` are the fixture's
+# own while nothing is ever connected to.
+- name: Verify rendered configuration against a fixture
+  hosts: render_target
+  connection: local
+  gather_facts: false
+  vars:
+    render_record: false
+    _fixture_dir: "{{ playbook_dir }}/render/fixtures/{{ fixture }}"
+    _expected_dir: "{{ playbook_dir }}/render/expected/{{ fixture }}"
+  tasks:
+    - name: Require a fixture name
+      ansible.builtin.assert:
+        that:
+          - fixture is defined
+          - fixture | length > 0
+        fail_msg: >-
+          Pass -e fixture=<name>, matching a directory under
+          tests/render/fixtures/. Run `make check-render` to check them all.
+        quiet: true
+
+    # A fixture is two files with different jobs, loaded at different points.
+    # meta.yml says which role and which templates, so it has to come first —
+    # the paths below are built from it. vars.yml carries the role variable
+    # overrides and comes last, because that is what makes it win.
+    - name: Load the fixture's metadata
+      ansible.builtin.include_vars:
+        file: "{{ _fixture_dir }}/meta.yml"
+
+    # Precedence is load-bearing and counter-intuitive here, so it is stated
+    # rather than assumed. Ansible ranks `include_vars` above task vars and far
+    # above inventory vars, so a fixture that supplied its overrides through the
+    # inventory would be silently overruled by the role defaults loaded below.
+    # Two include_vars in order works because the later one wins, which is
+    # measured by the canary assertion further down rather than trusted.
+    - name: Load the role's defaults
+      ansible.builtin.include_vars:
+        file: "{{ playbook_dir }}/../roles/{{ render_role }}/defaults/main.yml"
+
+    - name: Load the role's derived vars when it has any
+      ansible.builtin.include_vars:
+        file: "{{ playbook_dir }}/../roles/{{ render_role }}/vars/main.yml"
+      when: (playbook_dir ~ '/../roles/' ~ render_role ~ '/vars/main.yml') is exists
+
+    - name: Load the fixture's overrides
+      ansible.builtin.include_vars:
+        file: "{{ _fixture_dir }}/vars.yml"
+
+    # The harness asserting that it applies what it thinks it applies. Without
+    # this, a precedence change in a future Ansible release would not break the
+    # check — it would quietly render the role defaults for every fixture and
+    # keep passing, which is the worst possible failure for a regression net.
+    - name: Verify the fixture's variables are the ones in effect
+      ansible.builtin.assert:
+        that:
+          - render_canary is defined
+          - render_canary == 'fixture'
+        fail_msg: >-
+          The fixture's variables are not in effect: render_canary is
+          '{{ render_canary | default("undefined") }}' rather than 'fixture'.
+          Variable precedence has changed, so every rendered file below would be
+          the role defaults rather than this fixture. Fix the harness; do not
+          re-record expectations.
+        quiet: true
+
+    - name: Create a scratch directory for the rendered output
+      ansible.builtin.tempfile:
+        state: directory
+        suffix: "-render-{{ fixture }}"
+      register: _render_tmp
+      changed_when: false
+
+    - name: Render and compare each file this fixture covers
+      ansible.builtin.include_tasks: check-rendered-config-file.yml
+      loop: "{{ render_files }}"
+      loop_control:
+        loop_var: render_file
+        label: "{{ fixture }}: {{ render_file.name }}"
+
+    # Same discipline as the download-URL check: a check that reports success
+    # having verified nothing is worse than no check, because it is believed.
+    - name: Fail when the fixture covered no files
+      ansible.builtin.assert:
+        that:
+          - render_files | default([]) | length > 0
+        fail_msg: >-
+          Fixture '{{ fixture }}' declares no files in render_files, so this run
+          would report success having compared nothing.
+        quiet: true
+
+    - name: Remove the scratch directory
+      ansible.builtin.file:
+        path: "{{ _render_tmp.path }}"
+        state: absent
+      changed_when: false

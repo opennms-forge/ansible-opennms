@@ -50,15 +50,18 @@ fix(opennms_core): compose download URLs that upstream actually serves
 CI runs the same targets, so a green local run is a good predictor.
 
 ```bash
-make deps         # install the collections in requirements.yml
-make lint         # ansible-lint, production profile
-make check-urls   # resolve every download URL in role defaults
-make verify       # both of the above
+make deps           # install the collections in requirements.yml
+make lint           # ansible-lint, production profile
+make check-urls     # resolve every download URL in role defaults
+make check-render   # compare rendered configuration to recorded expectations
+make verify         # all three of the above
 ```
 
 `make check-urls` makes outbound HTTPS requests and needs network access. It exists because `ansible-lint` validates YAML shape and cannot tell you that a download URL 404s — which is how several releases shipped broken.
 
-Both `ansible-lint` and `download-urls` are required checks on `main`.
+`make check-render` needs no network and no hosts. It exists for the same class of reason: `ansible-lint` cannot tell you that a template renders a value the consuming file cannot read back. Two such defects shipped in one afternoon — values written unquoted into a file that systemd parses *and* a shell sources, then a fix for it that emitted doubled backslashes. If you change a template, a role's defaults or a `vars/` derivation, expect this check to have an opinion; if the new output is intended, re-record it with `make check-render-record` so the change is visible in the diff. See [`tests/render/README.md`](tests/render/README.md).
+
+`ansible-lint`, `download-urls` and `render-config` are required checks on `main`.
 
 ## Scope: what belongs in this collection
 

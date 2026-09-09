@@ -1,0 +1,18 @@
+---
+# Role variable overrides for this fixture. Loaded last, which is what makes
+# them win over the role's defaults; the play asserts the canary to prove it.
+render_canary: fixture
+
+# A value carrying a space, a double quote and a `$` — the shape that broke the
+# Pyroscope environment block. It is rendered into a file bin/opennms sources as
+# shell, so the escaping is what decides whether it survives.
+opennms_jvm_conf:
+  ADDITIONAL_MANAGER_OPTIONS: -Dfoo=bar -Dquote="x" -Ddollar=$HOME
+
+# A caveat this fixture documents rather than hides: the `$` survives into the
+# rendered file verbatim, but opennms.conf is sourced by bin/opennms as shell
+# and the values are double-quoted — upstream's own format, which may well
+# intend variable references — so a shell expands `$HOME` at source time. The
+# Pyroscope environment block avoids this by single-quoting; opennms.conf cannot
+# without deviating from the pristine format. Rendering is faithful either way,
+# which is what this check covers.
