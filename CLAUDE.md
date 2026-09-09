@@ -68,7 +68,7 @@ them, that is the signal.
 - `openjdk` — Installs OpenJDK 21 for OpenNMS components and Kafka
 - `common` — Timezone, APT cache update, base system packages
 - `timesync` — Verifies the host clock is synchronised; included by the three component roles and fails the play on skew (`timesync_required` to override)
-- `opennms_core` — OpenNMS Horizon Core (36.0.3): database init, Kafka config, JVM tuning, firewall rules
+- `opennms_core` — OpenNMS Horizon Core (36.0.4): database init, Kafka config, JVM tuning, firewall rules
 - `opennms_minion` — Minion agent for isolated network segments
 - `opennms_sentinel` — Flow persistence and aggregation
 - `opennms_icmp` — ICMP monitoring configuration
@@ -123,7 +123,7 @@ External collections (`requirements.yml`):
 
 | Component | Version |
 |-----------|---------|
-| OpenNMS Horizon | 36.0.3 |
+| OpenNMS Horizon | 36.0.4 |
 | PostgreSQL | 18 |
 | Kafka | 4.2.0 (KRaft) |
 | OpenJDK | 21 |
