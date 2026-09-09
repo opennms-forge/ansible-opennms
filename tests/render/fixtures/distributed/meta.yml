@@ -1,0 +1,10 @@
+---
+render_role: opennms_sentinel
+
+# The one file in the collection that already derives an address from inventory
+# group membership. Rendering it against three brokers pins both the join and
+# the sort: the hosts are declared out of order above, so an unsorted derivation
+# would render a different string here on a different run.
+render_files:
+  - name: org.opennms.core.ipc.sink.kafka.cfg
+    src: org.opennms.core.ipc.sink.kafka.cfg.j2
