@@ -72,6 +72,38 @@ Turning the blacklist off does not affect the cross-major protection. That is th
 
 Not measured: `unattended-upgrades` releases other than the two named above. If you run something else, the property to check is whether its candidate selection defers to APT policy.
 
+## Continuous profiling
+
+The Sentinel package ships no profiling agent and its launcher has no `PYROSCOPE_*` handling, so this role installs the [pinned Pyroscope Java agent](../pyroscope_agent/README.md) itself and loads it into the Karaf JVM.
+
+Populate `opennms_sentinel_pyroscope` to turn it on:
+
+```yaml
+opennms_sentinel_pyroscope:
+  PYROSCOPE_APPLICATION_NAME: Horizon-Sentinel
+  PYROSCOPE_SERVER_ADDRESS: http://pyroscope.example.org:4040
+```
+
+That installs the jar at `{{ opennms_sentinel_home }}/agent/pyroscope-agent.jar` and writes a managed block into `/etc/default/sentinel`:
+
+```
+# BEGIN ANSIBLE MANAGED BLOCK: pyroscope
+EXTRA_JAVA_OPTS='-javaagent:/opt/sentinel/agent/pyroscope-agent.jar'
+PYROSCOPE_APPLICATION_NAME='Horizon-Sentinel'
+PYROSCOPE_SERVER_ADDRESS='http://pyroscope.example.org:4040'
+# END ANSIBLE MANAGED BLOCK: pyroscope
+```
+
+The agent takes no command-line arguments — everything is read from the environment, so any other `PYROSCOPE_*` key from [upstream's list](https://github.com/grafana/pyroscope-java) goes in the same dict. Values are written single-quoted, because this file is both parsed by systemd and sourced as shell by `container.init`; a JSON value such as `PYROSCOPE_HTTP_HEADERS` would otherwise break both. Neither consumer expands anything inside single quotes, so spaces, double quotes and `$` all pass through as written. A value containing a single quote is rejected with an explicit error — there is no escape for one inside single quotes in shell.
+
+Three details worth knowing:
+
+- **The block owns `EXTRA_JAVA_OPTS`.** It is written as a plain assignment, so an `EXTRA_JAVA_OPTS` you had set in this file is replaced. Put your own JVM flags in `JAVA_OPTS` instead: `container.init` folds it into `EXTRA_JAVA_OPTS` alongside the agent, so both survive. That is also why the role stays off `JAVA_OPTS` itself — it is the knob the pristine file documents for heap and friends.
+- **There is no enable flag.** Loading the agent is what enables it, so an empty dict means no jar is downloaded and no JVM option is set. Emptying it again removes the whole block and restarts the Sentinel.
+- **Do not add `PYROSCOPE_AGENT_ENABLED`.** Core carries it in `opennms_jvm_conf` because `bin/opennms` reads it as a number. Here it reaches the agent, which parses it as a boolean — so the `1` that means "on" for Core reads as `false`, and the agent disables itself right after attaching with a single INFO line to say so.
+
+When several Sentinels share a flow workload, give them the same `PYROSCOPE_APPLICATION_NAME`: Pyroscope aggregates by application, and the instances are interchangeable consumers of one Kafka group.
+
 ## Variables
 
 See [`defaults/main.yml`](defaults/main.yml).

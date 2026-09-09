@@ -1,0 +1,23 @@
+---
+galaxy_info:
+  role_name: pyroscope_agent
+  author: Ronny Trommer
+  description: Installs a pinned Grafana Pyroscope Java agent jar for the OpenNMS Horizon components to load.
+  license: GPL-3.0-or-later
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+        - trixie
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+  galaxy_tags:
+    - opennms
+    - pyroscope
+    - profiling
+    - java
+
+dependencies: []

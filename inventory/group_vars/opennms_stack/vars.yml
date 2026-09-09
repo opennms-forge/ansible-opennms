@@ -97,6 +97,39 @@
 #     skipElasticsearchPersistence: "false"
 #     useComposableTemplates: "false"
 
+# Continuous profiling with the Grafana Pyroscope Java agent
+#
+# The agent jar is pinned by the collection and installed on all three
+# components. Core loads it through its own launcher toggle; Minion and Sentinel
+# load it when their dict is non-empty. Set these in the group_vars of the
+# matching host group, and give each component a distinct application name.
+#
+#   opennms_jvm_conf:            # Core - the WHOLE dict, it is not merged
+#     PYROSCOPE_AGENT_ENABLED: 1
+#     PYROSCOPE_APPLICATION_NAME: Horizon-Core
+#     PYROSCOPE_SERVER_ADDRESS: http://pyroscope-host:4040
+#
+#   opennms_minion_pyroscope:
+#     PYROSCOPE_APPLICATION_NAME: Horizon-Minion
+#     PYROSCOPE_SERVER_ADDRESS: http://pyroscope-host:4040
+#
+#   opennms_sentinel_pyroscope:
+#     PYROSCOPE_APPLICATION_NAME: Horizon-Sentinel
+#     PYROSCOPE_SERVER_ADDRESS: http://pyroscope-host:4040
+#
+# Do NOT carry PYROSCOPE_AGENT_ENABLED over into the Minion or Sentinel dict.
+# On Core it is read by bin/opennms, which wants a number. In those two dicts it
+# reaches the agent itself, which parses it as a boolean - so `1` reads as false
+# and the agent shuts itself down after attaching, logging one INFO line about
+# it. Those two roles need no enable key at all; the populated dict is the
+# toggle. If you set it, spell it `true`.
+#
+# Any other agent setting - PYROSCOPE_UPLOAD_INTERVAL, PYROSCOPE_AUTH_TOKEN,
+# PYROSCOPE_HTTP_HEADERS - goes in the Minion and Sentinel dicts directly, but on
+# Core it belongs in `opennms_env`, not `opennms_jvm_conf`: keys in the latter
+# are not exported, and bin/opennms exports only the application name and
+# server address by name.
+
 # If you need set any of these settings here, you need to pull the whole dictionary from the opennms_core defaults
 # We don't combine the dictionary here with the defaults
 # See: https://github.com/opennms-forge/ansible-opennms/issues/4

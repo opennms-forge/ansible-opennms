@@ -72,6 +72,7 @@ them, that is the signal.
 - `opennms_minion` — Minion agent for isolated network segments
 - `opennms_sentinel` — Flow persistence and aggregation
 - `opennms_icmp` — ICMP monitoring configuration
+- `pyroscope_agent` — Installs the pinned Grafana Pyroscope Java agent jar; included by the three component roles, which each wire it into their own JVM
 
 **Stub infrastructure roles** (POC/testing only, not production):
 - `stub_pgsql` — PostgreSQL 18 with OpenNMS database/user
@@ -101,6 +102,7 @@ Role defaults live in `roles/<role>/defaults/main.yml`.
 
 `opennms_core` tasks are split by concern:
 - `01-packages.yml` — Package installation
+- `03-pyroscope-agent.yml` — Installs the pinned Pyroscope agent over the one the package ships; loading stays opt-in via `PYROSCOPE_AGENT_ENABLED`
 - `10-database-setup.yml` — PostgreSQL schema init via `community.postgresql`
 - `20-config.yml` — Core configuration files
 - `21-kafka.yml` — Kafka IPC configuration
@@ -129,3 +131,4 @@ External collections (`requirements.yml`):
 | VictoriaMetrics | 1.150.0 |
 | Prometheus JMX Exporter | 1.6.0 |
 | OpenNMS Prometheus remote_write plugin | 2.1.0 |
+| Pyroscope Java agent | 2.9.2 |

@@ -1,0 +1,56 @@
+---
+- name: Verify the agent destination was supplied
+  ansible.builtin.assert:
+    that:
+      - pyroscope_agent_jar | length > 0
+    fail_msg: >-
+      `pyroscope_agent_jar` must be set to the absolute path this role should
+      install the Pyroscope Java agent to. It has no default because the
+      component role including it owns the path.
+    quiet: true
+  tags:
+    - pyroscope
+
+# Created only when it is missing, rather than enforced. Core and Sentinel both
+# get an `agent` directory from their package — that is where their own bundled
+# agents live — and the OpenNMS postinst chowns it to the service user, so
+# enforcing an owner here would fight dpkg over a directory this role only needs
+# to be traversable. 0755 on creation for the same reason: every component's JVM
+# reads out of it.
+- name: Check whether the Pyroscope agent directory exists
+  ansible.builtin.stat:
+    path: "{{ pyroscope_agent_jar | dirname }}"
+  register: pyroscope_agent_dir
+  tags:
+    - pyroscope
+
+- name: Create the Pyroscope agent directory
+  ansible.builtin.file:
+    path: "{{ pyroscope_agent_jar | dirname }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  when: not pyroscope_agent_dir.stat.exists
+  tags:
+    - pyroscope
+
+# Checksummed, so a version bump that forgets to bring a new digest fails the
+# run rather than installing an unverified jar. The notify is templated because
+# the handler lives in the calling role: this one has no service to restart.
+#
+# root-owned and world-readable, as the packages ship their own agent jars. A jar
+# is not a secret, every component's JVM has to read it, and the alternative —
+# service-owned and 0640 — silently breaks the moment the caller's user does not
+# match the JVM's.
+- name: Install the Pyroscope Java agent {{ pyroscope_agent_version }}
+  ansible.builtin.get_url:
+    url: "{{ pyroscope_agent_url }}"
+    dest: "{{ pyroscope_agent_jar }}"
+    checksum: "{{ pyroscope_agent_sha256 }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: "{{ pyroscope_agent_notify }}"
+  tags:
+    - pyroscope

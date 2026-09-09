@@ -124,6 +124,17 @@
 - name: Configure Kafka as message broker
   ansible.builtin.include_tasks: 21-kafka.yml
 
+# Tagged, unlike the includes above it: a dynamic include has to match the tag
+# filter itself before anything inside it is considered, so without these
+# `--tags pyroscope` would select nothing at all.
+- name: Configure Pyroscope continuous profiling
+  ansible.builtin.include_tasks: 30-pyroscope.yml
+  tags:
+    - opennms
+    - minion
+    - pyroscope
+    - configuration
+
 - name: Enable systemd unit for OpenNMS Minion
   ansible.builtin.service:
     name: minion.service
