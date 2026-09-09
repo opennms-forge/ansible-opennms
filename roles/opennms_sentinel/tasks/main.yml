@@ -76,6 +76,40 @@
     - sentinel
     - package
 
+- name: Resolve the installed JDK home
+  ansible.builtin.command: readlink -f /usr/bin/java
+  register: opennms_sentinel_java_bin
+  changed_when: false
+  tags:
+    - opennms
+    - sentinel
+
+# Same reasoning as the Minion role, because Sentinel runs the same launcher:
+# with JAVA_HOME unset, bin/sentinel falls back to bin/find-java.sh, which
+# returns the *first* JDK inside the range the launcher asks for (`17.0 21.9999`
+# on Horizon 36). On a host carrying both 17 and 21 that is a coin toss, and it
+# can hand Karaf a JDK other than the one the `openjdk` role installed here.
+#
+# Not needed to make Sentinel start — measured on 36.0.4 with JDK 21, it comes
+# up on the right JVM with nothing pinned. This is about the deployment deciding
+# its own JVM rather than inheriting whatever a scan happens to find first.
+#
+# No `export` — the file is parsed by systemd as KEY=value.
+- name: Point the Sentinel service at the installed JDK
+  ansible.builtin.lineinfile:
+    path: /etc/default/sentinel
+    regexp: '^#?\s*(export\s+)?JAVA_HOME='
+    line: "JAVA_HOME={{ opennms_sentinel_java_bin.stdout | dirname | dirname }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Restart sentinel
+  tags:
+    - opennms
+    - sentinel
+    - configuration
+
 - name: Enable Kafka as and flow persistence
   ansible.builtin.copy:
     src: featuresBoot.d/flows.boot

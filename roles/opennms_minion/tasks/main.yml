@@ -86,10 +86,20 @@
     - minion
 
 # The Minion service has no equivalent of Core's `runjava -s`; with JAVA_HOME
-# unset it falls back to karaf's bin/find-java.sh, whose max-version cap rejects
-# current JDKs (e.g. 21) and aborts startup with "JAVA_HOME is not valid: No
-# match found!". Pin JAVA_HOME in the unit's EnvironmentFile (no `export` — it is
-# parsed by systemd as KEY=value) so detection is bypassed.
+# unset, bin/minion falls back to bin/find-java.sh, which returns the *first*
+# JDK it finds inside the range the launcher asks for — `17.0 21.9999` on
+# Horizon 36. On a host carrying both 17 and 21 that is a coin toss, and it can
+# hand Karaf a JDK other than the one the `openjdk` role installed for it.
+# Pinning removes the guess: the JVM is the one this deployment chose.
+#
+# It is not needed to make Minion start. Measured on 36.0.4 with JDK 21: with
+# this line deleted the service comes up on the right JVM anyway, find-java.sh
+# resolving /usr/lib/jvm/java-21-openjdk-amd64 (noisily — it logs
+# "unsure how to handle Java version output" while probing other candidates).
+# An earlier version of this comment claimed find-java.sh's cap rejects 21 and
+# aborts startup. That was true of an older Horizon, not of this one.
+#
+# No `export` — the file is parsed by systemd as KEY=value.
 - name: Point the Minion service at the installed JDK
   ansible.builtin.lineinfile:
     path: /etc/default/minion
