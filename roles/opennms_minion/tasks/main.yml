@@ -124,6 +124,9 @@
 - name: Configure Kafka as message broker
   ansible.builtin.include_tasks: 21-kafka.yml
 
+- name: Configure Pyroscope continuous profiling
+  ansible.builtin.include_tasks: 30-pyroscope.yml
+
 - name: Enable systemd unit for OpenNMS Minion
   ansible.builtin.service:
     name: minion.service

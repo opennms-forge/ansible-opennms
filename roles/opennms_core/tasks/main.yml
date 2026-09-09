@@ -76,6 +76,9 @@
 - name: Include tasks to install JMX Prometheus exporter
   ansible.builtin.include_tasks: 02-jmx-prometheus-exporter.yml
 
+- name: Include tasks to install the Pyroscope Java agent
+  ansible.builtin.include_tasks: 03-pyroscope-agent.yml
+
 - name: Verify if Java configuration exists
   ansible.builtin.stat:
     path: "{{ opennms_home }}/etc/java.conf"

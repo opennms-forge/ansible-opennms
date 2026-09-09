@@ -97,6 +97,26 @@
 #     skipElasticsearchPersistence: "false"
 #     useComposableTemplates: "false"
 
+# Continuous profiling with the Grafana Pyroscope Java agent
+#
+# The agent jar is pinned by the collection and installed on all three
+# components. Core loads it through its own launcher toggle; Minion and Sentinel
+# load it when their dict is non-empty. Set these in the group_vars of the
+# matching host group, and give each component a distinct application name.
+#
+#   opennms_jvm_conf:            # Core - the WHOLE dict, it is not merged
+#     PYROSCOPE_AGENT_ENABLED: 1
+#     PYROSCOPE_APPLICATION_NAME: Horizon-Core
+#     PYROSCOPE_SERVER_ADDRESS: http://pyroscope-host:4040
+#
+#   opennms_minion_pyroscope:
+#     PYROSCOPE_APPLICATION_NAME: Horizon-Minion
+#     PYROSCOPE_SERVER_ADDRESS: http://pyroscope-host:4040
+#
+#   opennms_sentinel_pyroscope:
+#     PYROSCOPE_APPLICATION_NAME: Horizon-Sentinel
+#     PYROSCOPE_SERVER_ADDRESS: http://pyroscope-host:4040
+
 # If you need set any of these settings here, you need to pull the whole dictionary from the opennms_core defaults
 # We don't combine the dictionary here with the defaults
 # See: https://github.com/opennms-forge/ansible-opennms/issues/4

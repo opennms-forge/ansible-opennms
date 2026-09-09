@@ -181,6 +181,9 @@
     - sentinel
     - kafka
 
+- name: Configure Pyroscope continuous profiling
+  ansible.builtin.include_tasks: 30-pyroscope.yml
+
 - name: Enable systemd unit for OpenNMS Sentinel
   ansible.builtin.service:
     name: sentinel.service

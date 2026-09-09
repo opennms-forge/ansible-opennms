@@ -1,0 +1,19 @@
+---
+# Installed unconditionally, like the JMX Prometheus exporter jar above it: the
+# jar on disk does nothing until PYROSCOPE_AGENT_ENABLED turns it on, so there
+# is no state to gate here and no reason to make the operator run a second play
+# after deciding to profile.
+#
+# The destination is upstream's own path, not one of ours. bin/opennms appends
+# `-javaagent:${OPENNMS_HOME}/agent/pyroscope-agent.jar` when
+# PYROSCOPE_AGENT_ENABLED is greater than zero, so replacing the file in place
+# is what makes Core load the pinned version. The trade-off is that an
+# opennms-core package upgrade restores its own 0.13.1 jar; the next Ansible run
+# puts the pinned one back, because the checksum no longer matches.
+- name: Install the pinned Pyroscope Java agent over the packaged one
+  ansible.builtin.include_role:
+    name: pyroscope_agent
+  vars:
+    pyroscope_agent_jar: "{{ opennms_home }}/agent/pyroscope-agent.jar"
+    pyroscope_agent_notify:
+      - Restart opennms

@@ -1,0 +1,29 @@
+---
+# Grafana's Pyroscope Java agent, pinned and shipped by this collection rather
+# than taken from whatever the OpenNMS packages happen to bundle. Horizon 36
+# builds against pyroscope 0.13.1 (`<pyroscopeVersion>` in the OpenNMS pom) and
+# the Minion and Sentinel packages ship no agent at all, so a single pinned
+# version here is what lets all three components profile with the same build.
+#
+# renovate: datasource=github-releases depName=grafana/pyroscope-java extractVersion=^v(?<version>.+)$
+pyroscope_agent_version: 2.9.2
+# The release publishes exactly one asset, named `pyroscope.jar` for every
+# version, and the tag carries a `v` prefix. The destination filename is the
+# caller's business, so the URL is the only place the upstream name appears.
+pyroscope_agent_url: "https://github.com/grafana/pyroscope-java/releases/download/v{{ pyroscope_agent_version }}/pyroscope.jar"
+# No checksum asset is published alongside the jar, so this is the digest of the
+# artefact as downloaded. Renovate cannot derive it - a version bump has to
+# bring a new digest with it, which renovate.json says in the PR body.
+pyroscope_agent_sha256: sha256:ad738199a90734f7b8392bae1ab892027d411acb953ef1f00cd6e8e7c669ff8f
+
+# Absolute path to install the agent to. No default is possible: Core's path is
+# fixed by upstream's launcher, which hardcodes
+# $OPENNMS_HOME/agent/pyroscope-agent.jar, while Minion and Sentinel mirror that
+# layout inside their own homes. A default would be wrong for two of the three
+# callers, so the role asserts instead of guessing.
+pyroscope_agent_jar: ""
+
+# Handler the caller wants fired when the jar changes. The agent is loaded at
+# JVM startup, so a replaced jar does nothing until the component restarts - but
+# which service that is belongs to the component role, not here.
+pyroscope_agent_notify: []

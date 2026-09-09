@@ -1,0 +1,57 @@
+---
+# Installed only when profiling is actually configured, unlike Core. Core's
+# launcher has a PYROSCOPE_AGENT_ENABLED branch, so a jar sitting on disk there
+# is inert; Sentinel has no toggle of its own — loading the agent *is* enabling
+# it. The populated dict is therefore the toggle, and an empty one skips the
+# download rather than leaving 5 MB of unused jar on every Sentinel.
+- name: Install the Pyroscope Java agent
+  ansible.builtin.include_role:
+    name: pyroscope_agent
+  vars:
+    pyroscope_agent_jar: "{{ opennms_sentinel_pyroscope_jar }}"
+    pyroscope_agent_notify:
+      - Restart sentinel
+  when: opennms_sentinel_pyroscope | length > 0
+  tags:
+    - opennms
+    - sentinel
+    - pyroscope
+
+# EXTRA_JAVA_OPTS, not JAVA_OPTS. Upstream's container.init sources this file and
+# then does `EXTRA_JAVA_OPTS="$JAVA_OPTS $EXTRA_JAVA_OPTS"; unset JAVA_OPTS`, so
+# either name reaches the Karaf JVM — but JAVA_OPTS is the operator knob the
+# pristine file documents for heap and friends, and claiming it here would
+# silently drop whatever they had set.
+#
+# No `export`: systemd parses this file as an EnvironmentFile of KEY=value pairs,
+# and that is also what puts the PYROSCOPE_* keys into the JVM's environment,
+# which is where the agent reads its own configuration from — it takes no
+# command-line arguments.
+#
+# A block rather than one lineinfile per key, so that turning profiling back off
+# removes the whole stanza in one step instead of leaving orphaned keys behind.
+#
+# The file is not created here, because the package always ships it: debian/rules
+# renames the pristine sentinel.conf to $SYSCONFDIR/sentinel with SYSCONFDIR set
+# to /etc/default. A missing file means something else is wrong, and the module
+# saying so beats writing a stanza into a file nothing reads.
+- name: Configure Pyroscope profiling for Sentinel
+  ansible.builtin.blockinfile:
+    path: /etc/default/sentinel
+    marker: "# {mark} ANSIBLE MANAGED BLOCK: pyroscope"
+    block: |
+      EXTRA_JAVA_OPTS=-javaagent:{{ opennms_sentinel_pyroscope_jar }}
+      {% for key, value in opennms_sentinel_pyroscope.items() %}
+      {{ key }}={{ value }}
+      {% endfor %}
+    state: "{{ 'present' if opennms_sentinel_pyroscope | length > 0 else 'absent' }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Restart sentinel
+  tags:
+    - opennms
+    - sentinel
+    - pyroscope
+    - configuration

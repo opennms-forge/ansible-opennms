@@ -5,6 +5,26 @@ opennms_version: 36.0.3
 opennms_pkg_version: "{{ opennms_version }}*"
 opennms_minion_home: "/opt/minion"
 
+# Continuous profiling with the pinned Grafana Pyroscope Java agent - disabled
+# by default. Populate this dict with the PYROSCOPE_* environment keys the agent
+# reads, and the role installs the jar, loads it into the Karaf JVM and writes
+# the keys into /etc/default/minion. There is no separate enable flag because the
+# Minion launcher has none: loading the agent is what enables it, so an empty
+# dict means no jar and no JVM option rather than an agent that does nothing.
+#
+#   opennms_minion_pyroscope:
+#     PYROSCOPE_APPLICATION_NAME: Horizon-Minion
+#     PYROSCOPE_SERVER_ADDRESS: http://pyroscope.example.org:4040
+#
+# The agent reads its full configuration from the environment - profiling
+# interval, upload interval, event type, labels, auth token. See
+# https://github.com/grafana/pyroscope-java for the complete list.
+opennms_minion_pyroscope: {}
+
+# Where the agent jar lands. Mirrors Core's packaged layout, which keeps its
+# agent in $OPENNMS_HOME/agent, inside the Minion home instead.
+opennms_minion_pyroscope_jar: "{{ opennms_minion_home }}/agent/pyroscope-agent.jar"
+
 opennms_minion_controller:
   id: "{{ ansible_facts['machine_id'] if ansible_facts['machine_id'] is defined else inventory_hostname }}"
   location: ANSIBLE_UNSET_MINION_LOCATION

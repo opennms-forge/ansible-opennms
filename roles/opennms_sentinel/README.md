@@ -72,6 +72,37 @@ Turning the blacklist off does not affect the cross-major protection. That is th
 
 Not measured: `unattended-upgrades` releases other than the two named above. If you run something else, the property to check is whether its candidate selection defers to APT policy.
 
+## Continuous profiling
+
+The Sentinel package ships no profiling agent and its launcher has no `PYROSCOPE_*` handling, so this role installs the [pinned Pyroscope Java agent](../pyroscope_agent/README.md) itself and loads it into the Karaf JVM.
+
+Populate `opennms_sentinel_pyroscope` to turn it on:
+
+```yaml
+opennms_sentinel_pyroscope:
+  PYROSCOPE_APPLICATION_NAME: Horizon-Sentinel
+  PYROSCOPE_SERVER_ADDRESS: http://pyroscope.example.org:4040
+```
+
+That installs the jar at `{{ opennms_sentinel_home }}/agent/pyroscope-agent.jar` and writes a managed block into `/etc/default/sentinel`:
+
+```
+# BEGIN ANSIBLE MANAGED BLOCK: pyroscope
+EXTRA_JAVA_OPTS=-javaagent:/opt/sentinel/agent/pyroscope-agent.jar
+PYROSCOPE_APPLICATION_NAME=Horizon-Sentinel
+PYROSCOPE_SERVER_ADDRESS=http://pyroscope.example.org:4040
+# END ANSIBLE MANAGED BLOCK: pyroscope
+```
+
+The agent takes no command-line arguments — everything is read from the environment, so any other `PYROSCOPE_*` key from [upstream's list](https://github.com/grafana/pyroscope-java) goes in the same dict.
+
+Two details worth knowing:
+
+- **`EXTRA_JAVA_OPTS`, not `JAVA_OPTS`.** Upstream's `container.init` sources this file and then folds `JAVA_OPTS` into `EXTRA_JAVA_OPTS`, so both reach the JVM. `JAVA_OPTS` is the knob the pristine file documents for heap and friends, so the role stays off it rather than overwriting an operator's settings.
+- **There is no enable flag.** Loading the agent is what enables it, so an empty dict means no jar is downloaded and no JVM option is set. Emptying it again removes the whole block and restarts the Sentinel.
+
+When several Sentinels share a flow workload, give them the same `PYROSCOPE_APPLICATION_NAME`: Pyroscope aggregates by application, and the instances are interchangeable consumers of one Kafka group.
+
 ## Variables
 
 See [`defaults/main.yml`](defaults/main.yml).

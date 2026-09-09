@@ -1,0 +1,43 @@
+---
+argument_specs:
+  main:
+    short_description: Installs the pinned Grafana Pyroscope Java agent.
+    description:
+      - Downloads and verifies the Pyroscope Java agent jar and installs it at a
+        path chosen by the calling role.
+      - Does no JVM wiring and knows nothing about services. Loading the agent
+        is the calling role's job.
+    options:
+      pyroscope_agent_version:
+        type: str
+        default: "2.9.2"
+        description:
+          - Pyroscope Java agent release to install.
+          - Bumping this requires a matching C(pyroscope_agent_sha256).
+      pyroscope_agent_url:
+        type: str
+        description:
+          - Download URL for the agent jar. Defaults to the GitHub release asset
+            for C(pyroscope_agent_version).
+      pyroscope_agent_sha256:
+        type: str
+        description:
+          - Checksum of the jar, in the C(sha256:<digest>) form the
+            M(ansible.builtin.get_url) C(checksum) option expects.
+      pyroscope_agent_jar:
+        type: str
+        required: false
+        default: ""
+        description:
+          - Absolute path to install the agent to, including the filename.
+          - Required in practice. The role asserts on it rather than defaulting,
+            because Core's path is fixed by upstream's launcher while Minion and
+            Sentinel mirror that layout inside their own homes.
+      pyroscope_agent_notify:
+        type: list
+        elements: str
+        default: []
+        description:
+          - Handlers to notify when the jar changes, so the calling role can
+            restart its own component. The agent is loaded at JVM startup, so a
+            replaced jar has no effect until then.

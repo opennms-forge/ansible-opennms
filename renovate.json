@@ -24,6 +24,12 @@
       ]
     },
     {
+      "matchDepNames": ["grafana/pyroscope-java"],
+      "prBodyNotes": [
+        "**Before merging:** update `pyroscope_agent_sha256` in `roles/pyroscope_agent/defaults/main.yml` to the new jar's checksum. Upstream publishes no checksum asset, so take it from the download: `curl -sSL https://github.com/grafana/pyroscope-java/releases/download/v<version>/pyroscope.jar | shasum -a 256`."
+      ]
+    },
+    {
       "matchManagers": ["ansible-galaxy"],
       "groupName": "ansible-galaxy collections",
       "automerge": false,
