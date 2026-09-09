@@ -112,30 +112,44 @@ opennms_env: {}
 #     CORE_SERVICE_SYSLOGD_ENABLED: true
 opennms_services: {}
 
-opennms_jvm_conf:
-  # JAVA_INITIAL_HEAP_SIZE: 2048
-  # JAVA_HEAP_SIZE: 4096
-  # Continuous profiling. bin/opennms loads
-  # $OPENNMS_HOME/agent/pyroscope-agent.jar when PYROSCOPE_AGENT_ENABLED is
-  # greater than zero, and the `pyroscope_agent` role has already replaced that
-  # jar with the version this collection pins (Horizon 36 ships 0.13.1). Set to
-  # 1 and restart to profile; the two keys below are read by the agent itself.
-  #
-  # Only these three keys belong here. Keys in this dict are rendered WITHOUT
-  # `export`, so they stay shell-local to bin/opennms — which then exports these
-  # two by name on its own. Any further agent setting (PYROSCOPE_UPLOAD_INTERVAL,
-  # PYROSCOPE_AUTH_TOKEN, PYROSCOPE_HTTP_HEADERS, ...) has to go in `opennms_env`
-  # instead, or the agent never sees it. Do not restate these three there: the
-  # template refuses to render a key defined in both.
+# Built-in JVM-tunable defaults rendered into opennms.conf. Kept separate from
+# the operator-facing `opennms_jvm_conf` below, and merged the same way
+# `_opennms_env_defaults` is: setting one key there used to replace this whole
+# dict, so tuning the heap silently dropped the profiling configuration.
+#
+# Continuous profiling. bin/opennms loads $OPENNMS_HOME/agent/pyroscope-agent.jar
+# when PYROSCOPE_AGENT_ENABLED is greater than zero, and the `pyroscope_agent`
+# role has already replaced that jar with the version this collection pins
+# (Horizon 36 ships 0.13.1). Set it to 1 in `opennms_jvm_conf` and restart to
+# profile; the other two keys are read by the agent itself.
+#
+# Only these three profiling keys belong here. Keys in this dict are rendered
+# WITHOUT `export`, so they stay shell-local to bin/opennms — which then exports
+# those two by name on its own. Any further agent setting
+# (PYROSCOPE_UPLOAD_INTERVAL, PYROSCOPE_AUTH_TOKEN, PYROSCOPE_HTTP_HEADERS, ...)
+# has to go in `opennms_env` instead, or the agent never sees it. Do not restate
+# these three there: the template refuses to render a key defined in both.
+_opennms_jvm_conf_defaults:
   PYROSCOPE_AGENT_ENABLED: 0
   PYROSCOPE_APPLICATION_NAME: Horizon-Core
   PYROSCOPE_SERVER_ADDRESS: http://localhost:4040
-  # The JMX Prometheus exporter jar and config are installed by this role, but
-  # nothing loads them until the agent is added to the JVM options. Uncomment to
-  # enable, and pick the port to expose metrics on. Paths must match
-  # prom_jmx_exporter_home; the template renders KEY="value", so this is a plain
-  # YAML mapping, not a shell assignment.
-  # ADDITIONAL_MANAGER_OPTIONS: "-javaagent:/opt/prom-jmx-exporter/jmx_prometheus_javaagent.jar=9299:/opt/prom-jmx-exporter/config.yaml"
+
+# Additional or overriding JVM tunables merged on top of
+# `_opennms_jvm_conf_defaults`. Only specify keys you want to override or add —
+# siblings keep their defaults. Example:
+#   opennms_jvm_conf:
+#     JAVA_INITIAL_HEAP_SIZE: 2048
+#     JAVA_HEAP_SIZE: 4096
+#     PYROSCOPE_AGENT_ENABLED: 1      # profiling on; the other two keys survive
+#
+# The JMX Prometheus exporter jar and config are installed by this role, but
+# nothing loads them until the agent is added to the JVM options. To enable it,
+# add the option below and pick the port to expose metrics on. Paths must match
+# prom_jmx_exporter_home; the template renders KEY="value", so this is a plain
+# YAML mapping, not a shell assignment.
+#   opennms_jvm_conf:
+#     ADDITIONAL_MANAGER_OPTIONS: "-javaagent:/opt/prom-jmx-exporter/jmx_prometheus_javaagent.jar=9299:/opt/prom-jmx-exporter/config.yaml"
+opennms_jvm_conf: {}
 
 opennms_properties_timeseries:
   org.opennms.rrd.strategyClass: org.opennms.netmgt.rrd.rrdtool.MultithreadedJniRrdStrategy

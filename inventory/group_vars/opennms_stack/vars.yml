@@ -104,9 +104,8 @@
 # load it when their dict is non-empty. Set these in the group_vars of the
 # matching host group, and give each component a distinct application name.
 #
-#   opennms_jvm_conf:            # Core - the WHOLE dict, it is not merged
+#   opennms_jvm_conf:            # Core - merged over the role defaults
 #     PYROSCOPE_AGENT_ENABLED: 1
-#     PYROSCOPE_APPLICATION_NAME: Horizon-Core
 #     PYROSCOPE_SERVER_ADDRESS: http://pyroscope-host:4040
 #
 #   opennms_minion_pyroscope:

@@ -107,6 +107,21 @@ opennms_env:
 
 The pristine Horizon 36 `opennms-datasources.xml` defaults are: `POSTGRES_SSL_MODE=prefer`, `POSTGRES_SSL_FACTORY=org.postgresql.ssl.LibPQFactory`, `OPENNMS_DATABASE_CONNECTION_IDLETIMEOUT=600`, `LOGINTIMEOUT=3`, `MINPOOL=25`, `MAXPOOL=50`, `MAXSIZE=50`.
 
+### JVM tunables and profiling
+
+`opennms_jvm_conf` carries the entries `bin/opennms` reads as shell variables rather than environment variables — heap sizing, extra JVM options, and the Pyroscope launcher toggle. Entries are **merged on top of** the role's built-in defaults, exactly like `opennms_env`, so setting one key leaves the others alone:
+
+```yaml
+opennms_jvm_conf:
+  JAVA_INITIAL_HEAP_SIZE: 2048
+  JAVA_HEAP_SIZE: 4096
+  PYROSCOPE_AGENT_ENABLED: 1   # profiling on; app name and server keep their defaults
+```
+
+The built-in defaults are the three profiling keys: `PYROSCOPE_AGENT_ENABLED: 0`, `PYROSCOPE_APPLICATION_NAME: Horizon-Core`, `PYROSCOPE_SERVER_ADDRESS: http://localhost:4040`. See [`pyroscope_agent`](../pyroscope_agent/README.md) for the agent itself.
+
+**Only those three profiling keys belong here.** Entries in this dict are rendered *without* `export`, so they stay shell-local to `bin/opennms`, which then exports the application name and server address by name on its own. Any further agent setting — `PYROSCOPE_UPLOAD_INTERVAL`, `PYROSCOPE_AUTH_TOKEN`, `PYROSCOPE_HTTP_HEADERS` — has to go in `opennms_env` instead, or the agent never sees it. Do not restate the three above there: the template refuses to render a key defined in two of the three dicts.
+
 ### Service toggles
 
 Daemons can be enabled/disabled via `opennms_services`. Each key is a `CORE_SERVICE_<NAME>_ENABLED` env var consumed by the pristine `service-configuration.xml`:
