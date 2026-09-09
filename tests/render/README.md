@@ -34,11 +34,16 @@ tests/
 | Fixture | Renders | Pins |
 |---|---|---|
 | `colocated` | `opennms_core` → `opennms.conf` | quoting and backslash escaping; that `opennms_jvm_conf` merges over its defaults rather than replacing them |
-| `distributed` | `opennms_sentinel` → `org.opennms.core.ipc.sink.kafka.cfg` | the one existing inventory-derived address: three brokers joined, and sorted despite being declared out of order |
+| `minion-pyroscope` | `opennms_minion` → `pyroscope-env` | the stanza both defects shipped in: single quoting that survives systemd *and* a sourcing shell |
+| `distributed` | `opennms_sentinel` → Kafka sink cfg, `pyroscope-env` | the one existing inventory-derived address — three brokers joined, sorted despite being declared out of order — and Sentinel's copy of the Pyroscope stanza |
 | `kafka-single` | `stub_kafka` → `server.properties` | that a single-member group still renders the pre-clustering single-node form |
 | `kafka-cluster` | `stub_kafka` → `server.properties` | the cluster form: sorted quorum voters with stable node ids, replication 3, min.isr 2 |
 
 The last two are a pair on purpose. Either alone would pass while the shape logic was broken; the difference between them is the assertion.
+
+The two `pyroscope-env` fixtures are a pair for a different reason: the Minion and Sentinel roles render the same stanza from two template files, so they are given the **same** values deliberately. The expectations should differ only in the jar path and the application name, and anything else diverging is a defect.
+
+Those values are chosen to break a naive rendering — JSON, a `$` a sourcing shell would expand, an embedded double quote, a `#` that would start a comment, and a bare space. The recorded output round-trips through `sh -c '. ./file'` unchanged, which is the property the quoting exists for.
 
 ## Adding a fixture
 

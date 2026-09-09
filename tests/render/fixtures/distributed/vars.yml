@@ -1,2 +1,12 @@
 ---
 render_canary: fixture
+
+# Values chosen to break a naive rendering: JSON, a `$` a sourcing shell would
+# expand, an embedded double quote, a `#` that would start a comment, and a bare
+# space. Deliberately the same set as the minion-pyroscope fixture — the two
+# roles render the same stanza, so a divergence between them is a defect.
+opennms_sentinel_pyroscope:
+  PYROSCOPE_APPLICATION_NAME: Horizon-Sentinel
+  PYROSCOPE_SERVER_ADDRESS: http://pyroscope.example.org:4040
+  PYROSCOPE_HTTP_HEADERS: '{"X-Scope-OrgID": "tenant-a"}'
+  PYROSCOPE_LABELS: 'region=eu west, cost="high" #1, home=$HOME'

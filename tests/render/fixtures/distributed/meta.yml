@@ -1,10 +1,16 @@
 ---
 render_role: opennms_sentinel
 
-# The one file in the collection that already derives an address from inventory
-# group membership. Rendering it against three brokers pins both the join and
-# the sort: the hosts are declared out of order above, so an unsorted derivation
-# would render a different string here on a different run.
 render_files:
+  # The one file in the collection that already derives an address from
+  # inventory group membership. Rendering it against three brokers pins both the
+  # join and the sort: the hosts are declared out of order in hosts.yml, so an
+  # unsorted derivation would render a different string here on a different run.
   - name: org.opennms.core.ipc.sink.kafka.cfg
     src: org.opennms.core.ipc.sink.kafka.cfg.j2
+
+  # The stanza written into /etc/default/sentinel, which systemd parses *and*
+  # upstream's container.init sources as shell. Same escaping hazard as the
+  # Minion's, and the same values exercise it.
+  - name: pyroscope-env
+    src: pyroscope-env.j2

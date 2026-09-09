@@ -1,0 +1,21 @@
+{# Body of the managed block written into /etc/default/minion. No header comment
+   and no trailing marker: blockinfile supplies both, and this file is a block
+   inside a package-owned file rather than a file of its own.
+
+   It lives in a template rather than inline in the task so that the rendering
+   can be checked without a host — see tests/render/. The two defects this
+   escaping exists to prevent were both invisible to lint and found by reading
+   rendered output.
+
+   Values are single-quoted, because this file has two consumers with one shared
+   hazard: systemd parses it, and upstream's container.init sources it as shell.
+   An unquoted value carrying a space, a double quote, a `$` or a `#` mangles the
+   environment for the first and can be executed by the second.
+   PYROSCOPE_HTTP_HEADERS, which takes JSON for multi-tenant setups, is the
+   everyday case. Neither consumer expands anything inside single quotes, so JSON,
+   spaces and `$` all pass through with no escaping to get wrong. The one value
+   they cannot carry is a single quote, which the task asserts against. #}
+EXTRA_JAVA_OPTS='-javaagent:{{ opennms_minion_pyroscope_jar }}'
+{% for key, value in opennms_minion_pyroscope.items() %}
+{{ key }}='{{ value }}'
+{% endfor %}

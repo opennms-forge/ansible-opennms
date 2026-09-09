@@ -1,0 +1,14 @@
+---
+render_canary: fixture
+
+# Every value here is chosen to break a naive rendering:
+#   - JSON, which is the real multi-tenant case and what broke it originally
+#   - a `$`, which a sourcing shell would expand if the quoting were wrong
+#   - an embedded double quote, which would terminate a double-quoted value
+#   - a `#`, which would start a comment mid-value unquoted
+#   - a bare space, the simplest way to split one value into two
+opennms_minion_pyroscope:
+  PYROSCOPE_APPLICATION_NAME: Horizon-Minion
+  PYROSCOPE_SERVER_ADDRESS: http://pyroscope.example.org:4040
+  PYROSCOPE_HTTP_HEADERS: '{"X-Scope-OrgID": "tenant-a"}'
+  PYROSCOPE_LABELS: 'region=eu west, cost="high" #1, home=$HOME'
