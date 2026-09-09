@@ -1,0 +1,13 @@
+# Managed by Ansible (indigo423.opennms.stub_pyroscope).
+#
+# Pyroscope v2 resolves everything it writes relative to its working directory:
+# pyroscopedb at ./data, the metastore's raft log and data at
+# ./data/v2/metastore/{raft,data}, shared object storage at ./data/v2/shared.
+# Setting the directory the process runs in moves all of them at once, so the
+# role does not have to enumerate paths that change between releases.
+#
+# The vendor unit already sets this to /var/lib/pyroscope, so at the default
+# this drop-in only restates it. It earns its place when pyroscope_data_dir
+# points somewhere else.
+[Service]
+WorkingDirectory={{ pyroscope_data_dir }}

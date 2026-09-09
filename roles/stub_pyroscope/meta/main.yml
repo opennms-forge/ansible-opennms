@@ -1,0 +1,23 @@
+---
+galaxy_info:
+  role_name: stub_pyroscope
+  author: Ronny Trommer
+  description: Single-node Grafana Pyroscope server for POC/test environments, receiving profiles from the OpenNMS Horizon components.
+  license: GPL-3.0-or-later
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+        - trixie
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+  galaxy_tags:
+    - opennms
+    - pyroscope
+    - profiling
+    - observability
+
+dependencies: []

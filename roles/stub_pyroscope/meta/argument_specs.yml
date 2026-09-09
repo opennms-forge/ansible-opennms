@@ -1,0 +1,56 @@
+---
+argument_specs:
+  main:
+    short_description: Single-node Grafana Pyroscope server for POC/test environments.
+    description:
+      - Installs Grafana Pyroscope from its release package and configures it as
+        a single-node monolithic server, so the Horizon components deployed by
+        this collection have somewhere to send profiles.
+      - POC and test only. Profiles land on local disk with no object store and
+        no retention policy behind them.
+    options:
+      pyroscope_version:
+        type: str
+        default: "2.3.1"
+        description:
+          - Pyroscope server release to install. Unrelated to the Java agent
+            version pinned by the C(pyroscope_agent) role.
+      pyroscope_arch:
+        type: str
+        default: amd64
+        description:
+          - Package architecture. Upstream publishes C(amd64) and C(arm64).
+      pyroscope_pkg_url:
+        type: str
+        description:
+          - Download URL for the release .deb. Defaults to the GitHub release
+            asset for C(pyroscope_version) and C(pyroscope_arch).
+      pyroscope_http_port:
+        type: int
+        default: 4040
+        description:
+          - Port Pyroscope serves its API and UI on. This is the port the
+            components' C(PYROSCOPE_SERVER_ADDRESS) has to name.
+      pyroscope_log_level:
+        type: str
+        default: info
+        description:
+          - Pyroscope log level.
+      pyroscope_data_dir:
+        type: str
+        default: /var/lib/pyroscope
+        description:
+          - Directory Pyroscope writes everything to, applied as the unit's
+            WorkingDirectory because v2 resolves several data paths relative to
+            it.
+      pyroscope_startup_retries:
+        type: int
+        default: 24
+        description:
+          - Readiness polls before the play fails. A cold start needs about 90
+            seconds, since components report ready in series.
+      pyroscope_startup_delay:
+        type: int
+        default: 5
+        description:
+          - Seconds between readiness polls.

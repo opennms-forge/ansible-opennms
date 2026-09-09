@@ -1,0 +1,116 @@
+---
+# Installed from the release .deb rather than the tarball, as stub_mimir does:
+# apt takes the URL directly, and the package brings its own systemd unit,
+# `pyroscope` user and a valid single-node configuration. No checksum is pinned
+# because apt is fetching and verifying the archive it was handed — the same
+# trade the Mimir stub makes. The agent jar the OpenNMS roles install *is*
+# checksummed; that one is fetched with get_url and has no packaging around it.
+- name: Installing Grafana Pyroscope {{ pyroscope_version }}
+  ansible.builtin.apt:
+    deb: "{{ pyroscope_pkg_url }}"
+  notify:
+    - Restart pyroscope
+  tags:
+    - pyroscope
+    - packages
+
+# After the package, which is what creates the `pyroscope` user this has to be
+# owned by. Redundant for the default path — the package ships it — and the
+# point of the task is a path the operator moved.
+- name: Create the Pyroscope data directory
+  ansible.builtin.file:
+    path: "{{ pyroscope_data_dir }}"
+    state: directory
+    owner: pyroscope
+    group: pyroscope
+    mode: "0750"
+  tags:
+    - pyroscope
+    - configuration
+
+- name: Create the Pyroscope systemd drop-in directory
+  ansible.builtin.file:
+    path: /etc/systemd/system/pyroscope.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  tags:
+    - pyroscope
+    - systemd
+
+- name: Point the Pyroscope unit at the data directory
+  ansible.builtin.template:
+    src: systemd/override.conf.j2
+    dest: /etc/systemd/system/pyroscope.service.d/override.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Restart pyroscope
+  tags:
+    - pyroscope
+    - systemd
+
+# Reloaded inline rather than from a handler, for the same reason stub_mimir
+# does it: handlers run at the end of the play, while the start task below runs
+# now. A drop-in written this run would otherwise stay unloaded until something
+# else reloaded systemd. Unconditional and idempotent.
+- name: Reload systemd so the Pyroscope drop-in applies
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+  changed_when: false
+  tags:
+    - pyroscope
+    - systemd
+
+# Overwrites the package's own /etc/pyroscope/config.yml, which is a dpkg
+# conffile: on a package upgrade apt sees a locally modified conffile and keeps
+# this one, which is the outcome we want (and the next run rewrites it anyway).
+# stub_mimir manages /etc/mimir/config.yml the same way.
+- name: Configure Pyroscope as a single-node monolithic server
+  ansible.builtin.template:
+    src: config.yml.j2
+    dest: /etc/pyroscope/config.yml
+    owner: root
+    group: pyroscope
+    mode: "0640"
+  notify:
+    - Restart pyroscope
+  tags:
+    - pyroscope
+    - configuration
+
+- name: Enable and start systemd unit for Pyroscope
+  ansible.builtin.service:
+    name: pyroscope.service
+    enabled: true
+    state: started
+  tags:
+    - pyroscope
+    - systemd
+
+# Flushed here so a config or drop-in change restarts Pyroscope *before* the
+# readiness check, not after it. Otherwise the check would pass against whatever
+# was already running — on the old port, even — and the restart onto the new
+# configuration would go unverified.
+- name: Restart Pyroscope now if its configuration changed
+  ansible.builtin.meta: flush_handlers
+
+# Waits for the endpoint rather than the unit. `state: started` reports success
+# as soon as the process is up, but Pyroscope serves nothing for the first
+# ~90 seconds: metastore, ingester and segment writer each hold off in turn.
+# Without this the role would claim success on a host that cannot yet accept a
+# single profile.
+- name: Wait for Pyroscope to become ready
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ pyroscope_http_port }}/ready"
+    method: GET
+    status_code: 200
+  register: _pyroscope_ready
+  until: _pyroscope_ready.status | default(0) == 200
+  retries: "{{ pyroscope_startup_retries }}"
+  delay: "{{ pyroscope_startup_delay }}"
+  tags:
+    - pyroscope
+    - systemd

@@ -1,0 +1,25 @@
+---
+# renovate: datasource=github-releases depName=grafana/pyroscope extractVersion=^v(?<version>.+)$
+pyroscope_version: 2.3.1
+pyroscope_arch: amd64
+pyroscope_pkg_url: "https://github.com/grafana/pyroscope/releases/download/v{{ pyroscope_version }}/pyroscope_{{ pyroscope_version }}_linux_{{ pyroscope_arch }}.deb"
+
+pyroscope_http_port: 4040
+pyroscope_log_level: info
+
+# Where Pyroscope keeps everything it writes, applied as the unit's
+# WorkingDirectory rather than as configuration keys. Pyroscope v2 hangs five
+# separate paths off its working directory — pyroscopedb (`./data`), the
+# metastore's raft log and data (`./data/v2/metastore/{raft,data}`), shared
+# object storage (`./data/v2/shared`) and the embedded Grafana — so moving the
+# data by config would mean tracking every one of them and re-checking the list
+# on each release. Moving the directory the process runs in relocates all of
+# them at once, and cannot drift.
+pyroscope_data_dir: /var/lib/pyroscope
+
+# Bounds the wait for /ready after the service is started. A cold start needs
+# about 90 seconds, because the components report ready in series rather than
+# together: the metastore holds off 15s, then the ingester another 15s, then the
+# segment writer 30s. Measured on 2.3.1; the default leaves headroom.
+pyroscope_startup_retries: 24
+pyroscope_startup_delay: 5

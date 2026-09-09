@@ -80,6 +80,7 @@ them, that is the signal.
 - `stub_elasticsearch` — Elasticsearch for flow data; single node, or a cluster derived from `es_cluster_group`
 - `stub_mimir` — Grafana Mimir 3.0.4; single-node monolithic, or distributed via memberlist with shared S3 storage (`mimir_s3_endpoint`)
 - `stub_victoriametrics` — VictoriaMetrics 1.150.0, single-node
+- `stub_pyroscope` — Grafana Pyroscope 2.3.1, single-node monolithic; receives the profiles the Horizon components push via `pyroscope_agent`
 
 Multi-node roles derive their cluster shape from inventory group membership, so
 scaling a deployment is the only change needed. A single-member group renders
@@ -132,3 +133,4 @@ External collections (`requirements.yml`):
 | Prometheus JMX Exporter | 1.6.0 |
 | OpenNMS Prometheus remote_write plugin | 2.1.0 |
 | Pyroscope Java agent | 2.9.2 |
+| Grafana Pyroscope (server) | 2.3.1 |

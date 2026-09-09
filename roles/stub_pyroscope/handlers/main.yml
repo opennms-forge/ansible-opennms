@@ -1,0 +1,8 @@
+---
+- name: Restart pyroscope
+  ansible.builtin.service:
+    name: pyroscope.service
+    state: restarted
+  tags:
+    - pyroscope
+    - systemd
