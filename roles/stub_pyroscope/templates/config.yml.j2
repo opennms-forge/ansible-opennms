@@ -1,0 +1,28 @@
+{# Keep every Jinja tag at column 0: Ansible templates with trim_blocks but   #}
+{# not lstrip_blocks, so leading whitespace on a tag line survives into the   #}
+{# output and would corrupt this file's indentation.                          #}
+# Managed by Ansible (indigo423.opennms.stub_pyroscope).
+#
+# Replaces the fully-commented reference configuration the package ships. Only
+# the settings this role owns are written; everything else stays at Pyroscope's
+# built-in defaults, which is what the shipped file amounted to.
+#
+# Data paths are deliberately absent. Pyroscope resolves pyroscopedb, the
+# metastore's raft log and data, and shared object storage relative to the
+# process working directory, so the unit drop-in moves all of them together —
+# see pyroscope_data_dir.
+
+# Single-node monolithic: every component runs inside this one process, which is
+# what makes the in-process rings and the local metastore correct. A second node
+# would need shared object storage before it meant anything.
+target: all
+
+server:
+  http_listen_port: {{ pyroscope_http_port }}
+  log_level: {{ pyroscope_log_level }}
+
+# Stated rather than left implicit: filesystem is already the default, but this
+# is the line that says out loud that the POC keeps profiles on local disk with
+# no object store behind it.
+storage:
+  backend: filesystem

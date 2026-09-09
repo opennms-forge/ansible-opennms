@@ -27,6 +27,17 @@
     - common
     - stub_mimir
 
+# Before the Horizon components, so a stack that has profiling switched on has
+# somewhere to deliver to by the time their JVMs start. The agent tolerates an
+# absent server — it retries — so the ordering is a convenience, not a
+# requirement.
+- name: Manage Pyroscope
+  hosts: pyroscope
+  become: true
+  roles:
+    - common
+    - stub_pyroscope
+
 - name: Manage Grafana
   hosts: grafana
   become: true

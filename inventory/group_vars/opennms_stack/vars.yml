@@ -104,6 +104,9 @@
 # load it when their dict is non-empty. Set these in the group_vars of the
 # matching host group, and give each component a distinct application name.
 #
+# A server to receive the profiles comes from `stub_pyroscope` - put a host in
+# the `pyroscope` group and the full-stack playbook deploys it on port 4040.
+#
 #   opennms_jvm_conf:            # Core - merged over the role defaults
 #     PYROSCOPE_AGENT_ENABLED: 1
 #     PYROSCOPE_SERVER_ADDRESS: http://pyroscope-host:4040
