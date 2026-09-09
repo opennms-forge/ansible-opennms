@@ -1,10 +1,22 @@
 ---
+# Every dynamic include below carries tags, and they are the union of the tags
+# used inside the file or role it pulls in. That is load-bearing rather than
+# decorative: a dynamic include is only entered when the include task itself
+# matches the tag filter, so an untagged include makes every tag inside it
+# unreachable — `--tags kafka` then selects nothing and reports success. Inner
+# tasks keep being filtered by their own tags, so the union widens what can be
+# reached, never what runs. Add a tag inside one of these files and add it here
+# too.
 - name: Verify credentials before anything else
   ansible.builtin.include_tasks: 00-credentials-check.yml
+  tags:
+    - always
 
 - name: Verify the host clock is synchronised
   ansible.builtin.include_role:
     name: timesync
+  tags:
+    - timesync
 
 - name: Include OpenNMS OpenJDK roles
   ansible.builtin.include_role:
@@ -12,6 +24,8 @@
   vars:
     openjdk_version: 21
     openjdk_pkg_version: "21*"
+  tags:
+    - java
 
 - name: Include OpenNMS repository roles
   ansible.builtin.include_role:
@@ -21,6 +35,9 @@
     # Passed at include time rather than left to defaults precedence between
     # two roles, which depends on load order.
     opennms_repo_major: "{{ opennms_version.split('.')[0] }}"
+  tags:
+    - opennms
+    - repository
 
 # Written before the packages are installed, so a deliberate `opennms_version`
 # bump rewrites the pin and permits the new version in the same run. Reversing
@@ -215,9 +232,6 @@
     - sentinel
     - kafka
 
-# Tagged, unlike the includes above it: a dynamic include has to match the tag
-# filter itself before anything inside it is considered, so without these
-# `--tags pyroscope` would select nothing at all.
 - name: Configure Pyroscope continuous profiling
   ansible.builtin.include_tasks: 30-pyroscope.yml
   tags:
