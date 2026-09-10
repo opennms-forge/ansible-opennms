@@ -1,0 +1,28 @@
+---
+# Which role asked for this source, for the one-major-per-host message below.
+#
+# `ansible_parent_role_names` is innermost-first, so a nested include through
+# `opennms_icmp` reads ['opennms_icmp', 'opennms_core']. The last entry is the
+# component role that started the chain, which is the name an operator has to
+# edit. Empty when this role is applied directly.
+_opennms_repo_caller: >-
+  {{ (ansible_parent_role_names | last)
+     if (ansible_parent_role_names | default([]) | length) > 0
+     else 'opennms_repositories' }}
+
+# The dist actually written, which is `opennms_repo_dist` except for one case: a
+# caller with no `opennms_version` of its own, on a host where an earlier role
+# in this run already established one, adopts what was established.
+#
+# Without this, such a caller writes its fallback over the established source
+# and the host is left at a major nobody asked for — the same silent wrong-dist
+# this role exists to prevent, just arriving from the other direction. It is
+# reachable whenever a fallback consumer runs after a component role on one
+# host, which is a question of play order rather than of configuration.
+#
+# Adoption is also what lets the check below stay ungated: a caller with no
+# opinion now agrees by construction rather than by being excused.
+_opennms_repo_effective_dist: >-
+  {{ _opennms_repo_run_dist
+     if (opennms_version is not defined and _opennms_repo_run_dist is defined)
+     else opennms_repo_dist }}

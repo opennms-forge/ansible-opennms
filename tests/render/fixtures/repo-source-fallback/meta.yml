@@ -1,0 +1,10 @@
+---
+render_role: opennms_repositories
+
+# The other half of the same question: a consumer that defines no
+# `opennms_version` at all — `stub_pgsql` on a database host that runs no
+# component role, or a standalone Galaxy install — still gets a valid dist,
+# from the role's own Renovate-maintained fallback.
+render_files:
+  - name: opennms.list
+    src: opennms.list.j2

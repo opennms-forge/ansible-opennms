@@ -1,0 +1,1 @@
+deb [arch=amd64 signed-by=/usr/share/keyrings/opennms-stable-archive-keyring.gpg] https://debian.opennms.org opennms-37 main

@@ -1,0 +1,9 @@
+---
+render_canary: fixture
+
+# Deliberately no opennms_version. The dist must come from the fallback.
+# Pinned here rather than read from the role default, which Renovate moves. The
+# question this fixture asks is "no caller version, so the fallback is used",
+# not "what is the fallback today" — and leaving it to the default would turn
+# the next version PR red for a rendering that is correct.
+opennms_repo_fallback_version: 36.0.4
