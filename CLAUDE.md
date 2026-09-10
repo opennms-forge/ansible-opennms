@@ -145,7 +145,7 @@ External collections (`requirements.yml`):
 | OpenJDK | 21 |
 | Grafana | 12.x |
 | Grafana Mimir | 3.0.4 |
-| VictoriaMetrics | 1.150.0 |
+| VictoriaMetrics | 1.151.0 |
 | Prometheus JMX Exporter | 1.6.0 |
 | OpenNMS Prometheus remote_write plugin | 2.1.0 |
 | Pyroscope Java agent | 2.9.2 |
