@@ -47,8 +47,8 @@
 # `opennms_version: 36.0.1` would also match 36.0.10 through 36.0.19 — and at
 # priority 1001 apt applies that as a forced change, which is the opposite of
 # what this tier is for.
-Package: {{ opennms_minion_pinned_packages | join(' ') }}
-Pin: version {{ opennms_version }}-*
+Package: opennms-common opennms-server opennms-webapp-jetty opennms-webapp-hawtio
+Pin: version 36.0.4-*
 Pin-Priority: 1001
 
 # Tier 2 — the same major, once the configured version has been superseded and
@@ -66,8 +66,8 @@ Pin-Priority: 1001
 # -1 and leaving the package with no installation candidate at all once tier 1
 # expires. The version glob cannot diverge: it is derived from the same
 # `opennms_version` as tier 1.
-Package: {{ opennms_minion_pinned_packages | join(' ') }}
-Pin: version {{ opennms_version.split('.')[0] }}.*
+Package: opennms-common opennms-server opennms-webapp-jetty opennms-webapp-hawtio
+Pin: version 36.*
 Pin-Priority: 900
 
 # Tier 3 — every other OpenNMS release. -1 makes a version ineligible for
@@ -79,6 +79,6 @@ Pin-Priority: 900
 # `Pin: origin debian.opennms.org`. In apt_preferences the bare `origin` form
 # matches the site *hostname*, so pointing opennms_repo_url at a mirror would
 # silently disable this tier — no error, no failed task, just no protection.
-Package: {{ opennms_minion_pinned_packages | join(' ') }}
-Pin: release o={{ opennms_pin_origin }}
+Package: opennms-common opennms-server opennms-webapp-jetty opennms-webapp-hawtio
+Pin: release o=OpenNMS
 Pin-Priority: -1

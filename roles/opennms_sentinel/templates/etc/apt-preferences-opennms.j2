@@ -47,7 +47,7 @@
 # `opennms_version: 36.0.1` would also match 36.0.10 through 36.0.19 — and at
 # priority 1001 apt applies that as a forced change, which is the opposite of
 # what this tier is for.
-Package: {{ opennms_pinned_packages | join(' ') }}
+Package: {{ opennms_sentinel_pinned_packages | join(' ') }}
 Pin: version {{ opennms_version }}-*
 Pin-Priority: 1001
 
@@ -66,7 +66,7 @@ Pin-Priority: 1001
 # -1 and leaving the package with no installation candidate at all once tier 1
 # expires. The version glob cannot diverge: it is derived from the same
 # `opennms_version` as tier 1.
-Package: {{ opennms_pinned_packages | join(' ') }}
+Package: {{ opennms_sentinel_pinned_packages | join(' ') }}
 Pin: version {{ opennms_version.split('.')[0] }}.*
 Pin-Priority: 900
 
@@ -79,6 +79,6 @@ Pin-Priority: 900
 # `Pin: origin debian.opennms.org`. In apt_preferences the bare `origin` form
 # matches the site *hostname*, so pointing opennms_repo_url at a mirror would
 # silently disable this tier — no error, no failed task, just no protection.
-Package: {{ opennms_pinned_packages | join(' ') }}
+Package: {{ opennms_sentinel_pinned_packages | join(' ') }}
 Pin: release o={{ opennms_pin_origin }}
 Pin-Priority: -1

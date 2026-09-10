@@ -1,34 +1,11 @@
 ---
 argument_specs:
   main:
-    short_description: Deploys and configures OpenNMS Sentinel.
+    short_description: Deploys and configures an OpenNMS Minion.
     description:
-      - Installs the OpenNMS Sentinel package and writes its datasource and
-        Kafka configuration files.
+      - Installs the OpenNMS Minion package and writes its controller and Kafka configuration.
     options:
-      opennms_sentinel_pyroscope:
-        type: dict
-        default: {}
-        description:
-          - PYROSCOPE_* environment keys for the Grafana Pyroscope Java agent.
-          - Populating this installs the pinned agent and loads it into the
-            Karaf JVM; an empty dict disables profiling entirely. There is no
-            separate enable flag because the Sentinel launcher has none.
-      opennms_sentinel_pyroscope_jar:
-        type: str
-        description:
-          - Path the Pyroscope agent jar is installed to. Defaults to
-            C(agent/pyroscope-agent.jar) inside C(opennms_sentinel_home).
-      opennms_datasource_db_password:
-        type: str
-        default: "__SET_VIA_VAULT__"
-        description:
-          - PostgreSQL password the Sentinel uses to connect to the OpenNMS database.
-          - SENSITIVE. The role refuses to run while this is the sentinel
-            default (see C(tasks/00-credentials-check.yml)). Populate via the
-            vault written by C(indigo423.opennms.init_secrets), or override
-            directly in your inventory.
-      opennms_sentinel_pinned_packages:
+      opennms_minion_pinned_packages:
         type: list
         elements: str
         description:

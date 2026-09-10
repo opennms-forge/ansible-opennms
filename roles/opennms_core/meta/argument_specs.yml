@@ -49,3 +49,36 @@ argument_specs:
             Boolean values are rendered as lowercase strings."
           - "Empty by default - upstream defaults apply. Example:
             C({CORE_SERVICE_TELEMETRYD_ENABLED: false, CORE_SERVICE_SYSLOGD_ENABLED: true})."
+      opennms_core_pinned_packages:
+        type: list
+        elements: str
+        description:
+          - OpenNMS packages this role holds at C(opennms_version) through
+            /etc/apt/preferences.d, and removes from C(unattended-upgrades)
+            consideration.
+          - Named for the role on purpose. All three OpenNMS roles carry a list
+            of their own, and a shared name meant one inventory entry replaced
+            every role's list, leaving each pinning packages it does not
+            install and its own package unpinned at the default priority.
+          - Every entry must be a package whose versions track C(opennms_version).
+            All three pin tiers key on it, and the last one gives every other
+            version from the OpenNMS origin priority -1, so a package released
+            on its own version line, such as C(jrrd2) or C(iplike), ends up with
+            no installation candidate rather than a pin. Measured.
+      opennms_pin_origin:
+        type: str
+        description:
+          - The C(Origin) field the repository publishes, which the pin's
+            exclusion tier keys on. Shared across the roles on purpose,
+            because it is the same value everywhere, and a mirror publishing a
+            different Origin is the one reason to set it.
+      opennms_unattended_upgrade_blacklist:
+        type: bool
+        description:
+          - Whether to add this role's pinned packages to
+            C(Unattended-Upgrade::Package-Blacklist). Shared across the roles
+            on purpose, because it is a policy switch that should hold for the
+            whole host.
+          - Setting it false re-exposes the two moves the preferences file
+            cannot prevent on its own. It does not affect the cross-major
+            protection.

@@ -4,3 +4,19 @@
 # yields an empty java path on Debian/Ubuntu where sh is dash. Patching the
 # script itself would be undone by every package upgrade.
 scvcli_cmd: "bash {{ opennms_home }}/bin/scvcli"
+
+# The two APT file paths this role owns, derived from one constant rather than
+# taken from the inventory.
+#
+# They were `defaults/` variables with the same name in all three OpenNMS
+# roles, so a single `group_vars` entry pointed every role at one file and the
+# last role to run decided its contents. Measured, not theorised: with one
+# override set, three roles wrote `99-opennms.pref` and the per-role guarantee
+# the pin depends on was gone.
+#
+# `vars/` rather than a role-prefixed default, because there is no reason to
+# choose these paths. Prefixing would leave three knobs nobody wants, each
+# still able to collide with the others. See the transition guard in tasks.
+opennms_component: core
+_opennms_apt_preferences_file: /etc/apt/preferences.d/99-opennms-{{ opennms_component }}.pref
+_opennms_unattended_blacklist_file: /etc/apt/apt.conf.d/51-opennms-{{ opennms_component }}-blacklist

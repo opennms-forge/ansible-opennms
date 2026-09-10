@@ -30,8 +30,7 @@ To upgrade deliberately, change `opennms_version` and re-run the role. The pin i
 
 | Variable | Purpose |
 |---|---|
-| `opennms_pinned_packages` | The OpenNMS packages covered by the pin. |
-| `opennms_apt_preferences_file` | Where the preferences file is written. |
+| `opennms_minion_pinned_packages` | The OpenNMS packages covered by the pin. Named for the role, so setting it for a host that runs several OpenNMS roles reaches this one only. Every entry must be a package whose versions track `opennms_version`: all three tiers key on it and the last gives every other version from the OpenNMS origin priority -1, so adding `jrrd2` or `iplike` leaves them with no installation candidate rather than a pin. |
 | `opennms_pin_origin` | The repository's published `Origin` field, which the exclusion tier keys on. Not a hostname, so a mirror does not silently disable it. |
 
 `rrdtool`, `jrrd2` and `iplike` are deliberately **not** pinned, though for different reasons. `rrdtool` is an ordinary Debian package and pinning it would block security updates to protect something that is not OpenNMS — the wrong trade. `jrrd2` and `iplike` are published only by `debian.opennms.org` and exist in no Debian suite, so there is no security stream to preserve for them; they are excluded because they are not OpenNMS itself. Whether they should be pinned anyway is an open question.
@@ -55,12 +54,15 @@ Its behaviour against this pin was therefore measured rather than inferred, on U
 | tier 1 at 1001 | a new Debian revision of the configured version ships, because the tier matches `<version>-*`. The exact version you pinned moves and the service restarts, on a day nothing here changed |
 | tier 2 at 900 | the configured version is withdrawn from the repository and a newer patch of the same major is available |
 
-Each installing role therefore also writes `/etc/apt/apt.conf.d/51-opennms-<role>-blacklist`, adding its `opennms_pinned_packages` to `Unattended-Upgrade::Package-Blacklist`. That is a gate separate from candidate selection, so it stops both moves without touching what APT will install when asked directly.
+Each installing role therefore also writes `/etc/apt/apt.conf.d/51-opennms-<role>-blacklist`, adding its `opennms_minion_pinned_packages` to `Unattended-Upgrade::Package-Blacklist`. That is a gate separate from candidate selection, so it stops both moves without touching what APT will install when asked directly.
+Both file paths are fixed per role and are not settable from inventory. They were `defaults/` variables sharing one name across the three OpenNMS roles, so a single `group_vars` entry pointed all of them at one file and the last role to run decided its contents. Measured on a colocated host: one override, three roles, one file. They now derive from an `opennms_component` constant in each role's `vars/`, where an inventory cannot reach them, because a per-role path is the whole mechanism that keeps the roles from overwriting each other.
+
+To add a package to this role's pin, set `opennms_minion_pinned_packages` to the list you want, including the packages already there. Pick only packages whose versions track `opennms_version`; anything on its own version line, such as `jrrd2` or `iplike`, is caught by the negative tier and ends up with no installation candidate.
+
 
 | Variable | Purpose |
 |---|---|
 | `opennms_unattended_upgrade_blacklist` | Whether to write the blacklist. Default `true`. Setting it `false` removes the file and re-exposes **both** moves above. |
-| `opennms_unattended_blacklist_file` | Where the drop-in is written. The **default** is named per role, so several OpenNMS roles on one host do not overwrite each other. The variable name is shared across the roles, as `opennms_apt_preferences_file` is, so setting it once in `group_vars` for a multi-role host points every role at one path and the last to run wins. Override it per role or not at all. |
 
 Several OpenNMS roles on one host each write their own file, at the per-role default paths. APT accumulates list entries across `apt.conf.d` rather than letting the last definition win, so the effective blacklist is the union of their package lists.
 
