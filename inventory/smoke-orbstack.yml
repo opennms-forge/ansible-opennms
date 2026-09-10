@@ -1,0 +1,30 @@
+---
+# Local smoke-test inventory: OrbStack amd64 Ubuntu machine "onms-smoke".
+# Connection goes through OrbStack's SSH proxy: user field selects the machine.
+# Elasticsearch/Mimir/Grafana groups are intentionally absent - those plays skip.
+all:
+  children:
+    opennms_stack:
+      children:
+        database:
+          hosts:
+            smoke-srv:
+              ansible_host: orb
+              ansible_user: onms-smoke
+              ansible_python_interpreter: /usr/bin/python3
+        message_broker:
+          hosts:
+            smoke-srv:
+        core:
+          hosts:
+            smoke-srv:
+          vars:
+            # Core must opt into Kafka IPC or minion heartbeats are never consumed;
+            # defaults point at localhost:9092 which matches this single-host stack.
+            opennms_message_broker: kafka
+        minion:
+          hosts:
+            smoke-srv:
+        sentinel:
+          hosts:
+            smoke-srv:

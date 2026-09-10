@@ -1,17 +1,58 @@
 ---
+# Test topology: every service colocated on one host.
+#
+# This is a test rig, not a deployment pattern. It exists so the collection can
+# be exercised end to end on a single machine, and it keeps every endpoint at
+# `localhost`, so it needs no name resolution and no cross-host reachability
+# settings at all.
+#
+# A colocated Minion has no network segment to isolate, and isolating a segment
+# is the only reason a Minion exists — so this arrangement has no production
+# meaning. For the topology the collection is actually for, see
+# inventory/opennms-stack.yml.
+#
+# Nothing here overrides an endpoint: the roles already default to `localhost`,
+# which is correct when everything is on one host.
 all:
   children:
     opennms_stack:
+      vars:
+        # Restated at the values the roles already default to, because Grafana's
+        # PostgreSQL datasource is rendered in the Grafana play, which runs
+        # neither the database nor the Core role and so never sees their
+        # defaults. Without these, that play fails on an undefined variable.
+        opennms_datasource_db_host: localhost
+        opennms_datasource_db_port: 5432
+        opennms_datasource_db_name: opennms_horizon
+        opennms_datasource_db_user: opennms
       children:
         database:
           hosts:
             myopennms:
               ansible_host: 192.168.10.38
-        grafana:
+        message_broker:
           hosts:
             myopennms:
-              ansible_host: 192.168.10.38
         core:
           hosts:
             myopennms:
-              ansible_host: 192.168.10.38
+          vars:
+            # Core has to opt into Kafka IPC or the Minion's heartbeats are
+            # never consumed. The bootstrap default, localhost:9092, is right
+            # here precisely because everything is colocated.
+            opennms_message_broker: kafka
+        minion:
+          hosts:
+            myopennms:
+        sentinel:
+          hosts:
+            myopennms:
+        # The Grafana play refuses to run without an admin password, and no
+        # shipped inventory supplies one — set it yourself, or drop this group:
+        #   grafana_ini:
+        #     security:
+        #       admin_user: admin
+        #       admin_password: <your password>
+        grafana:
+          hosts:
+            myopennms:

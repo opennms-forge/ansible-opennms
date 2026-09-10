@@ -1,37 +1,206 @@
 ---
+# Reference topology: OpenNMS Horizon distributed across four hosts.
+#
+# This is the collection's primary example. Every service runs on a host of its
+# own, so deploying it exercises the case the collection exists for: a Minion in
+# a network segment the Core cannot reach directly, talking to it through Kafka.
+# For a single host that colocates everything, use inventory/simple-stack.yml —
+# that one is a test rig, not a deployment pattern.
+#
+# Adapting it takes two edits:
+#
+#   1. Replace the `ansible_host` addresses below with your own hosts.
+#   2. Where a service is not a single host — a database behind PgBouncer or a
+#      VIP, brokers behind a load balancer — replace the derived expression with
+#      the address you actually have. Every derived value ships with the literal
+#      alternative commented directly beneath it.
+#
+# The endpoints are declared here, in the file that declares the topology, and
+# not derived inside the roles. A role keeps its literal default (Core's
+# database host is `localhost`), so a role installed on its own from Galaxy
+# behaves the same with or without an inventory group of a given name. Cluster
+# *shape* is the opposite case and is derived by the roles: which hosts form the
+# Kafka quorum can only come from the group, because the group is the answer.
+# See CLAUDE.md, "Endpoints and cluster shape", and issue #171.
+#
+# Credentials are not here. They are stack-wide rather than topology-specific
+# and live in inventory/group_vars/opennms_stack/, written by:
+#   ansible-playbook -i inventory/opennms-stack.yml indigo423.opennms.init_secrets
 all:
   children:
     opennms_stack:
+      vars:
+        # The Kafka bootstrap list, derived once and consumed by Core and
+        # Minion below. Sentinel derives the same list inside its own role, from
+        # the same group.
+        kafka_bootstrap_servers: >-
+          {{ groups['message_broker']
+             | map('extract', hostvars, 'ansible_host')
+             | map('regex_replace', '$', ':9092')
+             | join(',') }}
+        # A deployment whose brokers sit behind a name or a load balancer
+        # substitutes it here:
+        # kafka_bootstrap_servers: kafka.example.org:9092
+
+        # The database endpoint, consumed by Core and by Sentinel if you add one.
+        # `[0]` is the rule for this dependency: one database, one address.
+        opennms_datasource_db_host: >-
+          {{ hostvars[groups['database'][0]].ansible_host
+             | default(groups['database'][0]) }}
+        # A deployment with a connection pooler or a replicated pair substitutes
+        # the endpoint that fronts them:
+        # opennms_datasource_db_host: pgbouncer.example.org
       children:
         database:
           hosts:
-            core-srv:
-              ansible_host: 192.168.10.38
-        elasticsearch:
+            db-srv:
+              ansible_host: 192.168.10.20
+          vars:
+            # Client-side addressing is only half of it: PostgreSQL still
+            # listens on loopback and rejects every other host until told
+            # otherwise. Narrow this to the addresses your components use.
+            postgres_listen_addresses: "*"
+            postgres_hba_permissions_v4: 192.168.10.0/24
+
+        message_broker:
           hosts:
-            es-srv:
-              ansible_host: 192.168.10.38
-        mimir:
-          hosts:
-            mimir-srv:
-              ansible_host: 192.168.10.38
-        grafana:
-          hosts:
-            grafana-srv:
-              ansible_host: 192.168.10.38
+            kafka-srv:
+              ansible_host: 192.168.10.21
+          vars:
+            # Restated in full, not merged: this dictionary replaces the role
+            # default outright rather than merging into it (issue #4), so every
+            # key has to be present. Only `advertised.listeners` differs from
+            # roles/stub_kafka/defaults/main.yml.
+            #
+            # `advertised.listeners` is what the broker hands back to a client
+            # that connects — the client then reconnects to *that* address. Left
+            # at the default `localhost`, Core and Minion connect once and are
+            # then redirected to themselves. It is an advertise address, not a
+            # listen address, and it is the single value most likely to be wrong
+            # in a distributed deployment.
+            #
+            # A multi-broker `message_broker` group needs none of this: the role
+            # derives node ids, quorum voters and advertised listeners from the
+            # group once there is more than one member.
+            kafka_server_properties:
+              "process.roles": broker,controller
+              "node.id": 1
+              "controller.quorum.voters": 1@localhost:9093
+              listeners: PLAINTEXT://:9092,CONTROLLER://:9093
+              "inter.broker.listener.name": PLAINTEXT
+              "advertised.listeners": >-
+                PLAINTEXT://{{ hostvars[groups['message_broker'][0]].ansible_host
+                               | default(groups['message_broker'][0]) }}:9092
+              # A broker reached through a name its clients resolve:
+              # "advertised.listeners": PLAINTEXT://kafka.example.org:9092
+              "controller.listener.names": CONTROLLER
+              "listener.security.protocol.map": CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,SSL:SSL,SASL_PLAINTEXT:SASL_PLAINTEXT,SASL_SSL:SASL_SSL
+              "num.network.threads": 3
+              "num.io.threads": 8
+              "socket.send.buffer.bytes": 102400
+              "socket.receive.buffer.bytes": 102400
+              "socket.request.max.bytes": 104857600
+              "num.partitions": 1
+              "num.recovery.threads.per.data.dir": 1
+              "offsets.topic.replication.factor": 1
+              "transaction.state.log.replication.factor": 1
+              "transaction.state.log.min.isr": 1
+              "log.retention.hours": 168
+              "log.segment.bytes": 1073741824
+              "log.retention.check.interval.ms": 300000
+              "log.dirs": /var/log/kafka/combined-logs
+
         core:
           hosts:
             core-srv:
-              ansible_host: 192.168.10.38
-        message_broker:
-          hosts:
-            core-srv:
-              ansible_host: 192.168.10.38
+              ansible_host: 192.168.10.22
+          vars:
+            # Kafka IPC, not the embedded ActiveMQ broker: a remote Minion has
+            # no other way in.
+            opennms_message_broker: kafka
+            # Restated in full for the same reason as kafka_server_properties
+            # above (issue #4). Only the bootstrap servers differ from
+            # roles/opennms_core/defaults/main.yml.
+            opennms_properties_message_broker:
+              org.opennms.activemq.broker.disable: true
+              org.opennms.core.ipc.strategy: kafka
+              org.opennms.core.ipc.sink.initialSleepTime: 60000
+              org.opennms.core.ipc.kafka.bootstrap.servers: "{{ kafka_bootstrap_servers }}"
+
         minion:
           hosts:
-            core-srv:
-              ansible_host: 192.168.10.38
-        sentinel:
-          hosts:
-            core-srv:
-              ansible_host: 192.168.10.38
+            minion-srv:
+              ansible_host: 192.168.10.23
+          vars:
+            # The Minion is in no other group, which is the point of it: it
+            # polls a segment the Core does not reach and reports back over
+            # Kafka. Give each site its own location — Core groups Minions by it.
+            opennms_minion_controller:
+              id: "{{ ansible_facts['machine_id'] if ansible_facts['machine_id'] is defined else inventory_hostname }}"
+              location: Office-01
+            opennms_minion_kafka:
+              "bootstrap.servers": "{{ kafka_bootstrap_servers }}"
+
+        # Optional overlay. Each of these adds a host and is left out of the
+        # reference so the smallest bed that demonstrates a distributed
+        # deployment stays four machines. Uncomment a group, give it a host, and
+        # the matching play in opennms-playbook.yml starts running.
+        #
+        # sentinel:
+        #   hosts:
+        #     sentinel-srv:
+        #       ansible_host: 192.168.10.24
+        #   vars:
+        #     # Flow persistence on Sentinel. Enable it here OR on Core, never
+        #     # both. Needs the elasticsearch group below.
+        #     opennms_elastic_flows:
+        #       elasticUrl: >-
+        #         http://{{ hostvars[groups['elasticsearch'][0]].ansible_host
+        #                   | default(groups['elasticsearch'][0]) }}:9200
+        #       # elasticUrl: http://elastic.example.org:9200
+        #       elasticIndexStrategy: monthly
+        #   # The database host comes from the stack-level value above, and the
+        #   # Kafka bootstrap list from the role, which derives it from the
+        #   # message_broker group.
+        #
+        # Neither of the next two needs a reachability setting the way the
+        # database and the broker do: Elasticsearch already binds 0.0.0.0, and
+        # Mimir's HTTP server listens on every interface. Mimir does have to
+        # register a *ring* address for itself, which it derives from the host's
+        # private interfaces — set `mimir_instance_addr` (or `lab_mgmt_ip`) when
+        # the peer traffic is not on the default route.
+        #
+        # elasticsearch:
+        #   hosts:
+        #     es-srv:
+        #       ansible_host: 192.168.10.25
+        #
+        # mimir:
+        #   hosts:
+        #     mimir-srv:
+        #       ansible_host: 192.168.10.26
+        #
+        # Grafana's PostgreSQL datasource is rendered in the Grafana play, which
+        # runs neither the database nor the Core role and so sees none of their
+        # defaults. Adding a grafana host means also declaring the rest of the
+        # datasource at stack level — `opennms_datasource_db_port`, `_name` and
+        # `_user` — beside the host above, and setting an admin password
+        # (`grafana_ini.security.admin_password`), which the play requires.
+        #
+        # grafana:
+        #   hosts:
+        #     grafana-srv:
+        #       ansible_host: 192.168.10.27
+        #
+        # Time-series storage through the Prometheus remote_write plugin, set on
+        # the core group when a mimir host exists:
+        # opennms_remotewrite:
+        #   enabled: true
+        #   write_url: >-
+        #     http://{{ hostvars[groups['mimir'][0]].ansible_host
+        #               | default(groups['mimir'][0]) }}:8080/api/v1/push
+        #   read_url: >-
+        #     http://{{ hostvars[groups['mimir'][0]].ansible_host
+        #               | default(groups['mimir'][0]) }}:8080/prometheus/api/v1
+        #   # write_url: http://mimir.example.org/api/v1/push
+        #   organization_id: ""
