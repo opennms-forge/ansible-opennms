@@ -92,12 +92,28 @@ exactly as it did before clustering was added.
 
 ### Inventory & Variables
 
-- `inventory/opennms-stack.yml` — Full stack on a single host
-- `inventory/simple-stack.yml` — Simplified topology
+- `inventory/opennms-stack.yml` — The reference topology: database, broker, Core and Minion on four separate hosts, endpoints and reachability values filled in
+- `inventory/simple-stack.yml` — Colocated test rig, everything on one host, every endpoint left at `localhost`
 - `inventory/minion.yml` — Minion-only deployment
-- `inventory/group_vars/opennms_stack/vars.yml` — Stack-level overrides (see comments in file for all tunables)
+- `inventory/smoke-orbstack.yml` — Local single-machine smoke test against OrbStack
+- `inventory/group_vars/opennms_stack/vars.yml` — Stack-wide values only: the vault-backed credentials, plus documentation of the per-feature tunables
 
 Role defaults live in `roles/<role>/defaults/main.yml`.
+
+**Endpoints and cluster shape.** These are different kinds of fact and they are declared in different places, which is deliberate.
+
+*Endpoints* — the database host, Kafka bootstrap servers, `elasticUrl`, the remote_write URLs — are declared in the inventory, in each inventory file's own group `vars:` blocks.
+Roles keep literal defaults (`opennms_datasource_db_host: localhost`) and look up no groups, so a role installed standalone from Galaxy has no behaviour that depends on an inventory group's name.
+Past the POC case a service endpoint is not a host at all: it is a VIP, a connection pooler or a DNS name, none of which appear in an inventory, so deriving one in a role would be right only for the toy topology.
+
+*Cluster shape* — which hosts form the Kafka quorum, the Elasticsearch seed list, the Mimir memberlist — is derived by the roles from group membership, because the group is definitionally the answer and nothing else knows it.
+
+`opennms_sentinel`'s Kafka bootstrap list predates this split and derives from `sentinel_kafka_group`.
+It is the one endpoint that is genuinely a member set, and it is the only part of issue #171's original proposal worth revisiting.
+
+Per-topology values do not go in `inventory/group_vars/`: all four inventories share that directory, so one topology's addresses would leak into another's.
+
+See issue #171 and `openspec/changes/make-distributed-deployments-viable/design.md` for the full reasoning.
 
 ### Role Task Layout
 

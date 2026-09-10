@@ -83,6 +83,36 @@ For evaluation and CI the collection ships stub roles that stand up the services
 
 For real deployments, plug in your own PostgreSQL, Kafka, Elasticsearch, and Grafana roles instead of the stubs.
 
+## 🗺 Shipped inventories
+
+Four inventories ship with the source repository.
+
+| File | What it is | What it expects of you |
+|---|---|---|
+| `inventory/opennms-stack.yml` | **The reference topology.** Database, Kafka broker, Core and Minion on four separate hosts, with every endpoint and reachability value filled in. Deploys unedited once the addresses are yours. | Replace the four `ansible_host` addresses; narrow `postgres_hba_permissions_v4` to your network. |
+| `inventory/simple-stack.yml` | A test rig that colocates every service on one host. Every endpoint stays at `localhost`, so it needs no name resolution. A colocated Minion has no segment to isolate, so this is not a deployment pattern. | Replace the one `ansible_host` address, and set a Grafana admin password (`grafana_ini.security.admin_password`) or drop the `grafana` group. |
+| `inventory/minion.yml` | A Minion on its own, for adding a site to a Core that already exists. | Replace the address and point the Minion's Kafka bootstrap servers at your broker. |
+| `inventory/smoke-orbstack.yml` | A local single-machine smoke test against an OrbStack machine. | Nothing, if you have OrbStack; it is not meant as an example. |
+
+Endpoints are declared in the inventory, next to the hosts they name, rather than derived inside the roles.
+Each role keeps a literal default, so a role installed on its own from Galaxy behaves the same whether or not an inventory group of a given name exists.
+Cluster *shape* is the opposite case and is derived by the roles from group membership, because the group is the only thing that knows which hosts are members.
+
+Each dependency endpoint has one variable that carries it:
+
+| Dependency | Consumed by | Variable | Role default |
+|---|---|---|---|
+| PostgreSQL | `opennms_core`, `opennms_sentinel` | `opennms_datasource_db_host` (plus `_port`, `_name`) | `localhost` |
+| Kafka | `opennms_core` | `opennms_properties_message_broker["org.opennms.core.ipc.kafka.bootstrap.servers"]` | `localhost:9092` |
+| Kafka | `opennms_minion` | `opennms_minion_kafka["bootstrap.servers"]` | `localhost:9092` |
+| Kafka | `opennms_sentinel` | `opennms_sentinel_kafka["bootstrap.servers"]` | derived from the `message_broker` group |
+| Elasticsearch | `opennms_core` or `opennms_sentinel` | `opennms_elastic_flows.elasticUrl` | unset — flows off |
+| Mimir / VictoriaMetrics | `opennms_core` | `opennms_remotewrite.write_url`, `.read_url` | `http://localhost:8080/…`, disabled |
+
+Two server-side settings decide whether those endpoints work at all, and both live with the service rather than with its client:
+`postgres_listen_addresses` and `postgres_hba_permissions_v4` on the database host, and `kafka_server_properties["advertised.listeners"]` on the broker.
+The broker's is an *advertise* address — the one it hands back to a client, which then reconnects to it — so leaving it at `localhost` sends every remote client back to itself.
+
 ## 🔐 First-time setup: bootstrap database credentials
 
 The collection ships no plaintext database passwords. Before your first deployment, run the bootstrap playbook against your inventory to generate strong random credentials and store them in an Ansible Vault file:
