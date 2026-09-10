@@ -1,0 +1,16 @@
+---
+render_role: opennms_minion
+
+# The two files whose *content* differs per role, driven by that role's package
+# list. Nothing covered them before, and `ansible-lint` cannot: the YAML is
+# valid whichever list the template is handed, and the file it produces is
+# well-formed whichever packages it names.
+#
+# The three pin-* fixtures exist as a set. Covering one role would pass while
+# the values reaching the other two were wrong, which is the failure mode the
+# shared variable name produced.
+render_files:
+  - name: apt-preferences-opennms
+    src: etc/apt-preferences-opennms.j2
+  - name: apt-unattended-blacklist
+    src: etc/apt-unattended-blacklist.j2

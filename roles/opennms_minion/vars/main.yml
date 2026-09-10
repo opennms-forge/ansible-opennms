@@ -1,16 +1,4 @@
 ---
-# Brokers in a stable order, so every Sentinel renders the same bootstrap list.
-_sentinel_brokers: "{{ groups[sentinel_kafka_group] | default([]) | sort }}"
-
-# host-01:9092,host-02:9092,... Falls back to the previous hard-coded value
-# when no broker group is present, so an inventory without one is unaffected.
-# Sentinel runs as a host process, so the lab's /etc/hosts resolves these names
-# — unlike the containerised roles, where Docker's resolver ignores that file.
-_sentinel_bootstrap_servers: >-
-  {{ (_sentinel_brokers | map('regex_replace', '$', ':' ~ sentinel_kafka_port) | join(','))
-     if (_sentinel_brokers | length) > 0
-     else 'localhost:' ~ sentinel_kafka_port }}
-
 # The two APT file paths this role owns, derived from one constant rather than
 # taken from the inventory.
 #
@@ -23,6 +11,6 @@ _sentinel_bootstrap_servers: >-
 # `vars/` rather than a role-prefixed default, because there is no reason to
 # choose these paths. Prefixing would leave three knobs nobody wants, each
 # still able to collide with the others. See the transition guard in tasks.
-opennms_component: sentinel
+opennms_component: minion
 _opennms_apt_preferences_file: /etc/apt/preferences.d/99-opennms-{{ opennms_component }}.pref
 _opennms_unattended_blacklist_file: /etc/apt/apt.conf.d/51-opennms-{{ opennms_component }}-blacklist

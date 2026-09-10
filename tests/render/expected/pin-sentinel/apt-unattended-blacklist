@@ -49,7 +49,5 @@
 # Set opennms_unattended_upgrade_blacklist: false to remove this file. That
 # re-exposes both moves described above.
 Unattended-Upgrade::Package-Blacklist {
-{% for pkg in opennms_minion_pinned_packages %}
-    "{{ pkg }}$";
-{% endfor %}
+    "opennms-sentinel$";
 };

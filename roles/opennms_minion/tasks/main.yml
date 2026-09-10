@@ -7,6 +7,30 @@
 # tasks keep being filtered by their own tags, so the union widens what can be
 # reached, never what runs. Add a tag inside one of these files and add it here
 # too.
+# Transition guards for #170's variable scoping. Remove them a release or two
+# after this ships, as the `opennms_repo_major` guard from #181 is.
+#
+# Both catch a value that would now be dropped in silence. That silence is the
+# defect this change removes: a stale line keeps parsing, the run succeeds, and
+# the pin the operator configured stops protecting anything.
+- name: Fail when the removed shared pinning variables are still set
+  ansible.builtin.assert:
+    that:
+      - opennms_pinned_packages is not defined
+      - opennms_apt_preferences_file is not defined
+      - opennms_unattended_blacklist_file is not defined
+    fail_msg: >-
+      This role no longer reads the shared pinning variables. Each of the three
+      OpenNMS roles held a different value under the same name, so one entry in
+      `group_vars` reached all of them: the package list replaced every role's
+      list, and the two paths collapsed three files into one whose contents the
+      last role to run decided. Use `opennms_minion_pinned_packages` for this
+      role's list. The two file paths are no longer configurable, because a
+      per-role path is what keeps the roles from overwriting each other.
+    quiet: true
+  tags:
+    - always
+
 - name: Verify the host clock is synchronised
   ansible.builtin.include_role:
     name: timesync
@@ -56,7 +80,7 @@
 - name: Pin OpenNMS packages to {{ opennms_version }}
   ansible.builtin.template:
     src: etc/apt-preferences-opennms.j2
-    dest: "{{ opennms_apt_preferences_file }}"
+    dest: "{{ _opennms_apt_preferences_file }}"
     owner: root
     group: root
     mode: "0644"
@@ -73,7 +97,7 @@
 - name: Blacklist OpenNMS packages from unattended-upgrades
   ansible.builtin.template:
     src: etc/apt-unattended-blacklist.j2
-    dest: "{{ opennms_unattended_blacklist_file }}"
+    dest: "{{ _opennms_unattended_blacklist_file }}"
     owner: root
     group: root
     mode: "0644"
@@ -87,7 +111,7 @@
 # so the operator's opt-out would silently do nothing.
 - name: Remove the unattended-upgrades blacklist when disabled
   ansible.builtin.file:
-    path: "{{ opennms_unattended_blacklist_file }}"
+    path: "{{ _opennms_unattended_blacklist_file }}"
     state: absent
   when: not opennms_unattended_upgrade_blacklist | bool
   tags:

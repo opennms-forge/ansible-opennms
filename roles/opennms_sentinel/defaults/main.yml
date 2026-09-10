@@ -78,9 +78,8 @@ opennms_sentinel_kafka:
 # OpenNMS packages pinned by the APT preferences file this role writes, so a
 # routine `apt upgrade` cannot move them. System packages (rrdtool, jrrd2,
 # iplike) are deliberately excluded — they should still receive security fixes.
-opennms_pinned_packages:
+opennms_sentinel_pinned_packages:
   - opennms-sentinel
-opennms_apt_preferences_file: /etc/apt/preferences.d/99-opennms-sentinel.pref
 
 # The `Origin:` field the repository publishes, which the pin's exclusion tier
 # keys on. Not a hostname: `Pin: origin <host>` matches the site, so keying on
@@ -105,9 +104,3 @@ opennms_pin_origin: OpenNMS
 # both moves. It does not affect the cross-major protection, which is the
 # preferences file's -1 tier.
 opennms_unattended_upgrade_blacklist: true
-
-# One file per role. APT accumulates list entries across apt.conf.d rather than
-# letting the last definition win, so a single-host stack running several
-# OpenNMS roles gets the union of their packages. A shared filename would mean
-# whichever role ran last decided the contents.
-opennms_unattended_blacklist_file: /etc/apt/apt.conf.d/51-opennms-sentinel-blacklist
