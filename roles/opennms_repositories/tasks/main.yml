@@ -1,4 +1,27 @@
 ---
+# `opennms_repo_major` was removed when the dist started deriving from
+# `opennms_version`. Nothing reads it, so an operator who set it would keep a
+# line in their inventory that silently stopped doing anything, and their first
+# run would move the source to a different major with no message — which is the
+# failure this whole change exists to remove, arriving through the upgrade
+# rather than through a nested include. Refusing to run says it once instead.
+#
+# Remove this guard a release or two after the removal ships.
+- name: Fail when the removed opennms_repo_major is still set
+  ansible.builtin.assert:
+    that:
+      - opennms_repo_major is not defined
+    fail_msg: >-
+      `opennms_repo_major` has been removed. The APT dist now derives from
+      `opennms_version`, so the source and the version pin cannot name
+      different majors. Drop it, and set `opennms_version` if you were using it
+      to choose a release. If you were pointing at a mirror whose layout
+      differs, `opennms_repo_dist` is unchanged and is the supported override
+      for that.
+    quiet: true
+  tags:
+    - always
+
 # Installed here rather than in `common` because this role is the gpg consumer
 # and is included by every component role — the targeted playbooks
 # (hzn-*-deployment.yml) and standalone Galaxy consumers never run `common`.
@@ -136,6 +159,59 @@
       changed_when: false
       check_mode: false
 
+# One host carries one OpenNMS major.
+#
+# The packaging does not enforce it: opennms-minion and opennms-sentinel
+# declare no dependency on any OpenNMS package, so apt would happily carry a
+# Core at one major beside a Minion at another. The constraint is this
+# collection's, and it is what makes a single converging sources file correct
+# rather than a last-writer-wins race.
+#
+# The check compares against a fact rather than the file on disk, which is what
+# makes a deliberate major upgrade need no exemption: the first role of a run
+# establishes the major whatever the host previously carried, and only a second
+# role wanting a different one is an error. Facts are per host, so on a
+# topology that runs each component on its own host nothing is ever compared.
+- name: Fail when a second role wants a different OpenNMS repository on this host
+  ansible.builtin.assert:
+    that:
+      - _opennms_repo_run_dist == _opennms_repo_effective_dist
+    fail_msg: >-
+      A host carries one OpenNMS repository. `{{ _opennms_repo_run_writer }}`
+      has already configured this host for `{{ _opennms_repo_run_dist }}` in
+      this run, and `{{ _opennms_repo_caller }}` is asking for
+      `{{ _opennms_repo_effective_dist }}`. Both write
+      /etc/apt/sources.list.d/{{ opennms_repo_filename }}.list, so the last role
+      to run would decide it for all of them and the other's version pin would
+      stop matching anything fetchable. If the two dists name different majors,
+      set one `opennms_version` for this host or give the components hosts of
+      their own; if they differ some other way, such as one group overriding
+      `opennms_repo_dist` for a mirror, make that override cover the host
+      rather than one group.
+    quiet: true
+  when: _opennms_repo_run_dist is defined
+  tags:
+    - opennms
+    - repository
+
+# Only a caller that brought its own `opennms_version` establishes the major. A
+# role that resolved the fallback has no opinion about the release — it wants a
+# source so it can install something that exists in every dist — and letting it
+# decide produced a false failure the first time this ran: `stub_pgsql` runs in
+# the first play of the stack playbook, so on a colocated host it recorded the
+# fallback and then failed the Core play for disagreeing with a major nobody
+# had chosen. It still writes the source it needs; it just does not get a vote.
+- name: Record the OpenNMS repository this run established for the host
+  ansible.builtin.set_fact:
+    _opennms_repo_run_dist: "{{ _opennms_repo_effective_dist }}"
+    _opennms_repo_run_writer: "{{ _opennms_repo_caller }}"
+  when:
+    - _opennms_repo_run_dist is not defined
+    - opennms_version is defined
+  tags:
+    - opennms
+    - repository
+
 # Cleared *before* the install below, and the order is load-bearing.
 #
 # `apt_repository` is idempotent on the source *line*, not on the filename: it
@@ -182,12 +258,17 @@
 #   - asked for a new dist with the same filename, it appended, leaving the
 #     previous major's line enabled alongside the new one.
 #
-# Either behaviour defeats the point of owning the file. `copy` with explicit
-# content converges it in one step, whatever the previous dist was.
+# Either behaviour defeats the point of owning the file. Rendering a template
+# over it converges it in one step, whatever the previous dist was.
+#
+# A template rather than inline `content:` so the render harness can cover it.
+# The line the collection got wrong here was the dist, and inline content is
+# not reachable from `tests/check-rendered-config.yml`, which renders a role's
+# templates. Same move as the Pyroscope env stanza, for the same reason.
 - name: Install the OpenNMS APT source
-  ansible.builtin.copy:
+  ansible.builtin.template:
+    src: opennms.list.j2
     dest: "/etc/apt/sources.list.d/{{ opennms_repo_filename }}.list"
-    content: "deb [arch={{ arch }} signed-by={{ opennms_key_ring_file }}] {{ opennms_repo_url }} {{ opennms_repo_dist }} main\n"
     owner: root
     group: root
     mode: "0644"

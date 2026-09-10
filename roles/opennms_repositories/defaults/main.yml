@@ -33,15 +33,29 @@ opennms_repo_url: https://debian.opennms.org
 # which reclaims the derived names earlier runs left behind.
 opennms_repo_filename: opennms
 
-# Major release line of the OpenNMS APT repository. The component roles pass
-# this at include time, derived from their own `opennms_version`. The default
-# here covers consumers that reach this role without one: `stub_pgsql`, which
-# needs the repository only for `iplike`, and standalone Galaxy installs.
+# Fallback OpenNMS release, used only when no caller defines `opennms_version`:
+# `stub_pgsql` on a database host that runs no component role, `opennms_icmp`
+# installed standalone from Galaxy, and direct consumers of this role.
 #
-# Deliberately a bare major, not a full version — a full version would be a
-# fourth place the OpenNMS release is written down, and drift between a value
-# and the thing consuming it is exactly what this pinning work exists to stop.
-opennms_repo_major: "36"
+# A full version rather than a bare major, and under a name of its own rather
+# than `opennms_version`. Both are load-bearing.
+#
+# The bare major it replaces was maintained by nobody. Renovate's custom
+# manager updates every annotated occurrence of the release together, so the
+# three component roles moved and this one did not, and the dist stopped
+# matching the version pin. An annotated full version cannot drift; an
+# unannotated major is the only thing here that could.
+#
+# The distinct name is what keeps the resolution unambiguous. Restating
+# `opennms_version` here would put two role defaults under one name and leave
+# which one wins to role load order, and passing it through as
+# `opennms_version: "{{ opennms_version }}"` at include time is a recursive
+# definition — measured, it raises "recursive loop detected in template".
+# Under a different name the caller's value simply wins, because this one is
+# consulted only when there is no caller value at all.
+#
+# renovate: datasource=github-tags depName=OpenNMS/opennms extractVersion=^opennms-(?<version>\d+\.\d+\.\d+)-\d+$
+opennms_repo_fallback_version: 36.0.4
 
 # Explicit per-major dist rather than the `stable` alias. `stable` floats: it
 # resolves to opennms-36 today, and dists opennms-34/35/36 show it has moved
@@ -49,4 +63,14 @@ opennms_repo_major: "36"
 # version jump once `stable` follows opennms-37. Using the explicit dist also
 # silences apt's "Conflicting distribution ... expected stable but got
 # opennms-NN" warning.
-opennms_repo_dist: "opennms-{{ opennms_repo_major }}"
+#
+# Derived from the caller's own `opennms_version`, so the source line and the
+# version pin resolve from one fact and cannot name different majors. Still
+# overridable outright, which is the supported way to point at a mirror whose
+# layout differs.
+#
+# `default(..., true)` rather than a plain default: an `opennms_version` that
+# is defined but empty would otherwise render `opennms-`, and apt reports that
+# as an unsigned repository three tasks later rather than as the empty version
+# it is. Measured while testing the fallback path.
+opennms_repo_dist: "opennms-{{ (opennms_version | default(opennms_repo_fallback_version, true)).split('.')[0] }}"

@@ -1,0 +1,6 @@
+---
+render_canary: fixture
+
+# The next major, not a real release. The template is rendered with no network,
+# so this only has to be a version string the derivation has to follow.
+opennms_version: 37.0.0

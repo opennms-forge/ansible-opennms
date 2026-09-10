@@ -27,14 +27,23 @@
   tags:
     - java
 
+# No `vars:` block. `opennms_repositories` derives its dist from
+# `opennms_version`, which is this role's own variable and is already in scope
+# here, so the caller's release reaches it without being restated. The
+# repository role's fallback lives under a name of its own, so there is no
+# second definition of `opennms_version` for load order to choose between, and
+# `opennms_version: "{{ opennms_version }}"` could not be passed anyway: a
+# self-referential include var raises "recursive loop detected in template".
+#
+# Scope is what makes this work through `opennms_icmp` as well, which includes
+# the repository role again on its own account. A value passed on an
+# `include_role` reaches that role and everything nested inside it but not a
+# sibling include that follows, so the previous explicit pass reached the
+# include below and not the one inside `opennms_icmp` — which then resolved a
+# default that nothing kept current, and rewrote the source at the wrong major.
 - name: Include OpenNMS repository roles
   ansible.builtin.include_role:
     name: opennms_repositories
-  vars:
-    # This role's own OpenNMS release decides which repository major to use.
-    # Passed at include time rather than left to defaults precedence between
-    # two roles, which depends on load order.
-    opennms_repo_major: "{{ opennms_version.split('.')[0] }}"
   tags:
     - opennms
     - repository

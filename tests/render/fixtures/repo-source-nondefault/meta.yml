@@ -1,0 +1,15 @@
+---
+render_role: opennms_repositories
+
+# The APT source line, rendered for the release *after* the one the collection
+# currently ships. That is the case this fixture exists for: only the latest
+# Horizon release is supported, so every deployment follows the next major, and
+# Renovate is what moves it. It updates every `opennms_version` carrying a
+# `# renovate:` annotation and nothing else, so anything else that has to agree
+# with the release is a break scheduled for the next bump.
+#
+# A fixture at the shipped major cannot detect that, because the right answer
+# and the wrong answer are the same string.
+render_files:
+  - name: opennms.list
+    src: opennms.list.j2
