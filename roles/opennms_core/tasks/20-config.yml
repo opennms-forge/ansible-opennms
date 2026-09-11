@@ -1,3 +1,5 @@
+# Copyright 2023 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
 ---
 - name: Configure time series backend for OpenNMS {{ opennms_distribution }}
   ansible.builtin.template:

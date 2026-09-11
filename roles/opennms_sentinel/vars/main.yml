@@ -1,3 +1,5 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
 ---
 # Brokers in a stable order, so every Sentinel renders the same bootstrap list.
 _sentinel_brokers: "{{ groups[sentinel_kafka_group] | default([]) | sort }}"

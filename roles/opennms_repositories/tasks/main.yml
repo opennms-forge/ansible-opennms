@@ -1,3 +1,5 @@
+# Copyright 2023 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
 ---
 # `opennms_repo_major` was removed when the dist started deriving from
 # `opennms_version`. Nothing reads it, so an operator who set it would keep a

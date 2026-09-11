@@ -1,3 +1,5 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
 ---
 # Cluster members, in a stable order so every node renders the same seed list.
 # Falls back to this host alone when the group is absent, which keeps the role

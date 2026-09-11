@@ -1,3 +1,5 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
 ---
 # Optional remediation, and it runs *before* the check so that opting in can
 # actually fix what the check would otherwise fail on. Off by default: see the

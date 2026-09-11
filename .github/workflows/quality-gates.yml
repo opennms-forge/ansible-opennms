@@ -1,3 +1,5 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
 ---
 # The one definition of what must pass. ci.yml calls it on every pull request
 # and push to main, and galaxy-release.yml calls it before publishing, so a

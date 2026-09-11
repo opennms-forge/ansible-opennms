@@ -1,3 +1,5 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
 ---
 openjdk_version: 21
 openjdk_pkg_version: "{{ openjdk_version }}*"

@@ -1,3 +1,5 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
 ---
 # Installed unconditionally, like the JMX Prometheus exporter jar above it: the
 # jar on disk does nothing until PYROSCOPE_AGENT_ENABLED turns it on, so there

@@ -1,3 +1,5 @@
+# Copyright 2023 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
 ---
 - name: Allow all receiving SNMP traps on port 10162/udp
   community.general.ufw:

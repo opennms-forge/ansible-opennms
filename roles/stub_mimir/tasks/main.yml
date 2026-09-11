@@ -1,3 +1,5 @@
+# Copyright 2023 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
 ---
 # Names this role stopped using when its lifecycle moved to
 # indigo423.grafana.mimir. Refused rather than ignored: a variable nobody reads

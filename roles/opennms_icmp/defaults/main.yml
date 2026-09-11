@@ -1,3 +1,5 @@
+# Copyright 2023 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
 ---
 # Track whatever jicmp/jicmp6 the configured OpenNMS repo offers rather than
 # pinning a major. A frozen major (e.g. 3.*) becomes a downgrade — and apt
