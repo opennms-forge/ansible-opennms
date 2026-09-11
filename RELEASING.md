@@ -149,8 +149,20 @@ Before tagging a release, two files must be updated in the same PR that bumps ro
 
 1. Open a PR with all role-default bumps, the `CLAUDE.md` Component Versions update, **and** the `galaxy.yml` version bump.
 2. Merge to `main`.
-3. Create the GitHub release at `main` HEAD (see *Cutting a release* above). The `galaxy-release` workflow fires on the `release: published` event, runs the version-match check, builds the collection (`ansible-galaxy collection build`), and publishes the artifact to Galaxy.
-4. Verify the new version appears at https://galaxy.ansible.com/ui/repo/published/indigo423/opennms/ within a couple of minutes.
+3. Create the GitHub release at `main` HEAD (see *Cutting a release* above). The `galaxy-release` workflow fires on the `release: published` event. It runs the same quality gates as pull requests (`quality-gates.yml`) and publishes nothing if one fails. It then runs the version-match check, builds the collection (`ansible-galaxy collection build`), records SLSA build provenance for the tarball, publishes it to Galaxy, and attaches the same tarball to the GitHub release.
+4. Verify the new version appears at https://galaxy.ansible.com/ui/repo/published/indigo423/opennms/ within a couple of minutes, and that the tarball is attached to the release.
+
+### Verifying a published tarball
+
+Every tarball the workflow publishes carries a build provenance attestation, signed with the workflow's OIDC identity and stored in the repository's attestation log. Galaxy serves the uploaded bytes unchanged, so the check works on a download from Galaxy or from the GitHub release:
+
+```bash
+curl -sLo indigo423-opennms-X.Y.Z.tar.gz \
+  "https://galaxy.ansible.com/api/v3/plugin/ansible/content/published/collections/artifacts/indigo423-opennms-X.Y.Z.tar.gz"
+gh attestation verify indigo423-opennms-X.Y.Z.tar.gz --repo opennms-forge/ansible-opennms
+```
+
+A passing verification proves the file was built by `.github/workflows/galaxy-release.yml` in this repository from the commit the attestation names. It does not sign the Galaxy listing itself; Galaxy has no signature slot for collections.
 
 ### Republishing or recovering a failed run
 
