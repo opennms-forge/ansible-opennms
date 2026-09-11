@@ -1,0 +1,15 @@
+{# Not deployed to any host. Rendered only by `make check-render`.
+
+   The Mimir configuration file is rendered by indigo423.grafana.mimir from the
+   dicts this role assembles in vars/main.yml, so the file itself belongs to the
+   fork and its tests. What this collection owns is the derivation — the sorted
+   join list, the replication factor capped at three, the address in every
+   ring, multitenancy off — and that is what the fixtures under
+   tests/render/fixtures/mimir-* pin. sort_keys=True so the recorded expectation
+   does not depend on dict construction order. #}
+{% for name in ['server', 'limits', 'ingester', 'distributor', 'ruler', 'alertmanager',
+                'memberlist', 'blocks_storage', 'ruler_storage', 'alertmanager_storage',
+                'config_extra'] %}
+{{ name }}:
+{{ lookup('vars', '_mimir_' ~ name) | to_nice_yaml(indent=2, sort_keys=True) | indent(2, True) }}
+{% endfor %}

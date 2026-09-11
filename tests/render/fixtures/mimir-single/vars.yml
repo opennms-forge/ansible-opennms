@@ -1,0 +1,6 @@
+---
+render_canary: fixture
+# Set directly: the harness gathers no facts, so the default-route fallback the
+# role would otherwise use is unavailable, exactly as on a gather_facts: false
+# play. A documentation-range address, so nothing can accidentally resolve.
+mimir_instance_addr: 192.0.2.10

@@ -1,6 +1,12 @@
 ---
 profile: production
 
+# Recorded output of `make check-render`, compared byte for byte. Not authored
+# YAML: to_nice_yaml's list indentation is not yamllint's, and reformatting an
+# expectation would only make it stop matching what the roles render.
+exclude_paths:
+  - tests/render/expected/
+
 skip_list:
   - yaml[line-length]
   - var-naming[no-role-prefix]

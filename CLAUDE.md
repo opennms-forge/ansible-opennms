@@ -78,7 +78,7 @@ them, that is the signal.
 - `stub_pgsql` — PostgreSQL 18 with OpenNMS database/user
 - `stub_kafka` — Kafka 4.2.0 in KRaft mode; single broker, or a cluster derived from `kafka_cluster_group`
 - `stub_elasticsearch` — Elasticsearch for flow data; single node, or a cluster derived from `es_cluster_group`
-- `stub_mimir` — Grafana Mimir 3.0.4; single-node monolithic, or distributed via memberlist with shared S3 storage (`mimir_s3_endpoint`)
+- `stub_mimir` — Grafana Mimir; single-node monolithic, or distributed via memberlist with shared S3 storage (`mimir_s3_endpoint`). A wrapper: it keeps the start-limit drop-in, the ring addressing and the group-derived cluster shape, and delegates package, config file, restart and readiness to `indigo423.grafana.mimir`
 - `stub_victoriametrics` — VictoriaMetrics 1.150.0, single-node
 - `stub_pyroscope` — Grafana Pyroscope 2.3.1, single-node monolithic; receives the profiles the Horizon components push via `pyroscope_agent`
 
@@ -133,7 +133,7 @@ Templates for OpenNMS config go in `roles/opennms_core/templates/etc/opennms.pro
 External collections (`requirements.yml`):
 - `community.postgresql` v4.2.0 — used by `stub_pgsql` and `opennms_core` for database setup
 - `community.general` v13.3.0 — general utilities
-- `indigo423.grafana` v7.0.0 — Grafana installation and provisioning (fork of `grafana.grafana`)
+- `indigo423.grafana` v7.2.0 — Grafana and Mimir installation (fork of `grafana.grafana`)
 
 ## Key Versions
 
@@ -144,7 +144,7 @@ External collections (`requirements.yml`):
 | Kafka | 4.2.0 (KRaft) |
 | OpenJDK | 21 |
 | Grafana | 13.2.1 |
-| Grafana Mimir | 3.0.4 |
+| Grafana Mimir | 3.2.1 (inherited from `indigo423.grafana`; override with `mimir_version`) |
 | VictoriaMetrics | 1.151.0 |
 | Prometheus JMX Exporter | 1.6.0 |
 | OpenNMS Prometheus remote_write plugin | 2.1.0 |

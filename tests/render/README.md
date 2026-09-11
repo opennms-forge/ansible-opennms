@@ -38,8 +38,12 @@ tests/
 | `distributed` | `opennms_sentinel` → Kafka sink cfg, `pyroscope-env` | the one existing inventory-derived address — three brokers joined, sorted despite being declared out of order — and Sentinel's copy of the Pyroscope stanza |
 | `kafka-single` | `stub_kafka` → `server.properties` | that a single-member group still renders the pre-clustering single-node form |
 | `kafka-cluster` | `stub_kafka` → `server.properties` | the cluster form: sorted quorum voters with stable node ids, replication 3, min.isr 2 |
+| `mimir-single` | `stub_mimir` → `mimir-dicts.yml` | the dicts handed to `indigo423.grafana.mimir` for one node: memberlist carrying only the advertise address, in-memory rings, replication 1, filesystem storage, an address in every ring, multitenancy off |
+| `mimir-cluster` | `stub_mimir` → `mimir-dicts.yml` | the cluster form: sorted `join_members` from members declared out of order, replication 3, memberlist rings, S3 storage |
 
-The last two are a pair on purpose. Either alone would pass while the shape logic was broken; the difference between them is the assertion.
+The Kafka pair and the Mimir pair exist for the same reason. Either alone would pass while the shape logic was broken; the difference between them is the assertion.
+
+The Mimir fixtures render a template that is never deployed, `_check-render-dicts.yml.j2`: the configuration file itself is rendered by `indigo423.grafana.mimir` and is that role's test to keep, so what is pinned here is the derivation this collection owns rather than the fork's formatting.
 
 The two `pyroscope-env` fixtures are a pair for a different reason: the Minion and Sentinel roles render the same stanza from two template files, so they are given the **same** values deliberately. The expectations should differ only in the jar path and the application name, and anything else diverging is a defect.
 

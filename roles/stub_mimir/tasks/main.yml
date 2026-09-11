@@ -1,4 +1,27 @@
 ---
+# Names this role stopped using when its lifecycle moved to
+# indigo423.grafana.mimir. Refused rather than ignored: a variable nobody reads
+# keeps parsing, and the operator finds out at the next incident instead of the
+# next deployment.
+- name: Refuse variable names this role no longer reads
+  ansible.builtin.assert:
+    that:
+      - mimir_http_port is not defined
+      - mimir_data_dir is not defined
+      - mimir_arch is not defined
+      - mimir_pkg_url is not defined
+    fail_msg: >-
+      stub_mimir delegates the Mimir install to indigo423.grafana.mimir and no
+      longer reads one or more of the variables set here.
+      mimir_http_port is now mimir_http_listen_port.
+      mimir_data_dir is now mimir_working_path.
+      mimir_arch has no replacement; the architecture is derived from facts.
+      mimir_pkg_url has no replacement here; a mirror sets the fork's
+      mimir_download_url_deb directly.
+    quiet: true
+  tags:
+    - always
+
 # A cluster cannot use the filesystem backend: each node would write blocks to
 # its own disk, so ingesters, store-gateways and compactors would never see the
 # same data. Caught here rather than as confusing query gaps later.
@@ -34,9 +57,10 @@
       interfaces [eth0, en0] and would not start on a host addressed outside
       the RFC 1918 ranges. It defaults to lab_mgmt_ip, then to
       ansible_default_ipv4.address — the latter is unavailable here, which
-      usually means the play runs with gather_facts disabled. Set
-      mimir_instance_addr to the address this node should advertise to its
-      peers and to its own rings.
+      usually means the play runs with gather_facts disabled. Gather facts:
+      the delegated indigo423.grafana.mimir role reads the OS family and the
+      architecture from them and cannot run without. Setting
+      mimir_instance_addr alone satisfies this check but not that role.
   tags:
     - always
 
@@ -82,23 +106,6 @@
     - mimir
     - systemd
 
-- name: Install a Mimir package
-  ansible.builtin.apt:
-    deb: '{{ mimir_pkg_url }}'
-  tags:
-    - mimir
-    - systemd
-- name: Ensure the Mimir data directory exists
-  ansible.builtin.file:
-    path: "{{ mimir_data_dir }}"
-    state: directory
-    owner: mimir
-    group: mimir
-    mode: "0750"
-  tags:
-    - mimir
-    - configuration
-
 # Heals a host locked out by a run made before the drop-in existed: its unit is
 # in failed state with an exhausted start counter, and no amount of correct
 # configuration will start it until that is cleared. A no-op on a healthy unit.
@@ -117,49 +124,51 @@
     - mimir
     - systemd
 
-- name: Configure Mimir as a single-node monolithic backend
-  ansible.builtin.template:
-    src: config.yml.j2
-    dest: /etc/mimir/config.yml
-    owner: mimir
-    group: mimir
-    mode: "0640"
-  notify:
-    - Restart mimir
+# Everything from here on is the fork's: package, /etc/mimir/config.yml
+# (validated with `mimir -modules` before it lands), restart on change, start,
+# and the wait for /ready. The dicts come from vars/main.yml; the deployment
+# shape is already folded into them, so one include serves both.
+#
+# mimir_http_listen_port and mimir_working_path are not passed: both roles
+# default them to the same values, an inventory override outranks either
+# default, and naming a variable with its own value here recurses.
+#
+# `apply:` carries the tags into the fork's tasks. Tags on the include task
+# alone decide only whether the include is entered; the tasks inside are
+# untagged and a --tags run would filter every one of them out, leaving a
+# host with the drop-in and nothing else while the play reports success.
+- name: Deploy Mimir through indigo423.grafana.mimir
+  ansible.builtin.include_role:
+    name: indigo423.grafana.mimir
+    apply:
+      tags:
+        - mimir
+        - systemd
+        - configuration
+  vars:
+    # `all` alone, as the retired template ran. The fork's default also runs
+    # the alertmanager and overrides-exporter modules, which OpenNMS never
+    # calls; the alertmanager module would also make its S3 bucket a startup
+    # dependency on a cluster.
+    mimir_target: all
+    # The file carries the S3 access key and secret when a bucket is
+    # configured. The retired template task wrote 0640; the fork's default
+    # is 0644.
+    mimir_config_mode: "0640"
+    mimir_ready_retries: "{{ mimir_startup_retries }}"
+    mimir_ready_delay: "{{ mimir_startup_delay }}"
+    mimir_server: "{{ _mimir_server }}"
+    mimir_limits: "{{ _mimir_limits }}"
+    mimir_memberlist: "{{ _mimir_memberlist }}"
+    mimir_ingester: "{{ _mimir_ingester }}"
+    mimir_distributor: "{{ _mimir_distributor }}"
+    mimir_ruler: "{{ _mimir_ruler }}"
+    mimir_alertmanager: "{{ _mimir_alertmanager }}"
+    mimir_blocks_storage: "{{ _mimir_blocks_storage }}"
+    mimir_ruler_storage: "{{ _mimir_ruler_storage }}"
+    mimir_alertmanager_storage: "{{ _mimir_alertmanager_storage }}"
+    mimir_config_extra: "{{ _mimir_config_extra }}"
   tags:
     - mimir
+    - systemd
     - configuration
-
-- name: Enable and start systemd unit for Mimir
-  ansible.builtin.service:
-    name: mimir.service
-    enabled: true
-    state: started
-  tags:
-    - mimir
-    - systemd
-
-# Flushed here so the config-change restart happens before the readiness check
-# below, not after it. Otherwise the check would pass against whatever Mimir
-# was already running and the restart onto the new config would go unverified.
-- name: Restart Mimir now if its configuration changed
-  ansible.builtin.meta: flush_handlers
-
-# Disabling the unit's start rate limit (see the drop-in above) removed the
-# mechanism that used to make a broken Mimir visible: with Restart=always and
-# no limit the unit sits in "activating" forever, and ansible.builtin.service
-# treats that as started. Without this check the play would report success on a
-# host whose Mimir never serves a request. Waits for the endpoint rather than
-# the unit, so the role only claims success once Mimir is actually up.
-- name: Wait for Mimir to become ready
-  ansible.builtin.uri:
-    url: "http://127.0.0.1:{{ mimir_http_port }}/ready"
-    method: GET
-    status_code: 200
-  register: _mimir_ready
-  until: _mimir_ready.status | default(0) == 200
-  retries: "{{ mimir_startup_retries }}"
-  delay: "{{ mimir_startup_delay }}"
-  tags:
-    - mimir
-    - systemd
