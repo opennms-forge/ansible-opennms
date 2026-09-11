@@ -1,3 +1,64 @@
+server:
+  http_listen_port: 8080
+  log_level: warn
+
+limits:
+  ingestion_burst_size: 2000000
+  ingestion_rate: 1000000
+  max_global_series_per_metric: 0
+  max_global_series_per_user: 0
+
+ingester:
+  ring:
+    instance_addr: 192.0.2.10
+    kvstore:
+      store: inmemory
+    replication_factor: 1
+
+distributor:
+  ring:
+    instance_addr: 192.0.2.10
+    kvstore:
+      store: inmemory
+
+ruler:
+  alertmanager_url: http://localhost:8080/alertmanager
+  ring:
+    instance_addr: 192.0.2.10
+    kvstore:
+      store: inmemory
+  rule_path: /var/lib/mimir/data-ruler
+
+alertmanager:
+  data_dir: /var/lib/mimir/data-alertmanager
+  external_url: http://localhost:8080/alertmanager
+  sharding_ring:
+    instance_addr: 192.0.2.10
+    kvstore:
+      store: inmemory
+
+memberlist:
+  advertise_addr: 192.0.2.10
+
+blocks_storage:
+  backend: filesystem
+  bucket_store:
+    sync_dir: /var/lib/mimir/tsdb-sync
+  filesystem:
+    dir: /var/lib/mimir/blocks
+  tsdb:
+    dir: /var/lib/mimir/tsdb
+
+ruler_storage:
+  backend: filesystem
+  filesystem:
+    dir: /var/lib/mimir/ruler
+
+alertmanager_storage:
+  backend: filesystem
+  filesystem:
+    dir: /var/lib/mimir/alertmanager
+
 config_extra:
   compactor:
     data_dir: /var/lib/mimir/compactor
@@ -15,27 +76,3 @@ config_extra:
         store: inmemory
       replication_factor: 1
 
-ingester:
-  ring:
-    instance_addr: 192.0.2.10
-    kvstore:
-      store: inmemory
-    replication_factor: 1
-
-distributor:
-  ring:
-    instance_addr: 192.0.2.10
-    kvstore:
-      store: inmemory
-
-blocks_storage:
-  backend: filesystem
-  bucket_store:
-    sync_dir: /var/lib/mimir/tsdb-sync
-  filesystem:
-    dir: /var/lib/mimir/blocks
-  tsdb:
-    dir: /var/lib/mimir/tsdb
-
-memberlist:
-  advertise_addr: 192.0.2.10

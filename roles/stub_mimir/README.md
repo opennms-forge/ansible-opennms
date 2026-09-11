@@ -19,7 +19,7 @@ What stays here is what a generic Mimir role does not know:
 - `multitenancy_enabled: false`, so OpenNMS can push with no tenant header, and the per-tenant limits sized for a benchmark;
 - the two assertions: a cluster needs shared object storage, and an address must be available.
 
-The fork's template has no named section for `multitenancy_enabled`, `store_gateway`, `compactor` or `frontend`; those travel in its `mimir_config_extra` passthrough, which is why the collection requires `indigo423.grafana` 7.1.0 or newer.
+The fork's template has no named section for `multitenancy_enabled`, `store_gateway`, `compactor` or `frontend`; those travel in its `mimir_config_extra` passthrough. Together with the `target` line and the config file mode, that is why the collection requires `indigo423.grafana` 7.2.0 or newer.
 
 ## Variables
 
@@ -42,7 +42,7 @@ Set `mimir_version` in inventory to override it, the name is the same in both ro
 `mimir_restart_sec` (default `5`) is the interval systemd waits between restarts of `mimir.service`.
 It exists because of the unit override described below.
 
-Two things the fork's role does differently from what this role used to do, both accepted: the working directory is created `0755` rather than `0750`, and the rendered configuration also carries `target: all,alertmanager,overrides-exporter` and the ruler and alertmanager paths the fork always writes.
+Two things differ from what this role used to do, both accepted: the working directory is created `0755` rather than `0750`, and the rendered configuration also carries a `target: all` line and the ruler and alertmanager working paths the fork's role defaults set. The configuration file keeps its `0640`, since it carries the S3 credentials when a bucket is configured.
 
 ## Checking the derivations
 
@@ -55,7 +55,7 @@ Mimir resolves its own advertised address by detecting interfaces that carry a p
 On a host addressed only out of a non-private range — `192.0.2.0/24`, say — the detection finds nothing, the fallback matches no predictable interface name, and Mimir exits with `no useable address found for interfaces [eth0 en0]`.
 
 The role takes that guess away by writing the address explicitly into every ring, into memberlist, and into the query-frontend and alertmanager.
-Memberlist gets it on a single node too: the fork runs Mimir with the alertmanager module enabled, which initialises the memberlist KV service even with in-memory rings, and that service resolves its own address the same way.
+Memberlist gets it on a single node too: with the alertmanager module in Mimir's target set, Mimir initialises the memberlist KV service even with in-memory rings, and that service resolves its own address the same way. The wrapper runs `target: all`, which leaves that module off, and writes the address regardless.
 It is chosen in this order:
 
 | Precedence | Source |

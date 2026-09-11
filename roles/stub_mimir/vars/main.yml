@@ -71,16 +71,17 @@ _mimir_alertmanager:
   external_url: "http://localhost:{{ mimir_http_listen_port }}/alertmanager"
   sharding_ring: "{{ _mimir_ring_common }}"
 
-# memberlist: — on every shape, not only a cluster. The fork's template runs
-# Mimir with `target: all,alertmanager,overrides-exporter`, and with the
-# alertmanager module in that set Mimir initialises its memberlist KV service
-# even when every ring's KV store is inmemory. That service resolves its own
-# advertise address by the same private-range detection as the rings, so on a
-# host without an RFC 1918 interface a single node fails with "no private IP
-# address found, and explicit IP not provided". Measured in a container whose
-# only address was 192.0.2.50; the retired template never enabled the module
-# and so never hit it. A single node gets the address alone; a cluster also
-# gets the port and the join list.
+# memberlist: — on every shape, not only a cluster. With the alertmanager
+# module in Mimir's target set, Mimir initialises its memberlist KV service
+# even when every ring's KV store is inmemory, and that service resolves its
+# own advertise address by the same private-range detection as the rings: on
+# a host without an RFC 1918 interface a single node fails with "no private
+# IP address found, and explicit IP not provided". Measured in a container
+# whose only address was 192.0.2.50, under the fork's default target. The
+# wrapper now runs `target: all`, which leaves that module off, and keeps the
+# address here anyway: it costs one line and removes a dependency on which
+# modules a future target happens to include. A single node gets the address
+# alone; a cluster also gets the port and the join list.
 _mimir_memberlist_cluster:
   bind_port: "{{ mimir_memberlist_port }}"
   advertise_addr: "{{ mimir_instance_addr }}"

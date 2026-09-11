@@ -9,6 +9,12 @@
 #
 # These two are the fork's names for what used to be mimir_http_port and
 # mimir_data_dir. Same values. The old names fail the run, see tasks/main.yml.
+#
+# Declared here so the dicts in vars/main.yml and `make check-render` can
+# resolve them, not as the place to change them: inside the include the fork's
+# own defaults for the same names win over these, and both agree. To move the
+# port or the directory, set the variable in inventory, which outranks either
+# role's default.
 mimir_http_listen_port: 8080
 mimir_working_path: /var/lib/mimir
 

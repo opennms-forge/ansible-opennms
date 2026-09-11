@@ -1,3 +1,82 @@
+server:
+  http_listen_port: 8080
+  log_level: warn
+
+limits:
+  ingestion_burst_size: 2000000
+  ingestion_rate: 1000000
+  max_global_series_per_metric: 0
+  max_global_series_per_user: 0
+
+ingester:
+  ring:
+    instance_addr: 192.0.2.12
+    kvstore:
+      store: memberlist
+    replication_factor: 3
+
+distributor:
+  ring:
+    instance_addr: 192.0.2.12
+    kvstore:
+      store: memberlist
+
+ruler:
+  alertmanager_url: http://localhost:8080/alertmanager
+  ring:
+    instance_addr: 192.0.2.12
+    kvstore:
+      store: memberlist
+  rule_path: /var/lib/mimir/data-ruler
+
+alertmanager:
+  data_dir: /var/lib/mimir/data-alertmanager
+  external_url: http://localhost:8080/alertmanager
+  sharding_ring:
+    instance_addr: 192.0.2.12
+    kvstore:
+      store: memberlist
+
+memberlist:
+  advertise_addr: 192.0.2.12
+  advertise_port: 7946
+  bind_port: 7946
+  join_members:
+  - mimir-01:7946
+  - mimir-02:7946
+  - mimir-03:7946
+
+blocks_storage:
+  backend: s3
+  bucket_store:
+    sync_dir: /var/lib/mimir/tsdb-sync
+  s3:
+    access_key_id: fixture-key
+    bucket_name: mimir-blocks
+    endpoint: rustfs.example.test:9000
+    insecure: true
+    secret_access_key: fixture-secret
+  tsdb:
+    dir: /var/lib/mimir/tsdb
+
+ruler_storage:
+  backend: s3
+  s3:
+    access_key_id: fixture-key
+    bucket_name: mimir-ruler
+    endpoint: rustfs.example.test:9000
+    insecure: true
+    secret_access_key: fixture-secret
+
+alertmanager_storage:
+  backend: s3
+  s3:
+    access_key_id: fixture-key
+    bucket_name: mimir-alertmanager
+    endpoint: rustfs.example.test:9000
+    insecure: true
+    secret_access_key: fixture-secret
+
 config_extra:
   compactor:
     data_dir: /var/lib/mimir/compactor
@@ -15,37 +94,3 @@ config_extra:
         store: memberlist
       replication_factor: 3
 
-ingester:
-  ring:
-    instance_addr: 192.0.2.12
-    kvstore:
-      store: memberlist
-    replication_factor: 3
-
-distributor:
-  ring:
-    instance_addr: 192.0.2.12
-    kvstore:
-      store: memberlist
-
-blocks_storage:
-  backend: s3
-  bucket_store:
-    sync_dir: /var/lib/mimir/tsdb-sync
-  s3:
-    access_key_id: fixture-key
-    bucket_name: mimir-blocks
-    endpoint: rustfs.example.test:9000
-    insecure: true
-    secret_access_key: fixture-secret
-  tsdb:
-    dir: /var/lib/mimir/tsdb
-
-memberlist:
-  advertise_addr: 192.0.2.12
-  advertise_port: 7946
-  bind_port: 7946
-  join_members:
-  - mimir-01:7946
-  - mimir-02:7946
-  - mimir-03:7946

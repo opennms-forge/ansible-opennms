@@ -30,6 +30,10 @@ When preparing a release, check these files for any version drift that should be
 
 The Component Versions table in `CLAUDE.md` should also be in sync.
 
+`make check-urls` resolves the download URLs composed in this collection's own role defaults.
+Mimir's is not among them since `stub_mimir` delegated its install: the URL is composed in `indigo423.grafana`'s `mimir` role from its pinned version, and that fork's weekly version tracker and role tests are what verify it.
+A Mimir version bump therefore reaches this collection through the `indigo423.grafana` pin in `requirements.yml`, not through a URL here.
+
 ## Cutting a release
 
 Releases are created from `main` after all intended changes have merged. The repository's branch protection forbids pushing to `main` directly — every change must arrive via a reviewed pull request.

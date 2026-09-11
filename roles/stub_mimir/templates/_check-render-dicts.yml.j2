@@ -7,13 +7,9 @@
    ring, multitenancy off — and that is what the fixtures under
    tests/render/fixtures/mimir-* pin. sort_keys=True so the recorded expectation
    does not depend on dict construction order. #}
-config_extra:
-{{ _mimir_config_extra | to_nice_yaml(indent=2, sort_keys=True) | indent(2, True) }}
-ingester:
-{{ _mimir_ingester | to_nice_yaml(indent=2, sort_keys=True) | indent(2, True) }}
-distributor:
-{{ _mimir_distributor | to_nice_yaml(indent=2, sort_keys=True) | indent(2, True) }}
-blocks_storage:
-{{ _mimir_blocks_storage | to_nice_yaml(indent=2, sort_keys=True) | indent(2, True) }}
-memberlist:
-{{ _mimir_memberlist | to_nice_yaml(indent=2, sort_keys=True) | indent(2, True) }}
+{% for name in ['server', 'limits', 'ingester', 'distributor', 'ruler', 'alertmanager',
+                'memberlist', 'blocks_storage', 'ruler_storage', 'alertmanager_storage',
+                'config_extra'] %}
+{{ name }}:
+{{ lookup('vars', '_mimir_' ~ name) | to_nice_yaml(indent=2, sort_keys=True) | indent(2, True) }}
+{% endfor %}

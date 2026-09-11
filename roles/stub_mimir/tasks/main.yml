@@ -57,9 +57,10 @@
       interfaces [eth0, en0] and would not start on a host addressed outside
       the RFC 1918 ranges. It defaults to lab_mgmt_ip, then to
       ansible_default_ipv4.address — the latter is unavailable here, which
-      usually means the play runs with gather_facts disabled. Set
-      mimir_instance_addr to the address this node should advertise to its
-      peers and to its own rings.
+      usually means the play runs with gather_facts disabled. Gather facts:
+      the delegated indigo423.grafana.mimir role reads the OS family and the
+      architecture from them and cannot run without. Setting
+      mimir_instance_addr alone satisfies this check but not that role.
   tags:
     - always
 
@@ -131,10 +132,29 @@
 # mimir_http_listen_port and mimir_working_path are not passed: both roles
 # default them to the same values, an inventory override outranks either
 # default, and naming a variable with its own value here recurses.
+#
+# `apply:` carries the tags into the fork's tasks. Tags on the include task
+# alone decide only whether the include is entered; the tasks inside are
+# untagged and a --tags run would filter every one of them out, leaving a
+# host with the drop-in and nothing else while the play reports success.
 - name: Deploy Mimir through indigo423.grafana.mimir
   ansible.builtin.include_role:
     name: indigo423.grafana.mimir
+    apply:
+      tags:
+        - mimir
+        - systemd
+        - configuration
   vars:
+    # `all` alone, as the retired template ran. The fork's default also runs
+    # the alertmanager and overrides-exporter modules, which OpenNMS never
+    # calls; the alertmanager module would also make its S3 bucket a startup
+    # dependency on a cluster.
+    mimir_target: all
+    # The file carries the S3 access key and secret when a bucket is
+    # configured. The retired template task wrote 0640; the fork's default
+    # is 0644.
+    mimir_config_mode: "0640"
     mimir_ready_retries: "{{ mimir_startup_retries }}"
     mimir_ready_delay: "{{ mimir_startup_delay }}"
     mimir_server: "{{ _mimir_server }}"
