@@ -1,0 +1,7 @@
+---
+render_canary: fixture
+mimir_instance_addr: 192.0.2.12
+# A cluster is refused without shared storage, so an endpoint is required here.
+mimir_s3_endpoint: rustfs.example.test:9000
+mimir_s3_access_key_id: fixture-key
+mimir_s3_secret_access_key: fixture-secret

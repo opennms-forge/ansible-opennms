@@ -12,3 +12,118 @@ _mimir_replication_factor: "{{ [_mimir_members | length, 3] | min }}"
 
 # S3 when an endpoint is configured, filesystem otherwise.
 _mimir_storage_backend: "{{ 's3' if (mimir_s3_endpoint | length > 0) else 'filesystem' }}"
+
+# ---------------------------------------------------------------------------
+# What follows assembles the dicts indigo423.grafana.mimir renders into
+# /etc/mimir/config.yml, one per section the retired config.yml.j2 wrote. The
+# fork's template dumps each `mimir_<section>` dict under its header and takes
+# top-level keys it has no section for from `mimir_config_extra`.
+#
+# Every ring carries the address, whatever the deployment shape: the ring
+# lifecycler needs one to register itself even with an in-memory KV store, and
+# on a host without a private-range interface Mimir's own detection finds
+# nothing (#158). tasks/main.yml asserts mimir_instance_addr is non-empty
+# before any of this is used.
+# ---------------------------------------------------------------------------
+
+# server: — the port and a quieter log
+_mimir_server:
+  http_listen_port: "{{ mimir_http_listen_port }}"
+  log_level: warn
+
+# limits: — the single anonymous tenant, un-throttled for a benchmark
+_mimir_limits:
+  ingestion_rate: "{{ mimir_ingestion_rate }}"
+  ingestion_burst_size: "{{ mimir_ingestion_burst_size }}"
+  max_global_series_per_user: "{{ mimir_max_global_series_per_user }}"
+  max_global_series_per_metric: "{{ mimir_max_global_series_per_metric }}"
+
+# Shared by every ring below.
+_mimir_ring_common:
+  instance_addr: "{{ mimir_instance_addr }}"
+  kvstore:
+    store: "{{ _mimir_kvstore }}"
+
+# The rings that also carry replication.
+_mimir_ring_replicated: "{{ _mimir_ring_common | combine({'replication_factor': _mimir_replication_factor | int}) }}"
+
+# ingester: / distributor:
+_mimir_ingester:
+  ring: "{{ _mimir_ring_replicated }}"
+_mimir_distributor:
+  ring: "{{ _mimir_ring_common }}"
+
+# ruler: / alertmanager: — the fork's own defaults for these two dicts carry
+# working directories and URLs the retired template never set. A dict passed to
+# include_role replaces the role default wholesale, so the four keys are
+# restated here. The directories are not the fork's, deliberately: the fork
+# puts them at <working_path>/ruler and /alertmanager, which is where the
+# *_storage filesystem backends below have always lived in this collection,
+# and Mimir refuses a working directory that overlaps its storage directory
+# (caught by the fork's `mimir -modules` validation). Mimir's own default
+# names, data-ruler and data-alertmanager, keep the two apart.
+_mimir_ruler:
+  rule_path: "{{ mimir_working_path }}/data-ruler"
+  alertmanager_url: "http://localhost:{{ mimir_http_listen_port }}/alertmanager"
+  ring: "{{ _mimir_ring_common }}"
+_mimir_alertmanager:
+  data_dir: "{{ mimir_working_path }}/data-alertmanager"
+  external_url: "http://localhost:{{ mimir_http_listen_port }}/alertmanager"
+  sharding_ring: "{{ _mimir_ring_common }}"
+
+# memberlist: — on every shape, not only a cluster. The fork's template runs
+# Mimir with `target: all,alertmanager,overrides-exporter`, and with the
+# alertmanager module in that set Mimir initialises its memberlist KV service
+# even when every ring's KV store is inmemory. That service resolves its own
+# advertise address by the same private-range detection as the rings, so on a
+# host without an RFC 1918 interface a single node fails with "no private IP
+# address found, and explicit IP not provided". Measured in a container whose
+# only address was 192.0.2.50; the retired template never enabled the module
+# and so never hit it. A single node gets the address alone; a cluster also
+# gets the port and the join list.
+_mimir_memberlist_cluster:
+  bind_port: "{{ mimir_memberlist_port }}"
+  advertise_addr: "{{ mimir_instance_addr }}"
+  advertise_port: "{{ mimir_memberlist_port }}"
+  join_members: "{{ _mimir_members | map('regex_replace', '$', ':' ~ mimir_memberlist_port) | list }}"
+_mimir_memberlist: "{{ _mimir_memberlist_cluster if _mimir_clustered else {'advertise_addr': mimir_instance_addr} }}"
+
+# *_storage: — S3 with a bucket per store when an endpoint is set, otherwise a
+# directory per store under the working path. Never the filesystem for a
+# cluster; tasks/main.yml asserts that.
+_mimir_s3_common:
+  endpoint: "{{ mimir_s3_endpoint }}"
+  access_key_id: "{{ mimir_s3_access_key_id }}"
+  secret_access_key: "{{ mimir_s3_secret_access_key }}"
+  insecure: "{{ mimir_s3_insecure | bool }}"
+_mimir_blocks_storage: >-
+  {{ {'backend': _mimir_storage_backend,
+      'tsdb': {'dir': mimir_working_path ~ '/tsdb'},
+      'bucket_store': {'sync_dir': mimir_working_path ~ '/tsdb-sync'}}
+     | combine({'s3': _mimir_s3_common | combine({'bucket_name': mimir_s3_bucket_blocks})}
+               if _mimir_storage_backend == 's3'
+               else {'filesystem': {'dir': mimir_working_path ~ '/blocks'}}) }}
+_mimir_ruler_storage: >-
+  {{ {'backend': _mimir_storage_backend}
+     | combine({'s3': _mimir_s3_common | combine({'bucket_name': mimir_s3_bucket_ruler})}
+               if _mimir_storage_backend == 's3'
+               else {'filesystem': {'dir': mimir_working_path ~ '/ruler'}}) }}
+_mimir_alertmanager_storage: >-
+  {{ {'backend': _mimir_storage_backend}
+     | combine({'s3': _mimir_s3_common | combine({'bucket_name': mimir_s3_bucket_alertmanager})}
+               if _mimir_storage_backend == 's3'
+               else {'filesystem': {'dir': mimir_working_path ~ '/alertmanager'}}) }}
+
+# Top-level keys the fork's template has no section for. multitenancy off is
+# what lets OpenNMS push with no X-Scope-OrgID header. The query-frontend takes
+# `address`, not `instance_addr`: its config type has no such field and rejects
+# it outright, even though a -query-frontend.instance-addr flag exists.
+_mimir_config_extra:
+  multitenancy_enabled: false
+  store_gateway:
+    sharding_ring: "{{ _mimir_ring_replicated }}"
+  compactor:
+    data_dir: "{{ mimir_working_path }}/compactor"
+    sharding_ring: "{{ _mimir_ring_common }}"
+  frontend:
+    address: "{{ mimir_instance_addr }}"

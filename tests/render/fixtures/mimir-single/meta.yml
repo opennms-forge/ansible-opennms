@@ -1,0 +1,8 @@
+---
+render_role: stub_mimir
+
+render_files:
+  # The dicts handed to indigo423.grafana.mimir, not the file it renders from
+  # them: that file is the fork's and is covered by the fork's role test.
+  - name: mimir-dicts.yml
+    src: _check-render-dicts.yml.j2

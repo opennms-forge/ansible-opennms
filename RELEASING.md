@@ -24,7 +24,7 @@ When preparing a release, check these files for any version drift that should be
 | Kafka | `roles/stub_kafka/defaults/main.yml` |
 | Elasticsearch | `roles/stub_elasticsearch/defaults/main.yml` |
 | Grafana | `inventory/group_vars/grafana/vars.yml` (`grafana_version`) |
-| Grafana Mimir | `roles/stub_mimir/defaults/main.yml` |
+| Grafana Mimir | inherited from `indigo423.grafana` (`roles/mimir/defaults/main.yml` there); the collection pin is `requirements.yml` |
 | Prometheus JMX Exporter | `roles/opennms_core/defaults/main.yml` (`prom_jmx_exporter_version`) |
 | External collections | `requirements.yml` |
 

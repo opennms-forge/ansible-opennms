@@ -1,9 +1,16 @@
 ---
-mimir_version: 3.0.4
-mimir_arch: amd64
-mimir_pkg_url: "https://github.com/grafana/mimir/releases/download/mimir-{{ mimir_version }}/mimir-{{ mimir_version }}_{{ mimir_arch }}.deb"
-mimir_http_port: 8080
-mimir_data_dir: /var/lib/mimir
+# The Mimir lifecycle — package, configuration file, restart, readiness — is
+# delegated to indigo423.grafana.mimir. This role keeps what that role does not
+# know: the systemd start-limit drop-in, the cluster shape derived from group
+# membership, the ring addressing, and the settings OpenNMS needs.
+#
+# No mimir_version here: the fork pins one and the collection inherits it. Set
+# mimir_version in inventory to override; the name is the same in both roles.
+#
+# These two are the fork's names for what used to be mimir_http_port and
+# mimir_data_dir. Same values. The old names fail the run, see tasks/main.yml.
+mimir_http_listen_port: 8080
+mimir_working_path: /var/lib/mimir
 
 # Seconds systemd waits between restarts of mimir.service. The role's unit
 # drop-in disables the start rate limit (see templates/systemd/override.conf.j2),
@@ -12,7 +19,9 @@ mimir_restart_sec: 5
 
 # Bounds the wait for /ready after the service is started. A clustered node has
 # to join memberlist and its ingester holds off for 15s after becoming ready, so
-# the default allows a couple of minutes before failing the play.
+# the default allows a couple of minutes before failing the play. Passed into
+# the fork's mimir_ready_retries / mimir_ready_delay, whose own defaults allow
+# 40 seconds.
 mimir_startup_retries: 30
 mimir_startup_delay: 5
 

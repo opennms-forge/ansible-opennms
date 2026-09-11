@@ -1,0 +1,41 @@
+config_extra:
+  compactor:
+    data_dir: /var/lib/mimir/compactor
+    sharding_ring:
+      instance_addr: 192.0.2.10
+      kvstore:
+        store: inmemory
+  frontend:
+    address: 192.0.2.10
+  multitenancy_enabled: false
+  store_gateway:
+    sharding_ring:
+      instance_addr: 192.0.2.10
+      kvstore:
+        store: inmemory
+      replication_factor: 1
+
+ingester:
+  ring:
+    instance_addr: 192.0.2.10
+    kvstore:
+      store: inmemory
+    replication_factor: 1
+
+distributor:
+  ring:
+    instance_addr: 192.0.2.10
+    kvstore:
+      store: inmemory
+
+blocks_storage:
+  backend: filesystem
+  bucket_store:
+    sync_dir: /var/lib/mimir/tsdb-sync
+  filesystem:
+    dir: /var/lib/mimir/blocks
+  tsdb:
+    dir: /var/lib/mimir/tsdb
+
+memberlist:
+  advertise_addr: 192.0.2.10
