@@ -87,8 +87,8 @@ scaling a deployment is the only change needed. A single-member group renders
 exactly as it did before clustering was added.
 
 **External collection roles** (replacing stubs where mature alternatives exist):
-- `grafana.grafana.grafana` — Grafana 12.x (replaces `stub_grafana`); configured via `inventory/group_vars/grafana/vars.yml`
-- `grafana_provisioning` — Drops the `opennms-opennms-app` plugin provisioning file; runs after `grafana.grafana.grafana` since the collection installs the plugin but does not enable it
+- `indigo423.grafana.grafana` — Grafana 13.x (replaces `stub_grafana`); a fork of `grafana.grafana` published under the `indigo423` namespace; configured via `inventory/group_vars/grafana/vars.yml`
+- `grafana_provisioning` — Drops the `opennms-opennms-app` plugin provisioning file; runs after `indigo423.grafana.grafana` since the collection installs the plugin but does not enable it
 
 ### Inventory & Variables
 
@@ -133,7 +133,7 @@ Templates for OpenNMS config go in `roles/opennms_core/templates/etc/opennms.pro
 External collections (`requirements.yml`):
 - `community.postgresql` v4.2.0 — used by `stub_pgsql` and `opennms_core` for database setup
 - `community.general` v13.3.0 — general utilities
-- `grafana.grafana` v6.1.0 — Grafana installation and provisioning
+- `indigo423.grafana` v7.0.0 — Grafana installation and provisioning (fork of `grafana.grafana`)
 
 ## Key Versions
 
@@ -143,7 +143,7 @@ External collections (`requirements.yml`):
 | PostgreSQL | 18 |
 | Kafka | 4.2.0 (KRaft) |
 | OpenJDK | 21 |
-| Grafana | 12.x |
+| Grafana | 13.2.1 |
 | Grafana Mimir | 3.0.4 |
 | VictoriaMetrics | 1.151.0 |
 | Prometheus JMX Exporter | 1.6.0 |

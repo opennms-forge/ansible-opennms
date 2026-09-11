@@ -4,6 +4,13 @@ All notable changes to the `indigo423.opennms` collection are documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Each entry below is a short index; the corresponding GitHub release contains the full notes including the Component Versions table and upgrade instructions.
 
+## [Unreleased]
+
+### Changed
+- **The Grafana collection is now `indigo423.grafana` 7.0.0, a fork of `grafana.grafana`, replacing `grafana.grafana` 6.1.0.** The role name in `opennms-playbook.yml` changes from `grafana.grafana.grafana` to `indigo423.grafana.grafana`, and `galaxy.yml` declares the new dependency. Playbooks of your own that call `grafana.grafana.grafana` need the same rename. The fork pins every role to a version by default instead of installing the newest release at run time, and its plugin-install task runs `grafana-cli` from `/usr/share/grafana`, which is the homepath problem that kept `grafana_version` at 12.x. (#184).
+- **Grafana 12.4.3 to 13.2.1**, the newest version the Grafana APT repository serves. The 12.x pin existed only because of the plugin-install failure above. Exercised against a fresh Ubuntu 24.04 host: the collection installs `opennms-opennms-app` under 13.2.1 and Grafana reports the plugin enabled (#184).
+- **`common` installs `python3-debian`.** The Grafana role adds its APT source with `deb822_repository` on Debian 12 and Ubuntu 24.04 or newer, and that module needs the package on the target. Nothing in the collection installed it, so the Grafana play failed on those releases before the first package was installed. This predates the collection switch; it was found while exercising it (#184).
+
 ## [0.10.0] - 2026-09-10
 
 ### Added

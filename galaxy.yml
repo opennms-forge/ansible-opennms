@@ -21,7 +21,7 @@ tags:
 dependencies:
   community.postgresql: '>=4.2.0'
   community.general: '>=12.6.0'
-  grafana.grafana: '>=6.1.0'
+  indigo423.grafana: '>=7.0.0'
 repository: https://github.com/opennms-forge/ansible-opennms
 homepage: https://github.com/opennms-forge/ansible-opennms
 issues: https://github.com/opennms-forge/ansible-opennms/issues

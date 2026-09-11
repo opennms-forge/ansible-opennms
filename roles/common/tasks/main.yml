@@ -18,4 +18,7 @@
       - bzip2
       - curl
       - git-core
+      # deb822_repository needs python3-debian on the target; the Grafana role
+      # uses it on Debian 12+ and Ubuntu 24.04+.
+      - python3-debian
     state: present

@@ -43,7 +43,7 @@
   become: true
   roles:
     - common
-    - grafana.grafana.grafana
+    - indigo423.grafana.grafana
     - grafana_provisioning
 
 - name: Manage OpenNMS Horizon Core system
