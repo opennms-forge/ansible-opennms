@@ -15,9 +15,19 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # The same gates pull requests enforce, so a release cannot publish through
+  # a weaker check than main accepted.
+  gates:
+    uses: ./.github/workflows/quality-gates.yml
+
   publish:
+    needs: gates
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    permissions:
+      contents: write       # attach the tarball and its attestation to the release
+      id-token: write       # sign the provenance with the workflow's OIDC identity
+      attestations: write   # store it in the repository's attestation log
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
@@ -38,6 +48,14 @@ jobs:
           fi
       - name: Build collection
         run: ansible-galaxy collection build --output-path dist/
+      # Provenance first, then publish: an attestation for a tarball that never
+      # reached Galaxy is harmless, a Galaxy version with no attestation is the
+      # state this step exists to prevent. Galaxy serves the uploaded bytes
+      # unchanged, so `gh attestation verify` works on a download from either.
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: dist/indigo423-opennms-*.tar.gz
       - name: Publish collection to Ansible Galaxy
         env:
           GALAXY_TOKEN: ${{ secrets.ANSIBLE_GALAXY_API_KEY }}
@@ -45,3 +63,8 @@ jobs:
           ansible-galaxy collection publish \
             --token "${GALAXY_TOKEN}" \
             dist/indigo423-opennms-*.tar.gz
+      - name: Attach the tarball to the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: gh release upload "$TAG" --clobber dist/indigo423-opennms-*.tar.gz
