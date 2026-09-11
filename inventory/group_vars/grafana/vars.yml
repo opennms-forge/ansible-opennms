@@ -1,8 +1,9 @@
 ---
 # Grafana version — must be an exact version string or "latest"
-# grafana.grafana collection constructs the apt package as grafana=<version>
-# Pinned to 12.x: Grafana 13 breaks the collection's plugin install task
-# (grafana-cli needs --homepath). Bump back to 13.x once upstream fixes this.
+# indigo423.grafana collection constructs the apt package as grafana=<version>
+# Pinned to 12.x: Grafana 13 broke the upstream plugin install task
+# (grafana-cli needs --homepath). indigo423.grafana 7.0.0 runs grafana-cli from
+# /usr/share/grafana, so 13.x should work again; bump once that is exercised.
 # See: https://github.com/grafana/grafana-ansible-collection/issues/497
 grafana_version: "12.4.3"
 
@@ -22,7 +23,7 @@ onms_hzn_rest_url: "{{ onms_hzn_base_url }}/opennms"
 # Credentials resolve through the encrypted vault populated by:
 #   ansible-playbook -i <inventory> indigo423.opennms.init_secrets
 
-# Plugins — grafana.grafana.grafana installs these via grafana-cli
+# Plugins — indigo423.grafana.grafana installs these via grafana-cli
 # NOTE: the collection has no variable for enabling/configuring app plugins.
 # The opennms-opennms-app will be installed but enabling it requires a
 # separate provisioning file under /etc/grafana/provisioning/plugins/.

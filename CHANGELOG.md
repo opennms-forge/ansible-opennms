@@ -4,6 +4,11 @@ All notable changes to the `indigo423.opennms` collection are documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Each entry below is a short index; the corresponding GitHub release contains the full notes including the Component Versions table and upgrade instructions.
 
+## [Unreleased]
+
+### Changed
+- **The Grafana collection is now `indigo423.grafana` 7.0.0, a fork of `grafana.grafana`, replacing `grafana.grafana` 6.1.0.** The role name in `opennms-playbook.yml` changes from `grafana.grafana.grafana` to `indigo423.grafana.grafana`, and `galaxy.yml` declares the new dependency. Playbooks of your own that call `grafana.grafana.grafana` need the same rename. The fork pins every role to a version by default instead of installing the newest release at run time, and its plugin-install task runs `grafana-cli` from `/usr/share/grafana`, which is the homepath problem that kept `grafana_version` at 12.x. The pin stays at `12.4.3` in this release; moving to 13.x is a separate change once it has been exercised.
+
 ## [0.10.0] - 2026-09-10
 
 ### Added

@@ -79,7 +79,7 @@ For evaluation and CI the collection ships stub roles that stand up the services
 - `indigo423.opennms.stub_kafka` — Apache Kafka 4.x in KRaft mode for OpenNMS IPC.
 - `indigo423.opennms.stub_elasticsearch` — single-node Elasticsearch for flow data.
 - `indigo423.opennms.stub_mimir` — Grafana Mimir for time-series storage.
-- For Grafana, install the upstream [`grafana.grafana`](https://galaxy.ansible.com/ui/repo/published/grafana/grafana/) collection and run `indigo423.opennms.grafana_provisioning` afterwards to enable the OpenNMS plugin. There is no `stub_grafana` — that role was replaced by the external collection.
+- For Grafana, install the [`indigo423.grafana`](https://galaxy.ansible.com/ui/repo/published/indigo423/grafana/) collection, a fork of `grafana.grafana`, and run `indigo423.opennms.grafana_provisioning` afterwards to enable the OpenNMS plugin. There is no `stub_grafana` — that role was replaced by the external collection.
 
 For real deployments, plug in your own PostgreSQL, Kafka, Elasticsearch, and Grafana roles instead of the stubs.
 
