@@ -87,7 +87,7 @@ scaling a deployment is the only change needed. A single-member group renders
 exactly as it did before clustering was added.
 
 **External collection roles** (replacing stubs where mature alternatives exist):
-- `indigo423.grafana.grafana` — Grafana 12.x (replaces `stub_grafana`); a fork of `grafana.grafana` published under the `indigo423` namespace; configured via `inventory/group_vars/grafana/vars.yml`
+- `indigo423.grafana.grafana` — Grafana 13.x (replaces `stub_grafana`); a fork of `grafana.grafana` published under the `indigo423` namespace; configured via `inventory/group_vars/grafana/vars.yml`
 - `grafana_provisioning` — Drops the `opennms-opennms-app` plugin provisioning file; runs after `indigo423.grafana.grafana` since the collection installs the plugin but does not enable it
 
 ### Inventory & Variables
@@ -143,7 +143,7 @@ External collections (`requirements.yml`):
 | PostgreSQL | 18 |
 | Kafka | 4.2.0 (KRaft) |
 | OpenJDK | 21 |
-| Grafana | 12.x |
+| Grafana | 13.2.1 |
 | Grafana Mimir | 3.0.4 |
 | VictoriaMetrics | 1.151.0 |
 | Prometheus JMX Exporter | 1.6.0 |
