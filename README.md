@@ -1,30 +1,28 @@
-![Alt](https://repobeats.axiom.co/api/embed/f81f303e61554ad2e9f66b54cc8e847e593984f8.svg "Repobeats analytics image")
-
 # 🚀 Deployment of OpenNMS with Ansible ✨
 
-Encoding your infrastructure using Ansible is widely adopted.
-This repository provides the roles to deploy OpenNMS Horizon components such as:
+[![CI](https://github.com/opennms-forge/ansible-opennms/actions/workflows/ci.yml/badge.svg)](https://github.com/opennms-forge/ansible-opennms/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/opennms-forge/ansible-opennms)](https://github.com/opennms-forge/ansible-opennms/releases/latest)
+[![Ansible Galaxy](https://img.shields.io/ansible/collection/v/indigo423/opennms)](https://galaxy.ansible.com/ui/repo/published/indigo423/opennms/)
+[![License](https://img.shields.io/github/license/opennms-forge/ansible-opennms)](LICENSE)
 
-* OpenNMS Horizon core system
-* OpenNMS Minion for monitoring isolated network segments
-* OpenNMS Sentinel for scaling workloads in the storage backend
+An Ansible collection that deploys OpenNMS Horizon on Debian and Ubuntu: Core, Minion and Sentinel, plus the system-level configuration that wires them to PostgreSQL, Kafka, Elasticsearch and a Prometheus remote_write store.
 
-I have started this project recently.
-It is in an early stage and not ready for production use yet.
+The roles configure only what cannot be set from the OpenNMS web UI or its APIs. The collection drives lab deployments and the OpenNMS benchmark rigs; it is still `v0.x` and not yet production-ready, and breaking changes land in minor releases and are called out in the release notes.
 
-🕹️ What you can do as it is right now:
+🕹️ What it does today:
 
-* Install Horizon Core, Minion, Sentinel with PostgreSQL and Kafka on a single or distributed node setup
-* We have stub roles for the PostgreSQL database and Kafka. If you run PostgreSQL and Kafka in production, you need appropriate Ansible roles to manage that.
-* Minion, Horizon can be configured using Kafka
-* Roles are tested with the latest Ubuntu LTS cloud image
+* Installs Horizon Core, Minion and Sentinel at a pinned version, on one host or spread across several, with the APT sources, JVM tuning, Kafka IPC, database initialisation and firewall rules each one needs
+* Ships a reference distributed topology and a colocated test rig as inventories
+* Provides stub roles for PostgreSQL, Kafka, Elasticsearch, Mimir, VictoriaMetrics and Pyroscope so a complete stack comes up on a sandbox host. None of them is production-grade
+* Generates and vaults database credentials on first use instead of shipping defaults
+* Is tested against the current Ubuntu LTS cloud image
 
-🦄 What doesn't work yet and would be cool if it would :)
+🦄 What it does not do yet:
 
-* Flows with Elasticsearch, we can use a simple stub role to deploy a single node Elasticsearch instance and configure NetFlow integration for it
-* Sentinel configuration for Flow persistence with Kafka
-* Backup, Restore, Upgrade OpenNMS Horizon
-* Supporting a RHEL-based operating system
+* Back up, restore or upgrade an existing OpenNMS Horizon installation
+* Support RHEL-based operating systems
+
+![Repobeats analytics](https://repobeats.axiom.co/api/embed/f81f303e61554ad2e9f66b54cc8e847e593984f8.svg "Repobeats analytics image")
 
 ## 📦 Install from Ansible Galaxy
 
@@ -39,7 +37,7 @@ Or pin a specific version via `requirements.yml`:
 ```yaml
 collections:
   - name: indigo423.opennms
-    version: "0.3.2"
+    version: "0.11.0"
 ```
 
 Reference roles by their fully-qualified name (`indigo423.opennms.<role>`). The three production OpenNMS components each get their own play:
@@ -176,7 +174,7 @@ This destroys the existing `vault.yml`. After it completes, you must also reset 
 * Gives users the possibility to deploy the components following best-practices
 * Given the current contribution and resources, adding OS variants is not such a high priority right now
 
-We are open and welcome constructive contributions. See [CONTRIBUTING.md](CONTRIBUTING.md) for how to get a change merged — commits need a DCO sign-off (`git commit -s`), and AI-assisted work needs an `Assisted-by:` trailer.
+We are open and welcome constructive contributions. See [CONTRIBUTING.md](CONTRIBUTING.md) for how to get a change merged — commits need a DCO sign-off (`git commit -s`), and AI-assisted work needs an `Assisted-by:` trailer. Questions go where [SUPPORT.md](SUPPORT.md) says; everyone taking part is bound by the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 Found a security issue? Please don't open a public issue — see [SECURITY.md](SECURITY.md).
 
