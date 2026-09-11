@@ -4,5 +4,5 @@
 # The Python tooling the quality gates run on. One place for these pins, read
 # by the workflows and by `pip install -r requirements-dev.txt` locally, so
 # Renovate can move them and CI and a developer's shell run the same versions.
-ansible-core==2.20.4
+ansible-core==2.20.7rc1
 ansible-lint==26.3.0
