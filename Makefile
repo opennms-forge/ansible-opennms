@@ -1,19 +1,23 @@
-.PHONY: help deps lint check-urls check-render check-render-record verify
+.PHONY: help deps lint check-credentials check-urls check-render check-render-record verify
 
 help:
 	@echo "Targets:"
 	@echo "  deps                 Install the Ansible collections this repo depends on"
 	@echo "  lint                 Run ansible-lint against the production profile"
+	@echo "  check-credentials    Fail on plaintext placeholder credentials in defaults or group_vars"
 	@echo "  check-urls           Resolve every composed download URL in role defaults"
 	@echo "  check-render         Compare rendered configuration to the recorded expectations"
 	@echo "  check-render-record  Re-record those expectations after an intended change"
-	@echo "  verify               lint + check-urls + check-render"
+	@echo "  verify               lint + check-credentials + check-urls + check-render"
 
 deps:
 	ansible-galaxy collection install -r requirements.yml
 
 lint:
 	ansible-lint
+
+check-credentials:
+	tests/check-plaintext-credentials.sh
 
 # Catches a version variable and its URL template disagreeing about a tag
 # prefix — a defect ansible-lint cannot see, since the YAML is valid either way.
@@ -47,4 +51,4 @@ check-render-record:
 		ansible-playbook -i "$$fixture/hosts.yml" tests/check-rendered-config.yml -e "fixture=$$name" -e render_record=true; \
 	done
 
-verify: lint check-urls check-render
+verify: lint check-credentials check-urls check-render

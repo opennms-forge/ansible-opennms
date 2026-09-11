@@ -1,0 +1,28 @@
+---
+name: CI
+on:
+  workflow_dispatch:
+  # Fork PRs never fire `push` in this repo, so a push-only trigger left the
+  # required checks permanently pending on outside contributions. Scoping push
+  # to main and adding pull_request gives one run per PR and one per merge.
+  pull_request:
+  push:
+    branches: [main]
+  # Upstream can break this repository without anyone touching it, by deleting
+  # or retagging a release the download-urls gate resolves. A PR-only trigger
+  # would surface that only when someone next opened a PR.
+  schedule:
+    - cron: '17 5 * * 1'
+
+permissions:
+  contents: read
+
+# Supersede in-flight runs for the same ref; a force-push should not leave
+# stale jobs consuming runners.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gates:
+    uses: ./.github/workflows/quality-gates.yml

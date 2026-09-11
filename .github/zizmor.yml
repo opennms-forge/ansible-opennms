@@ -1,0 +1,10 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+rules:
+  self-repository:
+    # zizmor wants the `$/…` syntax for same-repository reusable workflows,
+    # which GitHub added in July 2026. actionlint v1.7.12, which runs in the
+    # same gate, still rejects it. Keep `./…` until actionlint catches up.
+    ignore:
+      - ci.yml
+      - galaxy-release.yml

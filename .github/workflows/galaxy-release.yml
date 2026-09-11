@@ -8,16 +8,25 @@ on:
 permissions:
   contents: read
 
+# Serialise releases and never cancel one: a cancelled publish can leave a
+# version on Galaxy that the GitHub release does not describe.
+concurrency:
+  group: galaxy-release-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
+
 jobs:
   publish:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
           python-version: '3.14'
-      - name: Install ansible-core
-        run: pip install ansible-core==2.20.4
+      - name: Install the Python tooling
+        run: pip install -r requirements-dev.txt
       - name: Verify galaxy.yml version matches release tag
         run: |
           TAG="${GITHUB_REF_NAME}"

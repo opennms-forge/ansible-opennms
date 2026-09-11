@@ -1,0 +1,88 @@
+---
+# The one definition of what must pass. ci.yml calls it on every pull request
+# and push to main, and galaxy-release.yml calls it before publishing, so a
+# release cannot go out through a weaker gate than pull requests enforce.
+name: Quality gates
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  ansible-lint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.14'
+      - name: Install the Python tooling
+        run: pip install -r requirements-dev.txt
+      - name: Install the Ansible collections
+        run: make deps
+      - name: Check for plaintext credential regressions
+        run: make check-credentials
+      - name: Run ansible-lint
+        run: make lint
+
+  download-urls:
+    # Renders every *_url variable in role defaults through the same Jinja the
+    # roles use, then HEADs it. Catches a version variable and its URL template
+    # disagreeing about a tag prefix, which ansible-lint cannot see because the
+    # YAML is valid either way.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.14'
+      - name: Install the Python tooling
+        run: pip install -r requirements-dev.txt
+      - name: Resolve composed download URLs
+        run: make check-urls
+
+  render-config:
+    # Renders role templates against fixture inventories and compares the
+    # result to recorded expectations. No collections are installed: the
+    # fixtures render templates and touch no module outside ansible-core.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.14'
+      - name: Install the Python tooling
+        run: pip install -r requirements-dev.txt
+      - name: Compare rendered configuration
+        run: make check-render
+
+  workflows:
+    # Lints the workflows themselves: unpinned actions, script injection, bad
+    # expressions, invalid schema. Cheap, and it catches the mistakes that are
+    # otherwise only found when a release runs.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # docker:// refs pin by image digest, not commit SHA.
+      - uses: docker://rhysd/actionlint@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667 # v1.7.12
+        with:
+          args: -color
+      - uses: zizmorcore/zizmor-action@cc914d7f3750a2d13d75c7f184a1060aa0e9d482 # v0.6.4
+        with:
+          # Print findings instead of uploading SARIF: the upload needs
+          # security-events: write, which this least-privilege job does not
+          # have. Findings still fail the job.
+          advanced-security: false

@@ -27,14 +27,14 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/). F
 
 ```bash
 # Install dependencies
-pip install ansible-core==2.20.4 ansible-lint==26.3.0
-ansible-galaxy collection install -r requirements.yml
+pip install -r requirements-dev.txt
+make deps
 
 # Run linter
 ansible-lint
 ```
 
-The CI workflow (`.github/workflows/ansible-opennms-lint.yml`) runs `ansible-lint` against the `production` profile. Skipped rules are in `.ansible-lint`.
+CI runs `.github/workflows/quality-gates.yml`, called by `ci.yml` on every PR and push to main and by `galaxy-release.yml` before publishing: `make lint` (production profile, skipped rules in `.ansible-lint`), `make check-credentials`, `make check-urls`, `make check-render`, plus actionlint and zizmor on the workflows themselves. `make verify` runs the first four locally.
 
 ## Running Playbooks
 
