@@ -1,3 +1,5 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
 ---
 # Installed from the release .deb rather than the tarball, as stub_mimir does:
 # apt takes the URL directly, and the package brings its own systemd unit,

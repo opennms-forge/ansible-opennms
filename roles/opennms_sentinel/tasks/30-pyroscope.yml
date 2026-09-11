@@ -1,3 +1,5 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
 ---
 # Installed only when profiling is actually configured, unlike Core. Core's
 # launcher has a PYROSCOPE_AGENT_ENABLED branch, so a jar sitting on disk there

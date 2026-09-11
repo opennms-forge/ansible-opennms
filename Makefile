@@ -1,3 +1,5 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
 .PHONY: help deps lint check-credentials check-urls check-render check-render-record verify
 
 help:

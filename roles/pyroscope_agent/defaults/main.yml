@@ -1,3 +1,5 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
 ---
 # Grafana's Pyroscope Java agent, pinned and shipped by this collection rather
 # than taken from whatever the OpenNMS packages happen to bundle. Horizon 36

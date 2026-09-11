@@ -1,3 +1,5 @@
+# Copyright 2023 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
 ---
 - name: Allow access to OpenNMS web application on port 8980/tcp
   community.general.ufw:

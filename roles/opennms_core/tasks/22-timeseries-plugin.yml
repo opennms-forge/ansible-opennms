@@ -1,3 +1,5 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
 ---
 # Install + configure the opennms-prometheus-remotewrite-plugin so OpenNMS writes
 # metrics to any Prometheus remote_write backend (Mimir, VictoriaMetrics, ...).

@@ -1,3 +1,5 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
 ---
 # Local smoke-test inventory: OrbStack amd64 Ubuntu machine "onms-smoke".
 # Connection goes through OrbStack's SSH proxy: user field selects the machine.

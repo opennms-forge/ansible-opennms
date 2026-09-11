@@ -1,3 +1,5 @@
+# Copyright 2023 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
 ---
 opennms_distribution: Horizon
 # renovate: datasource=github-tags depName=OpenNMS/opennms extractVersion=^opennms-(?<version>\d+\.\d+\.\d+)-\d+$

@@ -1,3 +1,5 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
 ---
 # Fail the deployment when the host's clock is not synchronised. Default true:
 # clock skew between Core, Minion and Sentinel is not cosmetic — Kafka RPC

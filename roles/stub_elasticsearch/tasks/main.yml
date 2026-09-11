@@ -1,3 +1,5 @@
+# Copyright 2023 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
 ---
 # Installed here rather than relying on another role: this role is now the gpg
 # consumer, and unlike stub_pgsql it does not include opennms_repositories (it

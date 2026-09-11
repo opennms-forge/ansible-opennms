@@ -1,3 +1,5 @@
+# Copyright 2023 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
 ---
 # The Mimir lifecycle — package, configuration file, restart, readiness — is
 # delegated to indigo423.grafana.mimir. This role keeps what that role does not

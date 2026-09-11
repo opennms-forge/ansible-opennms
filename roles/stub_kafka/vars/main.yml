@@ -1,3 +1,5 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
 ---
 # Cluster members in a stable order. Sorting matters: node ids are positional,
 # so an unstable order would renumber brokers between runs and corrupt the
