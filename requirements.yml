@@ -1,7 +1,7 @@
 ---
 collections:
   - name: community.postgresql
-    version: "4.2.0"
+    version: "5.0.0"
   - name: community.general
     version: "13.4.0"
   - name: indigo423.grafana
