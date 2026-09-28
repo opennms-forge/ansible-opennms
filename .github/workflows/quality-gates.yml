@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   ansible-lint:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -36,7 +36,7 @@ jobs:
     # roles use, then HEADs it. Catches a version variable and its URL template
     # disagreeing about a tag prefix, which ansible-lint cannot see because the
     # YAML is valid either way.
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -54,7 +54,7 @@ jobs:
     # Renders role templates against fixture inventories and compares the
     # result to recorded expectations. No collections are installed: the
     # fixtures render templates and touch no module outside ansible-core.
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -72,7 +72,7 @@ jobs:
     # Lints the workflows themselves: unpinned actions, script injection, bad
     # expressions, invalid schema. Cheap, and it catches the mistakes that are
     # otherwise only found when a release runs.
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
