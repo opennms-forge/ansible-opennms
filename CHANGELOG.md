@@ -4,15 +4,22 @@ All notable changes to the `indigo423.opennms` collection are documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Each entry below is a short index; the corresponding GitHub release contains the full notes including the Component Versions table and upgrade instructions.
 
-## [Unreleased]
+## [0.12.0] - 2026-09-28
 
 ### Changed
 - **`stub_mimir` delegates the Mimir lifecycle to `indigo423.grafana.mimir`.** The collection already depended on that fork for Grafana, and the fork's `mimir` role does the same install, config render, restart and readiness wait this role carried its own copy of. What stays here is what the fork's generic role does not know: the systemd start-limit drop-in laid down before the package, the explicit address in every ring and the query-frontend, the cluster shape derived from `mimir_cluster_group`, multitenancy off, the OpenNMS limits, and the two assertions. The rendered `/etc/mimir/config.yml` carries every setting it did before, in the fork's section order, plus the paths and URLs the fork always writes. Needs `indigo423.grafana` 7.2.0, which added the top-level passthrough, the readiness knobs, the `target` line and the config file mode this wrapper uses; the file keeps its 0640 and Mimir keeps running `target: all`. The drop-in's ordering argument is unchanged and was re-verified across a package upgrade (#186).
 - **Grafana Mimir 3.0.4 to 3.2.1**, inherited from the fork's pin. The collection no longer declares `mimir_version`; set it in inventory to pin a different one, the name is the same in both roles (#186).
 - **`make check-render` covers `stub_mimir`** with a single-node and a cluster fixture as a pair. They pin the dicts the wrapper hands to the fork rather than the file the fork renders from them, since that file is the fork's contract and the fork's test. `make check-urls` no longer covers the Mimir package URL, which is now composed in the fork; the fork's own role tests verify it (#186).
+- **Collection dependencies:** `community.postgresql` 4.2.0 to 5.0.0 (#200), `community.general` 13.3.0 to 13.4.0 (#195), `indigo423.grafana` 7.0.0 to 7.4.0 (#196, #199); the `galaxy.yml` floor is `>=7.2.0` (#186). VictoriaMetrics 1.151.0 to 1.152.0 (#197). Tooling: ansible-lint 26.9.0 (#194, #198).
+- **The quality gates are defined once and the release runs them.** `quality-gates.yml` is a `workflow_call` with four jobs (`ansible-lint`, `download-urls`, `render-config`, `workflows`) that `ci.yml` runs on every pull request, push to main and weekly. The fourth job lints the workflows with actionlint and zizmor. The credential grep is now `make check-credentials`, part of `make verify`, and the Python pins live in `requirements-dev.txt` (#187). `galaxy-release.yml` calls the same gates and publishes nothing if one fails; the tarball gets SLSA build provenance before it reaches Galaxy and is attached to the GitHub release, verifiable with `gh attestation verify` (#189). The gate jobs run on Ubuntu 26.04 runners (#201).
+- **Every source file carries an SPDX header** (`GPL-3.0-or-later`, holder Ronny Trommer); Jinja templates carry it in a `{# … #}` block that renders to nothing. `CLAUDE.md` is trimmed to what an agent cannot read from the tree (#192).
+- **`SUPPORT.md` and `CODE_OF_CONDUCT.md` added; the README carries CI, release, Galaxy and license badges** and a capability list that matches the tree (#188).
 
 ### Removed
 - **Breaking: `mimir_http_port`, `mimir_data_dir`, `mimir_arch` and `mimir_pkg_url` are gone from `stub_mimir`.** The first two are renamed to the fork's `mimir_http_listen_port` and `mimir_working_path`, same values. The architecture is derived from facts. A mirror sets the fork's `mimir_download_url_deb` directly. Setting any of the four fails the run naming the replacement, as #182 did for the pinning variables (#186).
+
+### Security
+- **CVE-2026-11332 (GHSA-w8p5-mx5w-cpqj), High, ansible-core below 2.20.7.** Argument injection in `ansible-galaxy role install` could run arbitrary code. Affects the tooling pin in `requirements-dev.txt` that CI and a contributor's shell run, not anything the roles deploy. Bumped to 2.20.7 (#190), since moved to 2.21.4 (#193).
 
 ## [0.11.0] - 2026-09-11
 
@@ -270,6 +277,7 @@ and `vm-single` are unaffected.
 - Renovate configuration for automated Ansible Galaxy collection updates.
 - CI on standard GitHub-hosted runners with SHA-pinned actions and Dependabot.
 
+[0.12.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.12.0
 [0.11.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.11.0
 [0.10.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.10.0
 [0.9.1]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.9.1

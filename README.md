@@ -37,7 +37,7 @@ Or pin a specific version via `requirements.yml`:
 ```yaml
 collections:
   - name: indigo423.opennms
-    version: "0.11.0"
+    version: "0.12.0"
 ```
 
 Reference roles by their fully-qualified name (`indigo423.opennms.<role>`). The three production OpenNMS components each get their own play:
