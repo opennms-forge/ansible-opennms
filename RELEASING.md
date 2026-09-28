@@ -28,8 +28,6 @@ When preparing a release, check these files for any version drift that should be
 | Prometheus JMX Exporter | `roles/opennms_core/defaults/main.yml` (`prom_jmx_exporter_version`) |
 | External collections | `requirements.yml` |
 
-The Component Versions table in `CLAUDE.md` should also be in sync.
-
 `make check-urls` resolves the download URLs composed in this collection's own role defaults.
 Mimir's is not among them since `stub_mimir` delegated its install: the URL is composed in `indigo423.grafana`'s `mimir` role from its pinned version, and that fork's weekly version tracker and role tests are what verify it.
 A Mimir version bump therefore reaches this collection through the `indigo423.grafana` pin in `requirements.yml`, not through a URL here.
@@ -132,7 +130,7 @@ The collection is published to Ansible Galaxy as **`indigo423.opennms`**. Public
 
 ### Per-release: bump `galaxy.yml` and update `CHANGELOG.md`
 
-Before tagging a release, two files must be updated in the same PR that bumps role defaults and `CLAUDE.md`'s Component Versions table:
+Before tagging a release, two files must be updated in the same PR that bumps role defaults:
 
 1. **`galaxy.yml`** — set `version:` to match the intended tag (without the `v` prefix):
 
@@ -147,7 +145,7 @@ Before tagging a release, two files must be updated in the same PR that bumps ro
 
 ### Release flow with Galaxy
 
-1. Open a PR with all role-default bumps, the `CLAUDE.md` Component Versions update, **and** the `galaxy.yml` version bump.
+1. Open a PR with all role-default bumps **and** the `galaxy.yml` version bump.
 2. Merge to `main`.
 3. Create the GitHub release at `main` HEAD (see *Cutting a release* above). The `galaxy-release` workflow fires on the `release: published` event. It runs the same quality gates as pull requests (`quality-gates.yml`) and publishes nothing if one fails. It then runs the version-match check, builds the collection (`ansible-galaxy collection build`), records SLSA build provenance for the tarball, publishes it to Galaxy, and attaches the same tarball to the GitHub release.
 4. Verify the new version appears at https://galaxy.ansible.com/ui/repo/published/indigo423/opennms/ within a couple of minutes, and that the tarball is attached to the release.
