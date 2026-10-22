@@ -1,0 +1,19 @@
+# file: backup.yml
+
+- name: Backup OpenNMS
+  hosts: core
+  user: root
+  become: true
+  roles:
+    - opennms_backup
+  vars:
+   timestamp: "{{ ansible_date_time.date }}_{{ ansible_date_time.hour }}{{ ansible_date_time.minute }}"
+
+# - name: Backup PostgreSQL
+#   hosts: database
+#   user: root
+#   become: true
+#   roles:
+#     - postgresql_backup
+#   vars:
+#    timestamp: "{{ ansible_date_time.date }}_{{ ansible_date_time.hour }}{{ ansible_date_time.minute }}"
