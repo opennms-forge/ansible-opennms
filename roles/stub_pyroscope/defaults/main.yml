@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 ---
 # renovate: datasource=github-releases depName=grafana/pyroscope extractVersion=^v(?<version>.+)$
-pyroscope_version: 2.3.1
+pyroscope_version: 2.4.1
 pyroscope_arch: amd64
 pyroscope_pkg_url: "https://github.com/grafana/pyroscope/releases/download/v{{ pyroscope_version }}/pyroscope_{{ pyroscope_version }}_linux_{{ pyroscope_arch }}.deb"
 
