@@ -201,7 +201,7 @@ opennms_remotewrite:
 # extractVersion keeps Renovate from writing the raw `v`-prefixed tag, which
 # would compose a double-"v" URL that 404s.
 # renovate: datasource=github-releases depName=OpenNMS-Plugins/opennms-prometheus-remotewrite-plugin extractVersion=^v?(?<version>.+)$
-opennms_remotewrite_version: "2.1.0"
+opennms_remotewrite_version: 2.2.0
 opennms_remotewrite_kar_url: "https://github.com/OpenNMS-Plugins/opennms-prometheus-remotewrite-plugin/releases/download/v{{ opennms_remotewrite_version }}/opennms-prometheus-remotewrite-plugin.kar"
 opennms_remotewrite_feature: "opennms-plugins-prometheus-remotewrite"
 
