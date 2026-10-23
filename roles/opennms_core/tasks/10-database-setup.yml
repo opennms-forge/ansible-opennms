@@ -194,7 +194,7 @@
     login_port: "{{ opennms_datasource_db_port | default(5432) }}"
     login_user: "{{ postgres_user }}"
     login_password: "{{ postgres_password }}"
-    db: "{{ opennms_datasource_db_name }}"
+    login_db: "{{ opennms_datasource_db_name }}"
     query: |
       DO $$
       BEGIN
