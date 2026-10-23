@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ## [Unreleased]
 
 ### Changed
+- **Apache Kafka 4.2.0 to 4.4.0** in `stub_kafka`. The pin now carries a `# renovate:` marker, so Renovate tracks it like the other role versions; 4.2.2, 4.3.x and 4.4.0 had shipped unnoticed.
 - **Grafana 13.2.1 to 13.2.4** in `inventory/group_vars/grafana/vars.yml`, matching the pin `indigo423.grafana` 7.4.1 carries.
 
 ## [0.12.1] - 2026-10-23
