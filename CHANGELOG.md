@@ -6,9 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-### Fixed
+## [0.12.1] - 2026-10-23
 
-- `opennms_core`: the Liquibase lock task passed `db:` to `community.postgresql.postgresql_query`, an alias community.postgresql 5.0.0 removed, so the role failed on 5.x. It now uses `login_db:`, which 4.x accepts too (#209).
+### Changed
+- **OpenNMS Horizon 36.0.4 to 36.0.5** in `opennms_core`, `opennms_minion`, `opennms_sentinel` and the repository fallback; the three apt pin fixtures are re-recorded (#207).
+- **Collection dependencies:** `community.postgresql` 5.0.0 to 5.1.0, which quotes every identifier it interpolates into SQL (#211); `indigo423.grafana` 7.4.0 to 7.4.1, whose Mimir pin moves from 3.2.1 to 3.2.2, inherited by `stub_mimir` (#211); `community.general` 13.4.0 to 13.5.0 (#206). VictoriaMetrics 1.152.0 to 1.154.0 in `stub_victoriametrics` (#204). Tooling: ansible-core 2.21.5 (#205), ansible-lint 26.10.1 (#208).
+- `RELEASING.md` no longer tells a releaser to keep a Component Versions table in `CLAUDE.md`; that table left in #192 (#203).
+
+### Fixed
+- `opennms_core`: the Liquibase lock task passed `db:` to `community.postgresql.postgresql_query`, an alias community.postgresql 5.0.0 removed, so the role failed on 5.x with the error hidden by `no_log`. It now uses `login_db:`, which 4.x accepts too (#210, closes #209).
 
 ## [0.12.0] - 2026-09-28
 
@@ -283,6 +289,7 @@ and `vm-single` are unaffected.
 - Renovate configuration for automated Ansible Galaxy collection updates.
 - CI on standard GitHub-hosted runners with SHA-pinned actions and Dependabot.
 
+[0.12.1]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.12.1
 [0.12.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.12.0
 [0.11.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.11.0
 [0.10.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.10.0
