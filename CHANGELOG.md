@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+- **Grafana 13.2.1 to 13.2.4** in `inventory/group_vars/grafana/vars.yml`, matching the pin `indigo423.grafana` 7.4.1 carries.
+
 ## [0.12.1] - 2026-10-23
 
 ### Changed
