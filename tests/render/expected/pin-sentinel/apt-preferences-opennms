@@ -48,7 +48,7 @@
 # priority 1001 apt applies that as a forced change, which is the opposite of
 # what this tier is for.
 Package: opennms-sentinel
-Pin: version 36.0.4-*
+Pin: version 36.0.5-*
 Pin-Priority: 1001
 
 # Tier 2 — the same major, once the configured version has been superseded and

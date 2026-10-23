@@ -57,7 +57,7 @@ opennms_repo_filename: opennms
 # consulted only when there is no caller value at all.
 #
 # renovate: datasource=github-tags depName=OpenNMS/opennms extractVersion=^opennms-(?<version>\d+\.\d+\.\d+)-\d+$
-opennms_repo_fallback_version: 36.0.4
+opennms_repo_fallback_version: 36.0.5
 
 # Explicit per-major dist rather than the `stable` alias. `stable` floats: it
 # resolves to opennms-36 today, and dists opennms-34/35/36 show it has moved
