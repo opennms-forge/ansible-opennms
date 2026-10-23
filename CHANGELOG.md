@@ -6,9 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.12.2] - 2026-10-24
+
 ### Changed
-- **Apache Kafka 4.2.0 to 4.4.0** in `stub_kafka`. The pin now carries a `# renovate:` marker, so Renovate tracks it like the other role versions; 4.2.2, 4.3.x and 4.4.0 had shipped unnoticed.
-- **Grafana 13.2.1 to 13.2.4** in `inventory/group_vars/grafana/vars.yml`, matching the pin `indigo423.grafana` 7.4.1 carries.
+- **OpenNMS Prometheus remote-write plugin 2.1.0 to 2.2.0** in `opennms_core`. Writes are synchronous by default from 2.2.0, so a rejected write now reaches OpenNMS instead of looking healthy; the role's config template exposes no `asyncWrites` knob yet (#216).
+- **Apache Kafka 4.2.0 to 4.4.0** in `stub_kafka`. The pin now carries a `# renovate:` marker, so Renovate tracks it like the other role versions; 4.2.2, 4.3.x and 4.4.0 had shipped unnoticed (#213).
+- **Grafana 13.2.1 to 13.2.4** in `inventory/group_vars/grafana/vars.yml`, matching the pin `indigo423.grafana` 7.4.1 carries (#212).
+- **Prometheus JMX Exporter 1.6.0 to 1.7.0**, checksum updated (#217). **VictoriaMetrics 1.154.0 to 1.154.1** (#214).
+- CI: setup-python 7.1.0 and zizmor-action 0.8.0. The runner interpreter stays on Python 3.14, held there by a Renovate rule, because ansible-core 2.21.5 fails to import on 3.15 (#218).
+
+### Security
+- **Grafana Pyroscope server 2.3.1 to 2.4.1** in `stub_pyroscope`. 2.4.1 is upstream's security release: it takes `kin-openapi` to 0.149.0, closing a set of high-severity validation-bypass and panic advisories (CVE-2026-100349 through CVE-2026-100354) in the server's OpenAPI request filtering, and rebuilds on Go 1.26.10 (#215).
 
 ## [0.12.1] - 2026-10-23
 
@@ -293,6 +301,7 @@ and `vm-single` are unaffected.
 - Renovate configuration for automated Ansible Galaxy collection updates.
 - CI on standard GitHub-hosted runners with SHA-pinned actions and Dependabot.
 
+[0.12.2]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.12.2
 [0.12.1]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.12.1
 [0.12.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.12.0
 [0.11.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.11.0
