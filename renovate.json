@@ -48,6 +48,12 @@
       "groupName": "github actions (major)",
       "automerge": false,
       "labels": ["dependencies", "ci"]
+    },
+    {
+      "description": "ansible-core 2.21 fails on Python 3.15 (dataclasses._is_type removed); hold the runner interpreter until a supporting ansible-core ships",
+      "matchManagers": ["github-actions"],
+      "matchDatasources": ["python-version"],
+      "allowedVersions": "<3.15"
     }
   ]
 }
