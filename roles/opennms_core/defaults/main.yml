@@ -21,7 +21,7 @@ iplike_pkg_version: "{{ iplike_version }}.*"
 prom_jmx_exporter_owner: opennms
 prom_jmx_exporter_group: opennms
 # renovate: datasource=github-releases depName=prometheus/jmx_exporter extractVersion=^v?(?<version>.+)$
-prom_jmx_exporter_version: 1.6.0
+prom_jmx_exporter_version: 1.7.0
 # The release path carries NO "v" prefix. Upstream does have a stray `v1.6.0`
 # git tag, but no release is attached to it, and download URLs resolve against
 # the release's tag_name — which is bare for every 1.x release. Reading the tag
