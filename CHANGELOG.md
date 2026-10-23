@@ -4,6 +4,12 @@ All notable changes to the `indigo423.opennms` collection are documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Each entry below is a short index; the corresponding GitHub release contains the full notes including the Component Versions table and upgrade instructions.
 
+## [Unreleased]
+
+### Fixed
+
+- `opennms_core`: the Liquibase lock task passed `db:` to `community.postgresql.postgresql_query`, an alias community.postgresql 5.0.0 removed, so the role failed on 5.x. It now uses `login_db:`, which 4.x accepts too (#209).
+
 ## [0.12.0] - 2026-09-28
 
 ### Changed
