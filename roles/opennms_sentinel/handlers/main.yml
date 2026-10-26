@@ -6,7 +6,7 @@
     name: sentinel.service
     state: restarted
   when:
-    - skip_sentinel_startup | default("false") == "false"
+    - not (skip_sentinel_startup | bool)
   tags:
     - opennms
     - sentinel

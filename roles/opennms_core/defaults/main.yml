@@ -247,3 +247,7 @@ opennms_pin_origin: OpenNMS
 # both moves. It does not affect the cross-major protection, which is the
 # preferences file's -1 tier.
 opennms_unattended_upgrade_blacklist: true
+
+# Leave OpenNMS stopped: skips the start, the `Restart opennms` handler and
+# the readiness wait. Read through `bool`, so `false` and "false" both start it.
+skip_startup: false

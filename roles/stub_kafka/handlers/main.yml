@@ -13,6 +13,8 @@
   ansible.builtin.service:
     name: kafka.service
     state: restarted
+  when:
+    - not (skip_kafka_startup | bool)
   tags:
     - opennms
     - kafka
