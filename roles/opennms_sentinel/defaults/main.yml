@@ -106,3 +106,7 @@ opennms_pin_origin: OpenNMS
 # both moves. It does not affect the cross-major protection, which is the
 # preferences file's -1 tier.
 opennms_unattended_upgrade_blacklist: true
+
+# Leave Sentinel stopped: skips the start and the `Restart sentinel` handler.
+# Read through `bool`, so `false` and "false" both start it.
+skip_sentinel_startup: false

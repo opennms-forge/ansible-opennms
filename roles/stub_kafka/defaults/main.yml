@@ -53,3 +53,7 @@ kafka_server_properties:
   "log.segment.bytes": 1073741824
   "log.retention.check.interval.ms": 300000
   "log.dirs": "{{ kafka_log_dir }}"
+
+# Leave Kafka stopped: skips the start and the `Restart kafka` handler. Read
+# through `bool`, so `false` and "false" both start it.
+skip_kafka_startup: false

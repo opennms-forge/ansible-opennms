@@ -289,7 +289,7 @@
     name: sentinel.service
     state: started
   when:
-    - skip_sentinel_startup | default("false") == "false"
+    - not (skip_sentinel_startup | bool)
   tags:
     - opennms
     - sentinel

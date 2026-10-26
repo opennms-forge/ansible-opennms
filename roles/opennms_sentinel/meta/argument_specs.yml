@@ -63,3 +63,9 @@ argument_specs:
           - Setting it false re-exposes the two moves the preferences file
             cannot prevent on its own. It does not affect the cross-major
             protection.
+      skip_sentinel_startup:
+        type: bool
+        default: false
+        description:
+          - Leave Sentinel stopped. Skips the start and the C(Restart sentinel) handler.
+          - A value that is not a boolean, such as C(skip), fails the role.

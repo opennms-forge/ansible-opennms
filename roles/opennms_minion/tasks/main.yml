@@ -214,7 +214,7 @@
     name: minion.service
     state: started
   when:
-    - skip_minion_startup | default("false") == "false"
+    - not (skip_minion_startup | bool)
   tags:
     - opennms
     - minion

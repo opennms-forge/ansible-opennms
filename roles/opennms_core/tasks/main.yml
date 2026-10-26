@@ -244,7 +244,7 @@
     name: opennms.service
     state: started
   when:
-    - skip_startup | default("false") == "false"
+    - not (skip_startup | bool)
   tags:
     - core
     - systemd
@@ -264,7 +264,7 @@
   retries: "{{ opennms_startup_retries | default(30) }}"
   delay: "{{ opennms_startup_delay | default(10) }}"
   when:
-    - skip_startup | default("false") == "false"
+    - not (skip_startup | bool)
   tags:
     - core
     - systemd
