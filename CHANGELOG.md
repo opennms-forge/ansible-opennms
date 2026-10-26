@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 - `opennms_core`: the secure-vault `set` tasks passed the password as a positional argument, so a value starting with `-` was parsed as an option and the role failed behind `no_log`. The password now goes to `scvcli set --from-stdin` via stdin, which keeps every value - whatever it starts with - out of argv (#221, closes #221).
+- `opennms_core`: `scvcli set --from-stdin` only exists from Horizon 36.0.2, so the role now fails early with a clear message when `opennms_version` is older (#225).
 
 ## [0.12.2] - 2026-10-24
 

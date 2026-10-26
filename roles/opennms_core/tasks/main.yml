@@ -38,6 +38,22 @@
   tags:
     - always
 
+# `10-database-setup.yml` stores the vault passwords with `scvcli set
+# --from-stdin`, which upstream added in Horizon 36.0.2. Older releases reject
+# the option, and `no_log` hides why. Fail here, before any package is
+# installed, instead (#225).
+- name: Fail when opennms_version predates scvcli set --from-stdin
+  ansible.builtin.assert:
+    that:
+      - opennms_version is version('36.0.2', '>=')
+    fail_msg: >-
+      opennms_version is {{ opennms_version }}, but this role needs Horizon
+      36.0.2 or later. It stores the database passwords with
+      `scvcli set --from-stdin`, which older releases do not have.
+    quiet: true
+  tags:
+    - always
+
 - name: Verify the host clock is synchronised
   ansible.builtin.include_role:
     name: timesync
