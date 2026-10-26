@@ -90,7 +90,7 @@ ${scv:<key>:<field> | env:<VAR> | <literal default>}
        `- populated by scvcli set (this role)
 ```
 
-Credentials flow through the Secure Credential Vault (SCV) — populated by `scvcli set postgres ...` and `scvcli set postgres-admin ...` in `10-database-setup.yml`. Host, port, and dbname flow through env vars in `opennms.conf`. SSL and connection-pool tunables are left to the pristine XML's literal defaults unless you explicitly set them.
+Credentials flow through the Secure Credential Vault (SCV) — populated by `scvcli set --from-stdin postgres ...` and `scvcli set --from-stdin postgres-admin ...` in `10-database-setup.yml`; the password travels on stdin, so values that start with `-` (which `scvcli` would otherwise parse as an option) are stored verbatim. Host, port, and dbname flow through env vars in `opennms.conf`. SSL and connection-pool tunables are left to the pristine XML's literal defaults unless you explicitly set them.
 
 | Legacy variable | Env var rendered |
 |---|---|
