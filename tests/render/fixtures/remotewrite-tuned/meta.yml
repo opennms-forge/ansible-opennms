@@ -1,0 +1,9 @@
+---
+render_role: opennms_core
+
+# Every optional write setting set to a value other than the plugin default,
+# so a dropped key, a misspelt property or a boolean rendered as `True` shows
+# up in the diff. Booleans are deliberately mixed: two true, two false.
+render_files:
+  - name: org.opennms.plugins.tss.prometheus.cfg
+    src: etc/org.opennms.plugins.tss.prometheus.cfg.j2

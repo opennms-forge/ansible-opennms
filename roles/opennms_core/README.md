@@ -136,6 +136,43 @@ opennms_services:
 
 Empty by default; upstream defaults apply for every unmodified service. `Manager` and `Eventd` are not toggleable.
 
+### Prometheus remote_write plugin
+
+`opennms_remotewrite` switches on the [`opennms-prometheus-remotewrite-plugin`](https://github.com/OpenNMS-Plugins/opennms-prometheus-remotewrite-plugin) and renders its PID file, `etc/org.opennms.plugins.tss.prometheus.cfg`. Setting the dict **replaces** the role default, so restate `write_url` and `read_url` when you override it.
+
+```yaml
+opennms_remotewrite:
+  enabled: true
+  write_url: http://mimir.example.com:8080/api/v1/push
+  read_url: http://mimir.example.com:8080/prometheus/api/v1
+  organization_id: ""
+  batching_enabled: true      # store() no longer waits on HTTP; keeps per-series order
+```
+
+From plugin 2.2.0, writes are synchronous by default: a writer thread waits up to `callTimeoutInMs` for the backend. The keys below tune that write path and need plugin 2.2.0 or later; an older plugin ignores them. Each one is optional and renders only when set; an unset or empty key takes the plugin default. See the [plugin README](https://github.com/OpenNMS-Plugins/opennms-prometheus-remotewrite-plugin/blob/v2.2.0/README.md) for what each property does.
+
+| Key | Plugin property |
+|---|---|
+| `async_writes` | `asyncWrites` |
+| `call_timeout_ms` | `callTimeoutInMs` |
+| `batching_enabled` | `batchingEnabled` |
+| `batch_shards` | `batchShards` |
+| `batch_max_samples` | `batchMaxSamples` |
+| `batch_linger_ms` | `batchLingerMs` |
+| `batch_shard_capacity` | `batchShardCapacity` |
+| `batch_max_retries` | `batchMaxRetries` |
+| `batch_retry_backoff_ms` | `batchRetryBackoffMs` |
+| `batch_enqueue_timeout_ms` | `batchEnqueueTimeoutMs` |
+| `external_tags_enabled` | `externalTagsEnabled` |
+| `external_tags_cache_size` | `externalTagsCacheSize` |
+| `external_tags_queue_size` | `externalTagsQueueSize` |
+| `external_tags_threads` | `externalTagsThreads` |
+| `external_tags_preload` | `externalTagsPreload` |
+
+`async_writes: true` also stops blocking the writer threads, but unbatched asynchronous writes reach the backend out of order. Mimir rejects out-of-order samples unless its out-of-order window is set, so prefer `batching_enabled` there.
+
+The role fails the run on a key that is in neither table, so a misspelling cannot silently leave the plugin on its default.
+
 ## Example
 
 ```yaml

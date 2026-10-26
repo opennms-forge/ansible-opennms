@@ -206,3 +206,5 @@ all:
         #               | default(groups['mimir'][0]) }}:8080/prometheus/api/v1
         #   # write_url: http://mimir.example.org/api/v1/push
         #   organization_id: ""
+        #   # Optional plugin 2.2.0 write settings; see the opennms_core README.
+        #   # batching_enabled: true

@@ -40,6 +40,8 @@ tests/
 | `kafka-cluster` | `stub_kafka` → `server.properties` | the cluster form: sorted quorum voters with stable node ids, replication 3, min.isr 2 |
 | `mimir-single` | `stub_mimir` → `mimir-dicts.yml` | the dicts handed to `indigo423.grafana.mimir` for one node: memberlist carrying only the advertise address, in-memory rings, replication 1, filesystem storage, an address in every ring, multitenancy off |
 | `mimir-cluster` | `stub_mimir` → `mimir-dicts.yml` | the cluster form: sorted `join_members` from members declared out of order, replication 3, memberlist rings, S3 storage |
+| `remotewrite-default` | `opennms_core` → `org.opennms.plugins.tss.prometheus.cfg` | that the role defaults render the three-line file from before the optional write settings existed |
+| `remotewrite-tuned` | `opennms_core` → `org.opennms.plugins.tss.prometheus.cfg` | every optional write setting, declared out of order: the plugin property names, table order, and booleans rendered `true`/`false` |
 
 The Kafka pair and the Mimir pair exist for the same reason. Either alone would pass while the shape logic was broken; the difference between them is the assertion.
 
