@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-10-26
+
 ### Added
 - `opennms_core`: `opennms_remotewrite` accepts the remote-write plugin 2.2.0 write settings: `async_writes`, `call_timeout_ms`, the `batch*` keys and the `external_tags*` keys. Each renders only when set, so existing inventories get a byte-identical file. An unknown key fails the run. Two render fixtures pin the default and the fully tuned output (#227, closes #220).
 
@@ -13,8 +15,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `opennms_minion`, `opennms_sentinel`: the restart queued by the configuration tasks ran at the end of the play, after the role had started the service, so a fresh install started the JVM twice and the role finished while it restarted. Pending handlers now run before the start. `opennms_minion` also waits for its local health probe, tunable with `opennms_minion_startup_retries` (30) and `opennms_minion_startup_delay` (10 s). `opennms_sentinel` has no readiness wait yet: its package does not boot the health REST feature (#233, closes #230).
 - `opennms_core`, `opennms_minion`, `opennms_sentinel`, `stub_kafka`: the `skip_*_startup` toggles compared against the string `"false"`, so a YAML boolean `false` skipped startup and Core's readiness wait while the role reported success. They are now read through `bool` and declared in each role's defaults. Core, Minion and Sentinel reject a non-boolean value at role entry, and `stub_kafka`'s restart handler now honours its toggle (#232, closes #229).
 - `opennms_core`: the role waited for the web UI before running the `Restart opennms` handler its own configuration tasks had queued, so on a fresh install it reported success while Core was restarting for several minutes. Pending handlers now run before the readiness wait (#228, closes #223).
-- `opennms_core`: the secure-vault `set` tasks passed the password as a positional argument, so a value starting with `-` was parsed as an option and the role failed behind `no_log`. The password now goes to `scvcli set --from-stdin` via stdin, which keeps every value - whatever it starts with - out of argv (#221, closes #221).
-- `opennms_core`: `scvcli set --from-stdin` only exists from Horizon 36.0.2, so the role now fails early with a clear message when `opennms_version` is older (#225).
+- `opennms_core`: the secure-vault `set` tasks passed the password as a positional argument, so a value starting with `-` was parsed as an option and the role failed behind `no_log`. The password now goes to `scvcli set --from-stdin` via stdin, which keeps every value - whatever it starts with - out of argv (#222, closes #221).
+- `opennms_core`: `scvcli set --from-stdin` only exists from Horizon 36.0.2, so the role now fails early with a clear message when `opennms_version` is older (#226, closes #225).
 
 ## [0.12.2] - 2026-10-24
 
@@ -311,6 +313,7 @@ and `vm-single` are unaffected.
 - Renovate configuration for automated Ansible Galaxy collection updates.
 - CI on standard GitHub-hosted runners with SHA-pinned actions and Dependabot.
 
+[0.13.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.13.0
 [0.12.2]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.12.2
 [0.12.1]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.12.1
 [0.12.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.12.0
