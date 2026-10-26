@@ -160,6 +160,16 @@ Three details worth knowing:
 - **There is no enable flag.** Loading the agent is what enables it, so an empty dict means no jar is downloaded and no JVM option is set. Emptying it again removes the whole block and restarts the Minion.
 - **Do not add `PYROSCOPE_AGENT_ENABLED`.** Core carries it in `opennms_jvm_conf` because `bin/opennms` reads it as a number. Here it reaches the agent, which parses it as a boolean — so the `1` that means "on" for Core reads as `false`, and the agent disables itself right after attaching with a single INFO line to say so.
 
+## Startup readiness
+
+After starting `minion.service`, the role polls `http://localhost:8181/minion/rest/health/probe?tag=local` until it returns 200. The `local` tag limits the probe to Karaf's bundle check, so a Minion deployed before Kafka or Core is reachable still passes. The role fails when the probe never succeeds.
+
+| Variable | Purpose |
+|---|---|
+| `opennms_minion_startup_retries` | Polls before failing. Default `30`. |
+| `opennms_minion_startup_delay` | Seconds between polls. Default `10`. |
+| `skip_minion_startup` | Leave Minion stopped and skip the probe. Default `false`. |
+
 ## Variables
 
 See [`defaults/main.yml`](defaults/main.yml).

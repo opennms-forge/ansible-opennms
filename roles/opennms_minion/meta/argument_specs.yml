@@ -46,3 +46,13 @@ argument_specs:
         description:
           - Leave Minion stopped. Skips the start and the C(Restart minion) handler.
           - A value that is not a boolean, such as C(skip), fails the role.
+      opennms_minion_startup_retries:
+        type: int
+        default: 30
+        description:
+          - How many times to poll Minion's local health probe after the start before failing.
+      opennms_minion_startup_delay:
+        type: int
+        default: 10
+        description:
+          - Seconds between two polls of Minion's local health probe.
