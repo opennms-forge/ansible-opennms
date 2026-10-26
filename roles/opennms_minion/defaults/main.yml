@@ -108,3 +108,8 @@ opennms_unattended_upgrade_blacklist: true
 # Leave Minion stopped: skips the start and the `Restart minion` handler.
 # Read through `bool`, so `false` and "false" both start it.
 skip_minion_startup: false
+
+# How long to wait for Minion's local health probe after the start: retries
+# times delay seconds, about 5 minutes by default.
+opennms_minion_startup_retries: 30
+opennms_minion_startup_delay: 10

@@ -209,12 +209,44 @@
     - minion
     - systemd
 
+# Run any restart the configuration tasks queued now, not at the end of the
+# play, so the role does not finish while Minion is restarting (#230). On a
+# fresh install the handler starts the stopped unit and the start task below
+# finds it running; with nothing queued, the start task does the start. Tagged
+# `always` because the notifying tasks carry tags the start task does not.
+- name: Apply queued Minion restarts before the start
+  ansible.builtin.meta: flush_handlers
+  tags:
+    - always
+
 - name: Start systemd unit for OpenNMS Minion
   ansible.builtin.service:
     name: minion.service
     state: started
   when:
     - not (skip_minion_startup | bool)
+  tags:
+    - opennms
+    - minion
+    - systemd
+
+# systemd reports the unit started as soon as the launcher returns; Karaf needs
+# longer to bring its bundles up. `tag=local` limits the probe to the bundle
+# check, so a Minion deployed before Kafka or Core is reachable still passes.
+# Upstream's container healthcheck uses the same endpoint, without credentials.
+- name: Wait for OpenNMS Minion to become ready
+  ansible.builtin.uri:
+    url: "http://localhost:8181/minion/rest/health/probe?tag=local"
+    method: GET
+    status_code: 200
+  register: opennms_minion_ready
+  until: opennms_minion_ready.status | default(0) == 200
+  retries: "{{ opennms_minion_startup_retries }}"
+  delay: "{{ opennms_minion_startup_delay }}"
+  # A dry run starts nothing, so there is nothing to wait for.
+  when:
+    - not (skip_minion_startup | bool)
+    - not ansible_check_mode
   tags:
     - opennms
     - minion

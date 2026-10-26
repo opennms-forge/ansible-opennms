@@ -284,6 +284,16 @@
     - sentinel
     - systemd
 
+# Run any restart the configuration tasks queued now, not at the end of the
+# play, so the role does not finish while Sentinel is restarting (#230). On a
+# fresh install the handler starts the stopped unit and the start task below
+# finds it running; with nothing queued, the start task does the start. Tagged
+# `always` because the notifying tasks carry tags the start task does not.
+- name: Apply queued Sentinel restarts before the start
+  ansible.builtin.meta: flush_handlers
+  tags:
+    - always
+
 - name: Start systemd unit for OpenNMS Sentinel
   ansible.builtin.service:
     name: sentinel.service
