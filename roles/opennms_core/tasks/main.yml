@@ -225,6 +225,20 @@
     - core
     - systemd
 
+# Run any restart the configuration tasks queued now, not at the end of the
+# play. Otherwise the readiness wait below passes against the first start and
+# the handler restarts Core after the role has reported success (#223). Placed
+# before the start so a fresh install starts the JVM once: when a restart was
+# queued, the handler starts the stopped unit and the start task below finds it
+# running. With nothing queued, the start task does the start.
+#
+# Tagged `always` because the tasks that notify the restart carry tags this
+# task otherwise would not, so a filtered run would still restart at play end.
+- name: Apply queued OpenNMS restarts before the readiness wait
+  ansible.builtin.meta: flush_handlers
+  tags:
+    - always
+
 - name: Start systemd unit for OpenNMS {{ opennms_distribution }}
   ansible.builtin.service:
     name: opennms.service
