@@ -1,0 +1,23 @@
+---
+render_canary: fixture
+# Declared out of table order: the rendered order must come from the template.
+opennms_remotewrite:
+  enabled: true
+  write_url: "http://mimir.example.test:8080/api/v1/push"
+  read_url: "http://mimir.example.test:8080/prometheus/api/v1"
+  organization_id: "opennms"
+  external_tags_preload: false
+  external_tags_threads: 8
+  external_tags_queue_size: 200000
+  external_tags_cache_size: 67108864
+  external_tags_enabled: false
+  batch_enqueue_timeout_ms: 2500
+  batch_retry_backoff_ms: 500
+  batch_max_retries: 5
+  batch_shard_capacity: 131072
+  batch_linger_ms: 250
+  batch_max_samples: 4000
+  batch_shards: 8
+  batching_enabled: true
+  call_timeout_ms: 30000
+  async_writes: true

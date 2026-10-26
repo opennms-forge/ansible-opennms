@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+- `opennms_core`: `opennms_remotewrite` accepts the remote-write plugin 2.2.0 write settings: `async_writes`, `call_timeout_ms`, the `batch*` keys and the `external_tags*` keys. Each renders only when set, so existing inventories get a byte-identical file. An unknown key fails the run. Two render fixtures pin the default and the fully tuned output (#220).
+
 ### Fixed
 - `opennms_core`: the secure-vault `set` tasks passed the password as a positional argument, so a value starting with `-` was parsed as an option and the role failed behind `no_log`. The password now goes to `scvcli set --from-stdin` via stdin, which keeps every value - whatever it starts with - out of argv (#221, closes #221).
 - `opennms_core`: `scvcli set --from-stdin` only exists from Horizon 36.0.2, so the role now fails early with a clear message when `opennms_version` is older (#225).

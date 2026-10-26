@@ -22,3 +22,25 @@ scvcli_cmd: "bash {{ opennms_home }}/bin/scvcli"
 opennms_component: core
 _opennms_apt_preferences_file: /etc/apt/preferences.d/99-opennms-{{ opennms_component }}.pref
 _opennms_unattended_blacklist_file: /etc/apt/apt.conf.d/51-opennms-{{ opennms_component }}-blacklist
+
+# Optional remote-write plugin 2.2.0 write settings: `opennms_remotewrite` key
+# to the plugin property it renders as. The template renders a key only when it
+# is set, in this order; 22-timeseries-plugin.yml rejects a key not listed here
+# or among the four base keys, so a misspelling fails the run instead of
+# leaving the plugin on its default.
+_opennms_remotewrite_optional_properties:
+  async_writes: asyncWrites
+  call_timeout_ms: callTimeoutInMs
+  batching_enabled: batchingEnabled
+  batch_shards: batchShards
+  batch_max_samples: batchMaxSamples
+  batch_linger_ms: batchLingerMs
+  batch_shard_capacity: batchShardCapacity
+  batch_max_retries: batchMaxRetries
+  batch_retry_backoff_ms: batchRetryBackoffMs
+  batch_enqueue_timeout_ms: batchEnqueueTimeoutMs
+  external_tags_enabled: externalTagsEnabled
+  external_tags_cache_size: externalTagsCacheSize
+  external_tags_queue_size: externalTagsQueueSize
+  external_tags_threads: externalTagsThreads
+  external_tags_preload: externalTagsPreload

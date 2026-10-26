@@ -8,6 +8,23 @@
 # Note: the default opennms_properties_timeseries dict still renders the RRD
 # strategy/graph-engine props in 20-config.yml; under the integration strategy
 # those RRD settings are inert, but they are not removed here.
+# The optional write settings render only when set, so a misspelt key would
+# otherwise be dropped without a trace and leave the plugin on its default.
+- name: Reject unknown opennms_remotewrite keys
+  ansible.builtin.assert:
+    that:
+      - opennms_remotewrite_unknown_keys | length == 0
+    fail_msg: >-
+      opennms_remotewrite has unknown keys: {{ opennms_remotewrite_unknown_keys | join(', ') }}.
+      Known keys: {{ opennms_remotewrite_known_keys | join(', ') }}.
+    quiet: true
+  vars:
+    opennms_remotewrite_known_keys: "{{ ['enabled', 'write_url', 'read_url', 'organization_id'] + _opennms_remotewrite_optional_properties.keys() | list }}"
+    opennms_remotewrite_unknown_keys: "{{ opennms_remotewrite.keys() | difference(opennms_remotewrite_known_keys) }}"
+  tags:
+    - core
+    - timeseries
+
 - name: Enable the OSGi time-series integration layer for remote_write
   ansible.builtin.template:
     src: etc/opennms.properties.d/_ansible.remotewrite.properties.j2

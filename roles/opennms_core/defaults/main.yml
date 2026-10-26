@@ -197,6 +197,16 @@ opennms_remotewrite:
   write_url: "http://localhost:8080/api/v1/push"
   read_url: "http://localhost:8080/prometheus/api/v1"
   organization_id: ""
+  # Optional plugin 2.2.0 write settings, rendered only when set; an unset key
+  # takes the plugin default. The key-to-property table is in vars/main.yml and
+  # the role README; an unknown key fails the run.
+  # async_writes: true
+  # call_timeout_ms: 10000
+  # batching_enabled: true
+  # batch_shards, batch_max_samples, batch_linger_ms, batch_shard_capacity,
+  # batch_max_retries, batch_retry_backoff_ms, batch_enqueue_timeout_ms
+  # external_tags_enabled, external_tags_cache_size, external_tags_queue_size,
+  # external_tags_threads, external_tags_preload
 # Bare version; the URL below supplies the "v" that upstream's release tags use.
 # extractVersion keeps Renovate from writing the raw `v`-prefixed tag, which
 # would compose a double-"v" URL that 404s.

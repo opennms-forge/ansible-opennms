@@ -1,0 +1,10 @@
+---
+render_role: opennms_core
+
+# The role defaults. The template does not read `enabled`, so leaving it at
+# false renders what an enabled inventory with no overrides gets. Pins that an inventory setting
+# none of the optional write settings renders the three-line file it always
+# has, so adding a key cannot change a file nobody asked to change.
+render_files:
+  - name: org.opennms.plugins.tss.prometheus.cfg
+    src: etc/org.opennms.plugins.tss.prometheus.cfg.j2
