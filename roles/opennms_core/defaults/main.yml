@@ -251,3 +251,9 @@ opennms_unattended_upgrade_blacklist: true
 # Leave OpenNMS stopped: skips the start, the `Restart opennms` handler and
 # the readiness wait. Read through `bool`, so `false` and "false" both start it.
 skip_startup: false
+
+# Readiness wait after the start: polls for the web UI, then for every enabled
+# service via `bin/opennms status`. Retries per gate, and seconds between polls.
+# A status poll takes up to 31 s itself while the JVM has not answered.
+opennms_startup_retries: 30
+opennms_startup_delay: 10

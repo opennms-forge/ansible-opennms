@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+- `opennms_core`: the readiness wait returned once `login.jsp` answered, about 20 s before Manager had started every service on Horizon 36. The role now also runs `bin/opennms -v status` until it exits 0, which is the launcher's own check that every enabled service reports `running`. Same `opennms_startup_retries` and `opennms_startup_delay` budget (#236, closes #234).
+
 ## [0.13.0] - 2026-10-26
 
 ### Added
