@@ -50,9 +50,9 @@
       "labels": ["dependencies", "ci"]
     },
     {
-      "description": "ansible-core 2.21 fails on Python 3.15 (dataclasses._is_type removed); hold the runner interpreter until a supporting ansible-core ships",
+      "description": "ansible-core 2.21 crashes at import on Python 3.15. Hold the setup-python input (Renovate's github-actions manager names it depName 'python', datasource github-releases) below 3.15. Remove this rule once requirements-dev.txt pins ansible-core 2.22.0 or later, the first release whose PyPI classifiers include Python 3.15.",
       "matchManagers": ["github-actions"],
-      "matchDatasources": ["python-version"],
+      "matchDepNames": ["python"],
       "allowedVersions": "<3.15"
     }
   ]
