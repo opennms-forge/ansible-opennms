@@ -261,8 +261,37 @@
     status_code: 200
   register: opennms_core_ready
   until: opennms_core_ready.status | default(0) == 200
-  retries: "{{ opennms_startup_retries | default(30) }}"
-  delay: "{{ opennms_startup_delay | default(10) }}"
+  retries: "{{ opennms_startup_retries }}"
+  delay: "{{ opennms_startup_delay }}"
+  when:
+    - not (skip_startup | bool)
+  tags:
+    - core
+    - systemd
+
+# Jetty is only one of the services Manager starts: login.jsp answered about
+# 20 s before KarafStartupMonitor finished on a Horizon 36 host (#234). The
+# launcher's status check sends SIGUSR1 to the JVM, which writes one line per
+# enabled service to logs/status-check.txt, and exits 0 only when every line
+# reads "running". Kept behind the web UI wait: the JVM registers the SIGUSR1
+# handler when it starts Jetty, and before that the signal terminates it.
+#
+# Only 160 (partially running) means "still starting" and is retried. Every
+# other code is terminal and fails at once: 3 is a stopped JVM, a stale pid
+# file or no answer to the signal within 30 s, 1 a pid mismatch, 4 a user the
+# launcher refuses to run as. Each poll itself takes up to 31 s on top of the
+# delay. `-v` prints the per-service lines whenever the JVM answered.
+- name: Wait for every enabled OpenNMS service to report running
+  become: true
+  become_user: opennms
+  ansible.builtin.command:
+    cmd: "{{ opennms_home }}/bin/opennms -v status"
+  register: opennms_core_services_ready
+  changed_when: false
+  failed_when: opennms_core_services_ready.rc != 0
+  until: opennms_core_services_ready.rc != 160
+  retries: "{{ opennms_startup_retries }}"
+  delay: "{{ opennms_startup_delay }}"
   when:
     - not (skip_startup | bool)
   tags:

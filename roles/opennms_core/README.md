@@ -136,6 +136,21 @@ opennms_services:
 
 Empty by default; upstream defaults apply for every unmodified service. `Manager` and `Eventd` are not toggleable.
 
+### Startup readiness
+
+After starting `opennms.service`, the role first polls `http://localhost:8980/opennms/login.jsp` until it returns 200, then runs `bin/opennms -v status` until it exits 0.
+The second gate matters because Jetty answers before Manager has started every service.
+The status command signals the JVM, which writes one line per enabled service to `logs/status-check.txt`, and exits 0 only when every line reads `running`.
+It is retried only while it reports a partially started Core (exit 160).
+A stopped JVM, a stale pid file or no answer to the signal within 30 seconds fails the role at once.
+Each status poll can take up to 31 seconds on top of the delay, so the second gate's worst case is longer than the first's.
+
+| Variable | Purpose |
+|---|---|
+| `opennms_startup_retries` | Polls before failing, per gate. Default `30`. |
+| `opennms_startup_delay` | Seconds between polls. Default `10`. |
+| `skip_startup` | Leave Core stopped and skip both gates. Default `false`. |
+
 ### Prometheus remote_write plugin
 
 `opennms_remotewrite` switches on the [`opennms-prometheus-remotewrite-plugin`](https://github.com/OpenNMS-Plugins/opennms-prometheus-remotewrite-plugin) and renders its PID file, `etc/org.opennms.plugins.tss.prometheus.cfg`. Setting the dict **replaces** the role default, so restate `write_url` and `read_url` when you override it.
