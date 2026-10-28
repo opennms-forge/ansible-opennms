@@ -48,3 +48,8 @@ _kafka_cluster_properties: >-
   }}
 
 _kafka_effective_properties: "{{ kafka_server_properties | combine(_kafka_cluster_properties) }}"
+
+# The directories Kafka formats, from the effective `log.dirs`. An inventory
+# that restates kafka_server_properties may set it without kafka_log_dir, and
+# Kafka reads it as a comma-separated list.
+_kafka_data_dirs: "{{ (_kafka_effective_properties['log.dirs'] | default(kafka_log_dir)).split(',') | map('trim') | list }}"
