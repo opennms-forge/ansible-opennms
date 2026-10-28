@@ -47,6 +47,7 @@ See [`defaults/main.yml`](defaults/main.yml).
 | `es_repo_url` | `https://artifacts.elastic.co/packages/8.x/apt` | APT repository base URL. |
 | `es_yum_repo_url` | `https://artifacts.elastic.co/packages/8.x/yum` | yum repository base URL (EL 10). |
 | `es_rpm_key_file` | `/etc/pki/rpm-gpg/RPM-GPG-KEY-elasticsearch` | Where the verified key is stored for rpm and dnf (EL 10). |
+| `es_jvm_options` | `[]` | Extra JVM options, one `jvm.options` line per item, for example `["-Xms2g", "-Xmx2g"]`. Written to `jvm.options.d/_ansible.jvm.options`; an empty list removes that file. |
 
 Fingerprints are compared case-insensitively with spaces stripped, so a value pasted from `gpg` output in spaced display format also matches.
 

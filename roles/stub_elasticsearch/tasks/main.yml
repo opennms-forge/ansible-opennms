@@ -6,6 +6,25 @@
   tags:
     - always
 
+# Before anything is installed. A string would render one character per line,
+# a mapping one key per line, and a non-string or multi-line item a line
+# Elasticsearch refuses to start with (#244).
+- name: Fail when es_jvm_options is not a list of single-line strings
+  ansible.builtin.assert:
+    that:
+      - _es_jvm_options is sequence
+      - _es_jvm_options is not string
+      - _es_jvm_options is not mapping
+      - _es_jvm_options | reject('string') | list | length == 0
+      - _es_jvm_options | select('search', '\n') | list | length == 0
+    fail_msg: >-
+      `es_jvm_options` must be a list of single-line jvm.options entries, for
+      example ["-Xms2g", "-Xmx2g"], but it is {{ es_jvm_options | type_debug }}:
+      {{ es_jvm_options }}.
+    quiet: true
+  tags:
+    - always
+
 # Installed here rather than relying on another role: this role is now the gpg
 # consumer, and unlike stub_pgsql it does not include opennms_repositories (it
 # has no reason to add the OpenNMS APT repo to an Elasticsearch host). Minimal
@@ -251,11 +270,24 @@
 - name: Configure Elasticsearch JVM
   ansible.builtin.template:
     src: jvm.options.d/_ansible.jvm.options.j2
-    dest: '{{ es_etc_dir }}/jvm.options.d/_ansible.jvm.options'
+    dest: "{{ _es_jvm_options_file }}"
     owner: root
     group: elasticsearch
     mode: '0644'
-  when: es_jvm_options | length > 0
+  when: _es_jvm_options | length > 0
+  notify:
+    - Restart elasticsearch
+  tags:
+    - elasticsearch
+    - configuration
+
+# Emptying the list must take the file with it, or the options an earlier run
+# wrote stay in force.
+- name: Remove the Elasticsearch JVM options when none are set
+  ansible.builtin.file:
+    path: "{{ _es_jvm_options_file }}"
+    state: absent
+  when: _es_jvm_options | length == 0
   notify:
     - Restart elasticsearch
   tags:

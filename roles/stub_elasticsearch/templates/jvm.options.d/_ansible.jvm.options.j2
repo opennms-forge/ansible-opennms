@@ -5,6 +5,6 @@
 # Managed by Ansible
 ######
 
-{% for (key, value) in es_jvm.options.items() %}
-{{ key }}: {{ value }}
+{% for option in _es_jvm_options %}
+{{ option }}
 {% endfor %}
