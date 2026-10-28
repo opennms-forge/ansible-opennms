@@ -103,12 +103,14 @@
     - package
 
 - name: Resolve the installed JDK home
-  ansible.builtin.command: readlink -f /usr/bin/java
+  # `-e`, not `-f`: fail when no JDK is installed instead of resolving /usr.
+  ansible.builtin.command: readlink -e /usr/bin/java
   register: opennms_minion_java_bin
   changed_when: false
+  check_mode: false
+  # `always`: readers with other tags need this result under a tag filter (#241).
   tags:
-    - opennms
-    - minion
+    - always
 
 # The Minion service has no equivalent of Core's `runjava -s`; with JAVA_HOME
 # unset, bin/minion falls back to bin/find-java.sh, which returns the *first*

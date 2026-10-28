@@ -12,6 +12,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Changed
 - `stub_pyroscope`: the release package is unsigned, so the role now downloads it, verifies it against the release's `checksums.txt` (`pyroscope_checksums_url`) and installs the verified file. Before, apt installed the `.deb` from its URL unchecked. EL 10 installs the `.rpm` the same way.
 
+### Fixed
+- `opennms_core`, `opennms_minion`, `opennms_sentinel`: a tag-filtered run failed on an undefined variable when it selected a task whose input was registered by an untagged probe. `--tags opennms` failed on `initialized_schema`, `--tags core` on `java_conf`, `--tags opennms` on Debian on `ufw_binary_check`, and `--tags configuration` on the Minion and Sentinel JDK home. The five read-only probes are now tagged `always`, and the command probes run under `--check` too. `which ufw` no longer reports a change or an ignored failure, `java.conf` reports changed when `runjava -s` first writes it, and the Minion and Sentinel JDK lookup fails instead of writing `JAVA_HOME=/usr` when no JDK is installed (closes #241).
+
 ## [0.13.1] - 2026-10-28
 
 ### Changed

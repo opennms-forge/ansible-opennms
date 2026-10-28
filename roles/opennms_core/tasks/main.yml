@@ -138,12 +138,15 @@
   ansible.builtin.stat:
     path: "{{ opennms_home }}/etc/java.conf"
   register: java_conf
+  # `always`: readers with other tags need this result under a tag filter (#241).
+  tags:
+    - always
 
 - name: Configure Java runtime environment
   become: true
   become_user: opennms
   ansible.builtin.command: "{{ opennms_home }}/bin/runjava -s"
-  changed_when: java_conf.changed
+  changed_when: not java_conf.stat.exists
   tags:
     - core
     - initialize
@@ -271,11 +274,14 @@
 - name: Check if UFW is installed
   ansible.builtin.command: which ufw
   register: ufw_binary_check
-  ignore_errors: true
+  # A probe: a missing ufw is an answer, not a failure.
+  changed_when: false
+  failed_when: false
+  check_mode: false
   when: ansible_facts['os_family'] == 'Debian'
+  # `always`: readers with other tags need this result under a tag filter (#241).
   tags:
-    - core
-    - firewall
+    - always
 
 - name: Include tasks to configure Firewall rules
   ansible.builtin.include_tasks: 50-firewall.yml
