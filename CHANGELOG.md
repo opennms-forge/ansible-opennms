@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.13.1] - 2026-10-28
+
+### Changed
+- Renovate: the Grafana pin in `inventory/group_vars/grafana/vars.yml` carries a `# renovate:` marker and the file is in the regex manager's patterns, so Grafana releases are proposed like the role versions (#238). The Python 3.15 hold from #218 matched a datasource Renovate never assigns and let #224 through; it now matches depName `python` and names its lift condition, ansible-core 2.22.0 or later in `requirements-dev.txt` (#237).
+
 ### Fixed
 - `opennms_core`: the readiness wait returned once `login.jsp` answered, about 20 s before Manager had started every service on Horizon 36. The role now also runs `bin/opennms -v status` until it exits 0, which is the launcher's own check that every enabled service reports `running`. Same `opennms_startup_retries` and `opennms_startup_delay` budget (#236, closes #234).
 
@@ -316,6 +321,7 @@ and `vm-single` are unaffected.
 - Renovate configuration for automated Ansible Galaxy collection updates.
 - CI on standard GitHub-hosted runners with SHA-pinned actions and Dependabot.
 
+[0.13.1]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.13.1
 [0.13.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.13.0
 [0.12.2]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.12.2
 [0.12.1]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.12.1
