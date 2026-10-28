@@ -1,0 +1,15 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+# The key check in tasks/main.yml is shared; these pick the family's inputs.
+_pgsql_key_url: "{{ pgsql_rpm_key_url }}"
+_pgsql_key_fingerprints: "{{ pgsql_rpm_key_fingerprints }}"
+_pgsql_key_fingerprints_var: pgsql_rpm_key_fingerprints
+_pgsql_key_sha256: "{{ pgsql_rpm_key_sha256 }}"
+
+# PGDG's layout: one data directory per major, holding its configuration.
+_pgsql_conf_dir: "/var/lib/pgsql/{{ pg_version }}/data"
+_pgsql_service: "postgresql-{{ pg_version }}.service"
+_pgsql_restart_service: "postgresql-{{ pg_version }}.service"
+
+_pgsql_el_major: "{{ ansible_facts['distribution_major_version'] }}"

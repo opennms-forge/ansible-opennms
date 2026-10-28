@@ -1,0 +1,5 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+# The file this role owns, named in the one-major-per-host message.
+_opennms_repo_source_file: "/etc/apt/sources.list.d/{{ opennms_repo_filename }}.list"

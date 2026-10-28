@@ -1,0 +1,11 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+- name: Add Elasticsearch repo to sources list
+  ansible.builtin.apt_repository:
+    repo: deb [arch={{ arch }} signed-by={{ es_key_ring_file }}] {{ es_repo_url }} stable main
+    state: present
+    update_cache: true
+  tags:
+    - elasticsearch
+    - repository

@@ -1,6 +1,6 @@
 # opennms_repositories
 
-Adds the OpenNMS APT repository (`debian.opennms.org`) and the upstream GPG signing key on Debian/Ubuntu hosts.
+Adds the OpenNMS package repository and the upstream GPG signing key: the APT repository (`debian.opennms.org`) on Debian and Ubuntu, the yum repository (`yum.opennms.org`) on EL 10.
 
 Must run before any OpenNMS package install.
 
@@ -16,7 +16,7 @@ The APT source targets an explicit per-major dist, `opennms-<major>`, derived fr
 |---|---|---|
 | `opennms_repo_fallback_version` | `36.0.4` | OpenNMS release used only when the caller defines no `opennms_version`. |
 | `opennms_repo_dist` | derived from `opennms_version` | The dist used in the APT source line. Override for a mirror with a different layout. |
-| `opennms_repo_filename` | `opennms` | Name of the sources file the role owns, without the `.list` suffix. |
+| `opennms_repo_filename` | `opennms` | Name of the sources file the role owns, without the `.list` or `.repo` suffix. |
 
 ## Which sources files the role owns
 
@@ -38,6 +38,18 @@ Three one-time effects, all expected:
 - The run reports `changed` for the source and the cleanup, even though the enabled dist is the same.
 - The source moves from `debian_opennms_org_<dist>_main.list` to `opennms.list`. Automation keying off the old path needs updating.
 - `apt-get update` stops printing `Conflicting distribution … expected stable but got opennms-NN`, because the entry that produced it is gone.
+
+## EL 10
+
+On EL 10 the role writes `/etc/yum.repos.d/opennms.repo` with two sections.
+`[opennms-common]` points at `<opennms_repo_dist>/common`, which holds the noarch OpenNMS packages.
+`[opennms-rhel]` points at `<opennms_repo_dist>/rhel10`, which holds jicmp, jicmp6, jrrd2 and iplike.
+The dist is the same per-major value as on Debian, so the source follows `opennms_version` in the same way.
+One `rhel10` tree serves CentOS Stream, Rocky Linux and AlmaLinux, as in the repo file OpenNMS publishes.
+
+yum.opennms.org serves the same key as debian.opennms.org.
+The role verifies its fingerprint as described under [Key verification](#key-verification), copies it to `/etc/pki/rpm-gpg/RPM-GPG-KEY-opennms` and imports it with `rpm_key`, which checks the fingerprint a second time.
+The repo file sets `gpgcheck=1` and `repo_gpgcheck=1` against that local file, so dnf never fetches a key on its own.
 
 ## One host, one OpenNMS major
 
@@ -109,6 +121,8 @@ See [`defaults/main.yml`](defaults/main.yml).
 | `opennms_key_sha256` | `null` | Optional file-hash pin. Off by default; set it to opt into a second, stricter gate. |
 | `opennms_key_ring_file` | `/usr/share/keyrings/opennms-stable-archive-keyring.gpg` | Where the verified keyring is installed. |
 | `opennms_repo_url` | `https://debian.opennms.org` | APT repository base URL. |
+| `opennms_yum_repo_url` | `https://yum.opennms.org` | yum repository base URL (EL 10). |
+| `opennms_rpm_key_file` | `/etc/pki/rpm-gpg/RPM-GPG-KEY-opennms` | Where the verified key is stored for rpm and dnf (EL 10). |
 
 Fingerprints are compared case-insensitively with spaces stripped, so a value pasted from `gpg` output in spaced display format also matches.
 

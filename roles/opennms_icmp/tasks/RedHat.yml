@@ -1,0 +1,18 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+- name: Installing JICMP
+  ansible.builtin.dnf:
+    name: jicmp-{{ jicmp_version }}
+    state: present
+  tags:
+    - opennms
+    - icmp
+
+- name: Installing JICMP6
+  ansible.builtin.dnf:
+    name: jicmp6-{{ jicmp6_version }}
+    state: present
+  tags:
+    - opennms
+    - icmp

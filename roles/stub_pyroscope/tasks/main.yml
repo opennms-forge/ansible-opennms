@@ -1,17 +1,13 @@
 # Copyright 2026 Ronny Trommer <ronny@no42.org>
 # SPDX-License-Identifier: GPL-3.0-or-later
 ---
-# Installed from the release .deb rather than the tarball, as stub_mimir does:
-# apt takes the URL directly, and the package brings its own systemd unit,
-# `pyroscope` user and a valid single-node configuration. No checksum is pinned
-# because apt is fetching and verifying the archive it was handed — the same
-# trade the Mimir stub makes. The agent jar the OpenNMS roles install *is*
-# checksummed; that one is fetched with get_url and has no packaging around it.
+- name: Refuse an unsupported platform
+  ansible.builtin.include_tasks: assert-platform.yml
+  tags:
+    - always
+
 - name: Installing Grafana Pyroscope {{ pyroscope_version }}
-  ansible.builtin.apt:
-    deb: "{{ pyroscope_pkg_url }}"
-  notify:
-    - Restart pyroscope
+  ansible.builtin.include_tasks: "{{ ansible_facts['os_family'] }}.yml"
   tags:
     - pyroscope
     - packages
@@ -69,6 +65,7 @@
 # Overwrites the package's own /etc/pyroscope/config.yml, which is a dpkg
 # conffile: on a package upgrade apt sees a locally modified conffile and keeps
 # this one, which is the outcome we want (and the next run rewrites it anyway).
+# The RPM marks it %config(noreplace), which keeps it the same way on EL 10.
 # stub_mimir manages /etc/mimir/config.yml the same way.
 - name: Configure Pyroscope as a single-node monolithic server
   ansible.builtin.template:

@@ -25,8 +25,8 @@
       - opennms_minion_pyroscope.values() | map('string') | select('search', "'") | list | length == 0
     fail_msg: >-
       A value in `opennms_minion_pyroscope` contains a single quote. The keys are
-      written single-quoted into /etc/default/minion, which both systemd and the
-      shell that sources it read literally, and a single quote cannot be escaped
+      written single-quoted into {{ _opennms_minion_sysconfig_file }}, which the shell that
+      sources it reads literally (and systemd too, on Debian), and a single quote cannot be escaped
       inside them. Remove it or express the value another way.
     quiet: true
   when: opennms_minion_pyroscope | length > 0
@@ -62,7 +62,7 @@
 # form, including a JSON value and one carrying `$` and embedded quotes.
 - name: Configure Pyroscope profiling for Minion
   ansible.builtin.blockinfile:
-    path: /etc/default/minion
+    path: "{{ _opennms_minion_sysconfig_file }}"
     marker: "# {mark} ANSIBLE MANAGED BLOCK: pyroscope"
     block: "{{ lookup('template', 'pyroscope-env.j2') }}"
     state: "{{ 'present' if opennms_minion_pyroscope | length > 0 else 'absent' }}"

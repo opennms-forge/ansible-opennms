@@ -13,6 +13,16 @@
 - name: Verify credentials before anything else
   ansible.builtin.include_tasks: 00-credentials-check.yml
 
+- name: Refuse an unsupported platform
+  ansible.builtin.include_tasks: assert-platform.yml
+  tags:
+    - always
+
+- name: Load the PostgreSQL layout for {{ ansible_facts['os_family'] }}
+  ansible.builtin.include_vars: "{{ ansible_facts['os_family'] }}.yml"
+  tags:
+    - always
+
 - name: Include OpenNMS repository roles
   ansible.builtin.include_role:
     name: opennms_repositories
@@ -46,12 +56,12 @@
   block:
     - name: Download PostgreSQL repository key
       ansible.builtin.get_url:
-        url: "{{ pgsql_key_url }}"
+        url: "{{ _pgsql_key_url }}"
         dest: "{{ pgsql_key_workdir.path }}/gpg.ACCC4CF8.key"
         mode: "0600"
         # Always re-fetch; see the same note in opennms_repositories.
         force: true
-        checksum: "{{ ('sha256:' ~ pgsql_key_sha256) if pgsql_key_sha256 else omit }}"
+        checksum: "{{ ('sha256:' ~ _pgsql_key_sha256) if _pgsql_key_sha256 else omit }}"
       changed_when: false
       check_mode: false
 
@@ -77,7 +87,7 @@
         that:
           - pgsql_key_show.stdout_lines | select('match', '^fpr:') | list | length > 0
         fail_msg: >-
-          No OpenPGP fingerprint could be read from {{ pgsql_key_url }}.
+          No OpenPGP fingerprint could be read from {{ _pgsql_key_url }}.
           The downloaded file is not a usable public key, so its identity cannot
           be established. Refusing to install it.
         quiet: true
@@ -85,11 +95,11 @@
     - name: Fail when the accepted PostgreSQL fingerprints are not a list
       ansible.builtin.assert:
         that:
-          - pgsql_key_fingerprints is not string
-          - pgsql_key_fingerprints is sequence
+          - _pgsql_key_fingerprints is not string
+          - _pgsql_key_fingerprints is sequence
         fail_msg: >-
-          `pgsql_key_fingerprints` must be a list, but it is
-          {{ pgsql_key_fingerprints | type_debug }}. A bare string makes the
+          `{{ _pgsql_key_fingerprints_var }}` must be a list, but it is
+          {{ _pgsql_key_fingerprints | type_debug }}. A bare string makes the
           comparison iterate characters instead of fingerprints, so the mismatch
           message below would be unreadable. Wrap the value in a list.
         quiet: true
@@ -98,17 +108,17 @@
       vars:
         # First `fpr:` record is the primary key; later ones are subkeys.
         pgsql_key_fpr_found: "{{ (pgsql_key_show.stdout_lines | select('match', '^fpr:') | first).split(':')[9] | upper }}"
-        pgsql_key_fpr_accepted: "{{ pgsql_key_fingerprints | map('replace', ' ', '') | map('upper') | list }}"
+        pgsql_key_fpr_accepted: "{{ _pgsql_key_fingerprints | map('replace', ' ', '') | map('upper') | list }}"
       ansible.builtin.assert:
         that:
           - pgsql_key_fpr_found in pgsql_key_fpr_accepted
         fail_msg: >-
-          The key served by {{ pgsql_key_url }} has fingerprint
+          The key served by {{ _pgsql_key_url }} has fingerprint
           {{ pgsql_key_fpr_found }}, which is not accepted.
           Expected one of: {{ pgsql_key_fpr_accepted | join(', ') }}.
           Refusing to install it. If PostgreSQL has rotated its signing key,
           verify the new fingerprint out-of-band and add it to
-          `pgsql_key_fingerprints`.
+          `{{ _pgsql_key_fingerprints_var }}`.
         quiet: true
 
     - name: Install PostgreSQL repository keyring
@@ -117,6 +127,27 @@
         dest: "{{ pgsql_key_ring_file }}"
         mode: "0644"
         remote_src: true
+      when: ansible_facts['os_family'] == 'Debian'
+
+    # rpm imports armored keys; see opennms_repositories for why the download
+    # is the same key the fingerprint check read.
+    - name: Install PostgreSQL repository key for RPM
+      ansible.builtin.copy:
+        src: "{{ pgsql_key_workdir.path }}/gpg.ACCC4CF8.key"
+        dest: "{{ pgsql_rpm_key_file }}"
+        mode: "0644"
+        remote_src: true
+      when: ansible_facts['os_family'] == 'RedHat'
+
+    - name: Import PostgreSQL repository key into the RPM database
+      ansible.builtin.rpm_key:
+        key: "{{ pgsql_rpm_key_file }}"
+        # The one fingerprint the check above matched. rpm_key reads a list as
+        # "every one of these", so passing the accepted list would fail as soon
+        # as a rollover adds a second entry.
+        fingerprint: "{{ (pgsql_key_show.stdout_lines | select('match', '^fpr:') | first).split(':')[9] }}"
+        state: present
+      when: ansible_facts['os_family'] == 'RedHat'
   always:
     # Guarded so a missing path cannot raise inside `always` and mask the real
     # failure that brought us here.
@@ -128,27 +159,22 @@
       changed_when: false
       check_mode: false
 
-- name: Add PostgreSQL repo to sources list
-  ansible.builtin.apt_repository:
-    repo: deb [arch={{ arch }} signed-by={{ pgsql_key_ring_file }}] {{ pgsql_repo_url }} {{ ansible_distribution_release }}-pgdg main
-    state: present
-    update_cache: true
+- name: Add the PostgreSQL package source
+  ansible.builtin.include_tasks: "repository-{{ ansible_facts['os_family'] }}.yml"
   tags:
     - opennms
     - postgresql
     - repository
 
 - name: Install PostgreSQL Server {{ pg_version }}
-  ansible.builtin.package:
-    name: postgresql-{{ pg_version }}={{ pg_pkg_version }}
-    state: present
+  ansible.builtin.include_tasks: "install-{{ ansible_facts['os_family'] }}.yml"
   tags:
     - opennms
     - postgresql
 
 - name: Configure PostgreSQL Server interface listening
   ansible.builtin.lineinfile:
-    path: /etc/postgresql/{{ pg_version }}/main/postgresql.conf
+    path: "{{ _pgsql_conf_dir }}/postgresql.conf"
     search_string: "#listen_addresses = 'localhost'"
     line: "listen_addresses = '{{ postgres_listen_addresses }}'"
   notify:
@@ -160,7 +186,7 @@
 - name: Configure PostgreSQL authentication and access
   ansible.builtin.template:
     src: pg_hba.conf.j2
-    dest: /etc/postgresql/{{ pg_version }}/main/pg_hba.conf
+    dest: "{{ _pgsql_conf_dir }}/pg_hba.conf"
     owner: postgres
     group: postgres
     mode: '0640'
@@ -172,7 +198,7 @@
 
 - name: Enable and start systemd unit for PostgreSQL
   ansible.builtin.service:
-    name: postgresql@{{ pg_version }}-main.service
+    name: "{{ _pgsql_service }}"
     enabled: true
     state: started
   tags:
@@ -181,7 +207,7 @@
     - systemd
 
 - name: Install python3-psycopg2 dependency for PostgreSQL community module
-  ansible.builtin.apt:
+  ansible.builtin.package:
     name: python3-psycopg2
     state: present
   tags:
@@ -189,10 +215,14 @@
     - postgresql
     - ansible
 
+# OpenNMS publishes no iplike for PostgreSQL 18 on EL 10. There the OpenNMS
+# installer finds no usable C function and installs its PL/pgSQL iplike, which
+# is slower for IP-range filters but answers the same queries.
 - name: Install OpenNMS iplike store package
   ansible.builtin.apt:
     name: iplike-pgsql{{ pg_version }}
     state: present
+  when: ansible_facts['os_family'] == 'Debian'
   tags:
     - opennms
     - postgresql
@@ -256,6 +286,7 @@
     login_db: "{{ opennms_datasource_db_name }}"
     # yamllint disable-line rule:line-length
     query: "CREATE OR REPLACE FUNCTION iplike(i_ipaddress text,i_rule text) RETURNS bool AS '/usr/lib/postgresql/{{ pg_version }}/lib/iplike.so' LANGUAGE 'c' RETURNS NULL ON NULL INPUT;"
+  when: ansible_facts['os_family'] == 'Debian'
   tags:
     - opennms
     - postgresql

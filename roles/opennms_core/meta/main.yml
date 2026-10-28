@@ -4,7 +4,7 @@
 galaxy_info:
   role_name: opennms_core
   author: Ronny Trommer
-  description: Deploys and configures OpenNMS Horizon Core (server, webapp, database init, Kafka IPC, UFW rules) on Debian/Ubuntu.
+  description: Deploys and configures OpenNMS Horizon Core (server, webapp, database init, Kafka IPC, UFW or firewalld rules) on Debian, Ubuntu and EL 10.
   license: GPL-3.0-or-later
   min_ansible_version: "2.15"
   platforms:
@@ -16,6 +16,9 @@ galaxy_info:
       versions:
         - jammy
         - noble
+    - name: EL
+      versions:
+        - "10"
   galaxy_tags:
     - opennms
     - monitoring

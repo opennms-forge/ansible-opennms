@@ -1,0 +1,12 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+- name: Installing OpenNMS Minion {{ opennms_version }}
+  ansible.builtin.dnf:
+    name: "opennms-minion-{{ opennms_pkg_version }}"
+    state: present
+    install_weak_deps: false
+  tags:
+    - opennms
+    - minion
+    - package

@@ -1,0 +1,8 @@
+---
+render_role: opennms_repositories
+
+# A consumer with no `opennms_version` of its own on an EL 10 host gets the
+# branch from the role's fallback, as on Debian.
+render_files:
+  - name: opennms.repo
+    src: opennms.repo.j2

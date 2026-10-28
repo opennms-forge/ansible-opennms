@@ -1,0 +1,18 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+# The ports 50-firewall.yml opens with UFW, in the default zone. Permanent and
+# immediate, so they hold now and after a reload.
+- name: Allow OpenNMS listener ports through firewalld
+  ansible.posix.firewalld:
+    port: "{{ item }}"
+    permanent: true
+    immediate: true
+    state: enabled
+  loop:
+    - 8980/tcp
+    - 10162/udp
+    - 9999/udp
+  tags:
+    - opennms
+    - firewall

@@ -1,0 +1,11 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+- name: Install Elasticsearch {{ es_version }}
+  ansible.builtin.dnf:
+    name: elasticsearch-{{ es_pkg_version }}
+    state: present
+    allow_downgrade: true
+    update_cache: true
+  tags:
+    - elasticsearch

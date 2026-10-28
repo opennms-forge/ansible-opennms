@@ -1,0 +1,5 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+# Read by systemd and sourced by bin/sentinel; see the quoting rule in 30-pyroscope.yml.
+_opennms_sentinel_sysconfig_file: /etc/default/sentinel

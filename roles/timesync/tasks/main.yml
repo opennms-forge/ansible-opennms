@@ -1,24 +1,29 @@
 # Copyright 2026 Ronny Trommer <ronny@no42.org>
 # SPDX-License-Identifier: GPL-3.0-or-later
 ---
+- name: Refuse an unsupported platform
+  ansible.builtin.include_tasks: assert-platform.yml
+  tags:
+    - always
+
+- name: Load the chrony service name for {{ ansible_facts['os_family'] }}
+  ansible.builtin.include_vars: "{{ ansible_facts['os_family'] }}.yml"
+  tags:
+    - always
+
 # Optional remediation, and it runs *before* the check so that opting in can
 # actually fix what the check would otherwise fail on. Off by default: see the
 # note in defaults/main.yml for why installing chrony can make a
 # hypervisor-synced host worse rather than better.
 - name: Install chrony
-  ansible.builtin.apt:
-    pkg:
-      - chrony
-    state: present
-    update_cache: true
-    cache_valid_time: 3600
+  ansible.builtin.include_tasks: "{{ ansible_facts['os_family'] }}.yml"
   when: timesync_install_chrony | bool
   tags:
     - timesync
 
 - name: Enable and start chrony
   ansible.builtin.service:
-    name: chrony
+    name: "{{ _timesync_chrony_service }}"
     enabled: true
     state: started
   when: timesync_install_chrony | bool
@@ -43,11 +48,11 @@
 - name: Fail when chrony was requested but is not running
   ansible.builtin.assert:
     that:
-      - (ansible_facts.services['chrony.service'].state | default('')) == 'running'
+      - (ansible_facts.services[_timesync_chrony_service ~ '.service'].state | default('')) == 'running'
     fail_msg: >-
       `timesync_install_chrony` is enabled but chrony is not running on
       {{ inventory_hostname }} (state is
-      '{{ ansible_facts.services['chrony.service'].state | default('unknown') }}').
+      '{{ ansible_facts.services[_timesync_chrony_service ~ '.service'].state | default('unknown') }}').
       systemd most likely skipped the unit on an unmet condition: chrony refuses
       to run in a container, where the host owns the clock rather than the
       guest. Leave `timesync_install_chrony` at its default here and let the

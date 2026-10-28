@@ -1,0 +1,14 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+# The Debian list less its APT tooling: apt-listchanges, apt-transport-https
+# and python3-debian have no job on a dnf host.
+- name: "Install dependencies"
+  tags: ["system", "tools"]
+  ansible.builtin.dnf:
+    name:
+      - acl
+      - bzip2
+      - curl
+      - git-core
+    state: present

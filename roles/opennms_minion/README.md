@@ -6,7 +6,8 @@ Part of the [`indigo423.opennms`](https://galaxy.ansible.com/ui/repo/published/i
 
 ## Package version pinning
 
-This role writes an APT preferences file pinning the OpenNMS packages it installs.
+On Debian and Ubuntu, this role writes an APT preferences file pinning the OpenNMS packages it installs.
+EL 10 uses DNF versionlock instead; see [EL 10](#el-10).
 
 **A routine `apt upgrade` will never move OpenNMS across a major release.** While the configured `opennms_version` is still carried by the repository, `apt upgrade` will not change the installed versions at all. That is deliberate: OpenNMS upgrades need a planned maintenance window.
 
@@ -73,6 +74,20 @@ If you previously followed this section's earlier advice and hand-wrote `/etc/ap
 Turning the blacklist off does not affect the cross-major protection. That is the preferences file's `-1` tier, and it was measured to govern `unattended-upgrades` on its own.
 
 Not measured: `unattended-upgrades` releases other than the two named above. If you run something else, the property to check is whether its candidate selection defers to APT policy.
+
+### EL 10
+
+On EL 10 the role holds its packages with the DNF versionlock plugin.
+It owns one marked block in `/etc/dnf/plugins/versionlock.list`, with one `<name>-0:<opennms_version>-*` entry per package in `opennms_minion_pinned_packages`.
+Other roles on the same host keep their own blocks.
+The block is rewritten before the packages are installed, so changing `opennms_version` and re-running moves the packages in the same run.
+
+A lock admits exactly the configured version.
+There is no same-major fallback like the APT tier 2.
+Once the repository drops the configured version, the installed packages stay where they are and a fresh install fails at the install task.
+
+`dnf upgrade` and `dnf-automatic` both honour the lock, so EL 10 needs no unattended-upgrades blacklist.
+`opennms_unattended_upgrade_blacklist` and `opennms_pin_origin` have no effect there.
 
 ## Kafka IPC configuration
 
@@ -142,7 +157,7 @@ opennms_minion_pyroscope:
   PYROSCOPE_SERVER_ADDRESS: http://pyroscope.example.org:4040
 ```
 
-That installs the jar at `{{ opennms_minion_home }}/agent/pyroscope-agent.jar` and writes a managed block into `/etc/default/minion`:
+That installs the jar at `{{ opennms_minion_home }}/agent/pyroscope-agent.jar` and writes a managed block into `/etc/default/minion` (`/etc/sysconfig/minion` on EL 10):
 
 ```
 # BEGIN ANSIBLE MANAGED BLOCK: pyroscope

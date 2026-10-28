@@ -5,13 +5,13 @@
 [![Ansible Galaxy](https://img.shields.io/ansible/collection/v/indigo423/opennms)](https://galaxy.ansible.com/ui/repo/published/indigo423/opennms/)
 [![License](https://img.shields.io/github/license/opennms-forge/ansible-opennms)](LICENSE)
 
-An Ansible collection that deploys OpenNMS Horizon on Debian and Ubuntu: Core, Minion and Sentinel, plus the system-level configuration that wires them to PostgreSQL, Kafka, Elasticsearch and a Prometheus remote_write store.
+An Ansible collection that deploys OpenNMS Horizon on Debian, Ubuntu and EL 10 (CentOS Stream 10, Rocky Linux 10, AlmaLinux 10): Core, Minion and Sentinel, plus the system-level configuration that wires them to PostgreSQL, Kafka, Elasticsearch and a Prometheus remote_write store.
 
 The roles configure only what cannot be set from the OpenNMS web UI or its APIs. The collection drives lab deployments and the OpenNMS benchmark rigs; it is still `v0.x` and not yet production-ready, and breaking changes land in minor releases and are called out in the release notes.
 
 🕹️ What it does today:
 
-* Installs Horizon Core, Minion and Sentinel at a pinned version, on one host or spread across several, with the APT sources, JVM tuning, Kafka IPC, database initialisation and firewall rules each one needs
+* Installs Horizon Core, Minion and Sentinel at a pinned version, on one host or spread across several, with the package sources, JVM tuning, Kafka IPC, database initialisation and firewall rules each one needs
 * Ships a reference distributed topology and a colocated test rig as inventories
 * Provides stub roles for PostgreSQL, Kafka, Elasticsearch, Mimir, VictoriaMetrics and Pyroscope so a complete stack comes up on a sandbox host. None of them is production-grade
 * Generates and vaults database credentials on first use instead of shipping defaults
@@ -20,7 +20,7 @@ The roles configure only what cannot be set from the OpenNMS web UI or its APIs.
 🦄 What it does not do yet:
 
 * Back up, restore or upgrade an existing OpenNMS Horizon installation
-* Support RHEL-based operating systems
+* Support EL 9 or older, or Fedora
 
 ![Repobeats analytics](https://repobeats.axiom.co/api/embed/f81f303e61554ad2e9f66b54cc8e847e593984f8.svg "Repobeats analytics image")
 

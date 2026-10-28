@@ -1,0 +1,13 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+- name: Add Elasticsearch repo to yum repositories
+  ansible.builtin.template:
+    src: elasticsearch.repo.j2
+    dest: /etc/yum.repos.d/elasticsearch.repo
+    owner: root
+    group: root
+    mode: "0644"
+  tags:
+    - elasticsearch
+    - repository

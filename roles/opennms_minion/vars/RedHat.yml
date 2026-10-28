@@ -1,0 +1,6 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+# The RPM ships it, and bin/minion sources it (SYSCONFDIR=/etc/sysconfig). The
+# unit's own EnvironmentFile points elsewhere, so systemd does not read this one.
+_opennms_minion_sysconfig_file: /etc/sysconfig/minion

@@ -16,13 +16,16 @@
   gather_facts: false
   connection: local
   vars:
-    # Repository base URLs. These are apt repository roots, not fetchable
-    # artifacts, so a HEAD against them proves nothing. Excluded by name rather
-    # than by pattern, so adding a new one is a deliberate act.
+    # Repository base URLs. These are apt and yum repository roots, not
+    # fetchable artifacts, so a HEAD against them proves nothing. Excluded by
+    # name rather than by pattern, so adding a new one is a deliberate act.
     download_url_exclusions:
       - opennms_repo_url
+      - opennms_yum_repo_url
       - pgsql_repo_url
+      - pgsql_yum_repo_url
       - es_repo_url
+      - es_yum_repo_url
   tasks:
     # `find` rather than the fileglob lookup: fileglob only globs the basename,
     # so `roles/*/defaults/main.yml` silently matches nothing.

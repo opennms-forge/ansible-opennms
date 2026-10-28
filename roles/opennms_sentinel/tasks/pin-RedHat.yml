@@ -1,0 +1,32 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+- name: Install the DNF versionlock plugin
+  ansible.builtin.dnf:
+    name: python3-dnf-plugin-versionlock
+    state: present
+  tags:
+    - opennms
+    - packages
+
+# The EL counterpart of the APT preferences file and the unattended-upgrades
+# blacklist together. A lock admits exactly the listed version, and both
+# `dnf upgrade` and dnf-automatic honour it, so neither of the moves the
+# blacklist exists to stop can happen here.
+#
+# A marked block rather than `community.general.dnf_versionlock`. The module
+# adds an entry per version and keeps the old one on a bump, and its `clean`
+# would remove the other roles' entries on a colocated host. One block per role
+# converges to exactly this role's packages at exactly opennms_version.
+- name: Lock OpenNMS packages to {{ opennms_version }}
+  ansible.builtin.blockinfile:
+    path: /etc/dnf/plugins/versionlock.list
+    create: true
+    marker: "# {mark} ANSIBLE MANAGED BLOCK: opennms-{{ opennms_component }}"
+    block: "{{ lookup('ansible.builtin.template', 'etc/dnf-versionlock-opennms.j2') }}"
+    owner: root
+    group: root
+    mode: "0644"
+  tags:
+    - opennms
+    - packages

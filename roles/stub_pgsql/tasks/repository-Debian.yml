@@ -1,0 +1,12 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+- name: Add PostgreSQL repo to sources list
+  ansible.builtin.apt_repository:
+    repo: deb [arch={{ arch }} signed-by={{ pgsql_key_ring_file }}] {{ pgsql_repo_url }} {{ ansible_distribution_release }}-pgdg main
+    state: present
+    update_cache: true
+  tags:
+    - opennms
+    - postgresql
+    - repository

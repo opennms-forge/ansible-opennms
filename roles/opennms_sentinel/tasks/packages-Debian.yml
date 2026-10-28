@@ -1,0 +1,12 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+- name: Installing OpenNMS Sentinel
+  ansible.builtin.apt:
+    name: "opennms-sentinel={{ opennms_pkg_version }}"
+    state: present
+    install_recommends: false
+  tags:
+    - opennms
+    - sentinel
+    - package
