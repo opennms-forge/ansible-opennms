@@ -1,0 +1,8 @@
+---
+render_canary: fixture
+
+# Deliberately no opennms_version. Pinned for the reason given in
+# repo-source-fallback: the question is "the fallback is used", not its value.
+opennms_repo_fallback_version: 36.0.4
+
+_opennms_repo_el_major: "10"

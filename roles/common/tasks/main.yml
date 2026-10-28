@@ -1,26 +1,17 @@
 # Copyright 2026 Ronny Trommer <ronny@no42.org>
 # SPDX-License-Identifier: GPL-3.0-or-later
 ---
+- name: Refuse an unsupported platform
+  ansible.builtin.include_tasks: assert-platform.yml
+  tags:
+    - always
+
 - name: "Set Time Zone to {{ timezone }}"
   community.general.timezone:
     name: "{{ timezone }}"
 
-- name: Update APT cache
-  ansible.builtin.apt:
-    update_cache: true
-    cache_valid_time: 3600
-
-- name: "Install dependencies"
-  tags: ["system", "tools"]
-  ansible.builtin.apt:
-    pkg:
-      - acl
-      - apt-listchanges
-      - apt-transport-https
-      - bzip2
-      - curl
-      - git-core
-      # deb822_repository needs python3-debian on the target; the Grafana role
-      # uses it on Debian 12+ and Ubuntu 24.04+.
-      - python3-debian
-    state: present
+- name: Install base packages for {{ ansible_facts['os_family'] }}
+  ansible.builtin.include_tasks: "{{ ansible_facts['os_family'] }}.yml"
+  tags:
+    - system
+    - tools

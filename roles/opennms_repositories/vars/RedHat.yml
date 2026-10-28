@@ -1,0 +1,9 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+# The file this role owns, named in the one-major-per-host message.
+_opennms_repo_source_file: "/etc/yum.repos.d/{{ opennms_repo_filename }}.repo"
+
+# Selects the per-distribution tree (rhel10). One tree serves CentOS Stream,
+# Rocky Linux and AlmaLinux, as in the repo file OpenNMS publishes.
+_opennms_repo_el_major: "{{ ansible_facts['distribution_major_version'] }}"

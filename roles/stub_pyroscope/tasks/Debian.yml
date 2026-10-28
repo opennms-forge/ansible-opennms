@@ -1,0 +1,29 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+# Installed from the release .deb rather than the tarball, as stub_mimir does:
+# the package brings its own systemd unit, `pyroscope` user and a valid
+# single-node configuration.
+#
+# Grafana does not sign the package. apt would install it from the URL without
+# checking anything, so the download is verified against the release's SHA-256
+# list first and apt installs the verified file. EL 10 does the same with the
+# RPM. The agent jar the OpenNMS roles install is checksummed the same way.
+- name: Download Grafana Pyroscope {{ pyroscope_version }}
+  ansible.builtin.get_url:
+    url: "{{ pyroscope_pkg_url }}"
+    dest: "/var/tmp/{{ pyroscope_pkg_url | basename }}"
+    checksum: "sha256:{{ pyroscope_checksums_url }}"
+    mode: "0644"
+  tags:
+    - pyroscope
+    - packages
+
+- name: Installing Grafana Pyroscope {{ pyroscope_version }}
+  ansible.builtin.apt:
+    deb: "/var/tmp/{{ pyroscope_pkg_url | basename }}"
+  notify:
+    - Restart pyroscope
+  tags:
+    - pyroscope
+    - packages

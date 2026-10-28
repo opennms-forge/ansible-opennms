@@ -1,0 +1,24 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+# The role carries one implementation per OS family and picks it from
+# `ansible_facts['os_family']`. A RedHat-family host on a major other than 10
+# would load the EL 10 files and fail later on a repository path or package
+# name that does not exist there, so it is refused here, before anything is
+# installed. A copy of this file sits in every role that dispatches by family:
+# the roles are installed and run one at a time, so none can rely on another.
+- name: Fail on an unsupported platform
+  ansible.builtin.assert:
+    that:
+      - >-
+        ansible_facts['os_family'] == 'Debian'
+        or (ansible_facts['os_family'] == 'RedHat'
+            and ansible_facts['distribution_major_version'] == '10')
+    fail_msg: >-
+      {{ ansible_facts['distribution'] | default('This platform') }}
+      {{ ansible_facts['distribution_version'] | default('') }} is not supported.
+      The roles run on Debian, Ubuntu and EL 10: CentOS Stream 10, Rocky Linux 10
+      and AlmaLinux 10.
+    quiet: true
+  tags:
+    - always

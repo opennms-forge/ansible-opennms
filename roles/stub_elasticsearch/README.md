@@ -45,6 +45,8 @@ See [`defaults/main.yml`](defaults/main.yml).
 | `es_key_sha256` | `null` | Optional file-hash pin. Off by default; set it to opt into a second, stricter gate. |
 | `es_key_ring_file` | `/usr/share/keyrings/elasticsearch-keyring.gpg` | Where the verified keyring is installed. |
 | `es_repo_url` | `https://artifacts.elastic.co/packages/8.x/apt` | APT repository base URL. |
+| `es_yum_repo_url` | `https://artifacts.elastic.co/packages/8.x/yum` | yum repository base URL (EL 10). |
+| `es_rpm_key_file` | `/etc/pki/rpm-gpg/RPM-GPG-KEY-elasticsearch` | Where the verified key is stored for rpm and dnf (EL 10). |
 
 Fingerprints are compared case-insensitively with spaces stripped, so a value pasted from `gpg` output in spaced display format also matches.
 

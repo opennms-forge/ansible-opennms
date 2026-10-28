@@ -1,0 +1,25 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+# A template the role owns, as on Debian, so the render harness covers the dist
+# line and a major change rewrites one file instead of adding another.
+- name: Install the OpenNMS yum repository
+  ansible.builtin.template:
+    src: opennms.repo.j2
+    dest: "{{ _opennms_repo_source_file }}"
+    owner: root
+    group: root
+    mode: "0644"
+  tags:
+    - opennms
+    - repository
+
+# Unconditional for the reason the APT side refreshes inline: the package roles
+# resolve right after this, long before a handler would run.
+- name: Refresh the dnf metadata so the OpenNMS source is current
+  ansible.builtin.dnf:
+    update_cache: true
+  changed_when: false
+  tags:
+    - opennms
+    - repository

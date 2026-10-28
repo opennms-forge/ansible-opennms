@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+- EL 10 support: every role in `opennms-playbook.yml` runs on CentOS Stream 10, Rocky Linux 10 and AlmaLinux 10 as well as Debian and Ubuntu. Roles dispatch on `os_family` and refuse other RedHat-family majors before installing anything. `opennms_repositories` writes a per-major yum repo from `opennms_version`, with the same fingerprint check and `repo_gpgcheck=1`. The OpenNMS roles pin with DNF versionlock, one block per role; Core locks the new `opennms_core_rpm_pinned_packages` because its RPMs are split differently. Core opens its ports with firewalld when it is running. `stub_pgsql` installs PostgreSQL from PGDG and leaves iplike to the OpenNMS installer's PL/pgSQL fallback, since OpenNMS publishes no `iplike-pgsql18` for EL 10. `ansible.posix` is a new dependency. Debian and Ubuntu output is unchanged (closes #55).
+
+### Changed
+- `stub_pyroscope`: the release package is unsigned, so the role now downloads it, verifies it against the release's `checksums.txt` (`pyroscope_checksums_url`) and installs the verified file. Before, apt installed the `.deb` from its URL unchecked. EL 10 installs the `.rpm` the same way.
+
 ## [0.13.1] - 2026-10-28
 
 ### Changed

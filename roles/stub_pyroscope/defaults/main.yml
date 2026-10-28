@@ -5,6 +5,12 @@
 pyroscope_version: 2.4.1
 pyroscope_arch: amd64
 pyroscope_pkg_url: "https://github.com/grafana/pyroscope/releases/download/v{{ pyroscope_version }}/pyroscope_{{ pyroscope_version }}_linux_{{ pyroscope_arch }}.deb"
+# EL 10. The same release, packaged as an RPM under the same arch name.
+pyroscope_rpm_url: "https://github.com/grafana/pyroscope/releases/download/v{{ pyroscope_version }}/pyroscope_{{ pyroscope_version }}_linux_{{ pyroscope_arch }}.rpm"
+# The release's checksum list. Neither package is signed, so both families
+# verify the download against this before installing; get_url picks the line
+# for the file it downloads.
+pyroscope_checksums_url: "https://github.com/grafana/pyroscope/releases/download/v{{ pyroscope_version }}/checksums.txt"
 
 pyroscope_http_port: 4040
 pyroscope_log_level: info

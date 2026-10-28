@@ -14,6 +14,15 @@ pgsql_key_sha256: null
 
 pgsql_key_ring_file: /usr/share/keyrings/pgsql-keyring.gpg
 pgsql_repo_url: https://apt.postgresql.org/pub/repos/apt
+
+# EL 10. PGDG signs its RPMs and metadata with a key of their own, published in
+# the pgdg-redhat-repo package as PGDG-RPM-GPG-KEY-RHEL.
+pgsql_rpm_key_url: https://download.postgresql.org/pub/repos/yum/keys/PGDG-RPM-GPG-KEY-RHEL
+pgsql_rpm_key_fingerprints:
+  - "D4BF08AE67A0B4C7A1DBCCD240BCA2B408B40D20"
+pgsql_rpm_key_sha256: null
+pgsql_rpm_key_file: /etc/pki/rpm-gpg/PGDG-RPM-GPG-KEY-RHEL
+pgsql_yum_repo_url: https://download.postgresql.org/pub/repos/yum
 arch: amd64
 # Just the major version for PostgreSQL, used also for iplike installation and setup
 pg_version: 18

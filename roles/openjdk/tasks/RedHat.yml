@@ -1,0 +1,10 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+- name: Installing OpenJDK JDK
+  ansible.builtin.dnf:
+    name: "java-{{ openjdk_version }}-openjdk-headless-{{ openjdk_pkg_version }}"
+    state: present
+    install_weak_deps: false
+  tags:
+    - java

@@ -1,0 +1,9 @@
+{# Copyright 2026 Ronny Trommer <ronny@no42.org>
+   SPDX-License-Identifier: GPL-3.0-or-later
+
+   One versionlock entry per package. Epoch 0 is stated because the plugin
+   matches the full NEVRA. `-*` admits any release of exactly this version and
+   nothing else, so 36.0.1 cannot match 36.0.10. #}
+{% for pkg in opennms_sentinel_pinned_packages %}
+{{ pkg }}-0:{{ opennms_version }}-*
+{% endfor %}

@@ -1,0 +1,33 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+- name: Installing tooling
+  ansible.builtin.dnf:
+    name: "{{ opennms_rpm_tool_deps }}"
+    state: present
+    install_weak_deps: false
+  tags:
+    - opennms
+    - tools
+    - dependencies
+
+- name: Installing Perl dependencies
+  ansible.builtin.dnf:
+    name: "{{ opennms_rpm_perl_deps }}"
+    state: present
+    install_weak_deps: false
+  tags:
+    - opennms
+    - perl
+    - dependencies
+
+- name: Installing OpenNMS core system {{ opennms_version }}
+  ansible.builtin.dnf:
+    name: "{{ opennms_rpm_pkgs }}"
+    state: present
+    install_weak_deps: false
+  tags:
+    - opennms
+    - core
+    - web
+    - rrd

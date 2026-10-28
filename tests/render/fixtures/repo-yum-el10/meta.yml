@@ -1,0 +1,10 @@
+---
+render_role: opennms_repositories
+
+# The EL 10 yum repository for the release after the one the collection ships,
+# for the reason `repo-source-nondefault` renders the APT line at that release:
+# the branch must follow `opennms_version`, and at the shipped major the right
+# and wrong answers are the same string.
+render_files:
+  - name: opennms.repo
+    src: opennms.repo.j2

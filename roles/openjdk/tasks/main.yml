@@ -1,17 +1,24 @@
 # Copyright 2023 Ronny Trommer <ronny@no42.org>
 # SPDX-License-Identifier: GPL-3.0-or-later
 ---
-- name: Installing OpenJDK JDK
-  ansible.builtin.apt:
-    name: "openjdk-{{ openjdk_version }}-jdk-headless={{ openjdk_pkg_version }}"
-    state: present
-    install_recommends: false
+- name: Refuse an unsupported platform
+  ansible.builtin.include_tasks: assert-platform.yml
+  tags:
+    - always
+
+- name: Load the OpenJDK layout for {{ ansible_facts['os_family'] }}
+  ansible.builtin.include_vars: "{{ ansible_facts['os_family'] }}.yml"
+  tags:
+    - always
+
+- name: Install OpenJDK for {{ ansible_facts['os_family'] }}
+  ansible.builtin.include_tasks: "{{ ansible_facts['os_family'] }}.yml"
   tags:
     - java
 
 - name: Set OpenJDK default java version
   community.general.alternatives:
     name: java
-    path: /usr/lib/jvm/java-{{ openjdk_version }}-openjdk-amd64/bin/java
+    path: "{{ _openjdk_java_path }}"
   tags:
     - java

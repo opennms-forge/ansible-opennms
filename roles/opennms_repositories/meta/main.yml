@@ -4,7 +4,7 @@
 galaxy_info:
   role_name: opennms_repositories
   author: Ronny Trommer
-  description: Adds the OpenNMS APT repository and GPG signing key on Debian/Ubuntu hosts. Must run before any OpenNMS package install.
+  description: Adds the OpenNMS APT or yum repository and GPG signing key on Debian, Ubuntu and EL 10 hosts. Must run before any OpenNMS package install.
   license: GPL-3.0-or-later
   min_ansible_version: "2.15"
   platforms:
@@ -16,6 +16,9 @@ galaxy_info:
       versions:
         - jammy
         - noble
+    - name: EL
+      versions:
+        - "10"
   galaxy_tags:
     - opennms
     - apt

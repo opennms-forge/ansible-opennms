@@ -1,0 +1,14 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+- name: Add PostgreSQL repo to yum repositories
+  ansible.builtin.template:
+    src: pgdg.repo.j2
+    dest: /etc/yum.repos.d/pgdg.repo
+    owner: root
+    group: root
+    mode: "0644"
+  tags:
+    - opennms
+    - postgresql
+    - repository

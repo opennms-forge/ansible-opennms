@@ -1,22 +1,17 @@
 # Copyright 2023 Ronny Trommer <ronny@no42.org>
 # SPDX-License-Identifier: GPL-3.0-or-later
 ---
+- name: Refuse an unsupported platform
+  ansible.builtin.include_tasks: assert-platform.yml
+  tags:
+    - always
+
 - name: Include OpenNMS repository roles
   ansible.builtin.include_role:
     name: opennms_repositories
 
-- name: Installing JICMP
-  ansible.builtin.apt:
-    name: jicmp={{ jicmp_version }}
-    state: present
-  tags:
-    - opennms
-    - icmp
-
-- name: Installing JICMP6
-  ansible.builtin.apt:
-    name: jicmp6={{ jicmp6_version }}
-    state: present
+- name: Install JICMP for {{ ansible_facts['os_family'] }}
+  ansible.builtin.include_tasks: "{{ ansible_facts['os_family'] }}.yml"
   tags:
     - opennms
     - icmp

@@ -1,0 +1,4 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+_openjdk_java_path: /usr/lib/jvm/java-{{ openjdk_version }}-openjdk/bin/java

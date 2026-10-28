@@ -1,0 +1,8 @@
+---
+render_canary: fixture
+
+opennms_version: 37.0.0
+
+# Set by vars/RedHat.yml from the host's facts in a real run. The harness
+# gathers no facts and loads only vars/main.yml, so the fixture supplies it.
+_opennms_repo_el_major: "10"

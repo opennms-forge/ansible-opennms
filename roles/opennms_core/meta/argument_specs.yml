@@ -67,6 +67,16 @@ argument_specs:
             version from the OpenNMS origin priority -1, so a package released
             on its own version line, such as C(jrrd2) or C(iplike), ends up with
             no installation candidate rather than a pin. Measured.
+          - Debian and Ubuntu only. EL 10 reads C(opennms_core_rpm_pinned_packages).
+      opennms_core_rpm_pinned_packages:
+        type: list
+        elements: str
+        description:
+          - OpenNMS packages this role holds at C(opennms_version) on EL 10,
+            through its own block in /etc/dnf/plugins/versionlock.list.
+          - A separate list because the RPM names differ from the Debian ones.
+          - C(dnf upgrade) and C(dnf-automatic) both honour the lock, so EL 10
+            needs no counterpart to C(opennms_unattended_upgrade_blacklist).
       opennms_pin_origin:
         type: str
         description:
@@ -74,6 +84,7 @@ argument_specs:
             exclusion tier keys on. Shared across the roles on purpose,
             because it is the same value everywhere, and a mirror publishing a
             different Origin is the one reason to set it.
+          - No effect on EL 10.
       opennms_unattended_upgrade_blacklist:
         type: bool
         description:
@@ -84,6 +95,7 @@ argument_specs:
           - Setting it false re-exposes the two moves the preferences file
             cannot prevent on its own. It does not affect the cross-major
             protection.
+          - No effect on EL 10, where the versionlock already stops both moves.
       skip_startup:
         type: bool
         default: false

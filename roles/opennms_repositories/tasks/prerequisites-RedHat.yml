@@ -1,0 +1,12 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+# gnupg2 is in every EL 10 install today, but the key verification reads its
+# output, so it is stated rather than assumed.
+- name: Install gnupg for repository key handling
+  ansible.builtin.dnf:
+    name: gnupg2
+    state: present
+  tags:
+    - opennms
+    - repository

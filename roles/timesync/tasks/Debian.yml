@@ -1,0 +1,12 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+- name: Install chrony
+  ansible.builtin.apt:
+    pkg:
+      - chrony
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  tags:
+    - timesync

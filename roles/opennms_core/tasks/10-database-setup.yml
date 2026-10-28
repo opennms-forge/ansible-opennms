@@ -184,8 +184,9 @@
 # wait Liquibase's default 5 minutes and then System.exit(1). Reset a stale lock
 # here (after schema init, so the table exists) so startup self-heals. The DO
 # guard makes it a no-op if the table is not present yet.
+# Same package name on Debian and EL, so the generic module serves both.
 - name: Ensure psycopg2 is available for the changelog-lock reset
-  ansible.builtin.apt:
+  ansible.builtin.package:
     name: python3-psycopg2
     state: present
   tags:

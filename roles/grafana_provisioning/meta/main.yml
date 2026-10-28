@@ -16,6 +16,9 @@ galaxy_info:
       versions:
         - jammy
         - noble
+    - name: EL
+      versions:
+        - "10"
   galaxy_tags:
     - grafana
     - monitoring

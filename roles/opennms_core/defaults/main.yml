@@ -59,6 +59,26 @@ opennms_perl_deps:
   - libwww-perl
   - libxml-twig-perl
 
+# EL 10 counterparts, in dnf's name-version form. The RPM split differs:
+# opennms-core and the two webapp packages, where Debian has opennms-common and
+# opennms-server. The `opennms` meta package is avoided because it pulls in
+# postgresql-server and a JDK.
+opennms_rpm_pkgs:
+  - "jrrd2-{{ jrrd2_pkg_version }}"
+  - "opennms-core-{{ opennms_pkg_version }}"
+  - "opennms-webapp-jetty-{{ opennms_pkg_version }}"
+  - "opennms-webapp-hawtio-{{ opennms_pkg_version }}"
+
+opennms_rpm_tool_deps:
+  - "rrdtool-{{ rrdtool_pkg_version }}"
+
+# libxml-twig-perl has no EL 10 counterpart outside EPEL, which this collection
+# does not enable. Only bin/provision.pl and bin/daemon-stats.pl load it.
+opennms_rpm_perl_deps:
+  - perl-Net-SNMP
+  - libxml2
+  - perl-libwww-perl
+
 pg_version: 18
 
 # Datasource connection parameters.
@@ -221,6 +241,14 @@ opennms_remotewrite_feature: "opennms-plugins-prometheus-remotewrite"
 opennms_core_pinned_packages:
   - opennms-common
   - opennms-server
+  - opennms-webapp-jetty
+  - opennms-webapp-hawtio
+
+# The EL 10 counterpart, locked with DNF versionlock. The RPMs are split
+# differently: opennms-core carries what Debian ships as opennms-common and
+# opennms-server.
+opennms_core_rpm_pinned_packages:
+  - opennms-core
   - opennms-webapp-jetty
   - opennms-webapp-hawtio
 

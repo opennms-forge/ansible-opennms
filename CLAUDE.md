@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Ansible collection `indigo423.opennms`: deploys OpenNMS Horizon (Core, Minion, Sentinel) on Debian and Ubuntu, single-node or distributed. Not production-ready; the `stub_*` roles are POC only. Roles configure system-level files only, never anything the web UI or an API can set. The role catalogue is in `README.md` and `roles/<name>/README.md`; component versions live in `RELEASING.md`'s table and `roles/<role>/defaults/main.yml`.
+Ansible collection `indigo423.opennms`: deploys OpenNMS Horizon (Core, Minion, Sentinel) on Debian, Ubuntu and EL 10, single-node or distributed. Not production-ready; the `stub_*` roles are POC only. Roles configure system-level files only, never anything the web UI or an API can set. The role catalogue is in `README.md` and `roles/<name>/README.md`; component versions live in `RELEASING.md`'s table and `roles/<role>/defaults/main.yml`.
 
 ## Commands
 
@@ -24,7 +24,7 @@ Never push to `main`; branch, PR, squash-merge. Conventional Commits, `git commi
 
 ## Architecture in five sentences
 
-`opennms_repositories` writes the APT source and must run before any package install; the dist derives from `opennms_version`, so source and pin cannot name different majors. `opennms_core`, `opennms_minion` and `opennms_sentinel` each include `openjdk`, `opennms_repositories`, `timesync` and `pyroscope_agent` themselves; `timesync` fails the play on clock skew unless `timesync_required: false`. Core's tasks are split by concern (`01-packages`, `10-database-setup`, `20-config`, `21-kafka`, `22-timeseries-plugin`, `50-firewall`), and its OpenNMS properties templates live under `roles/opennms_core/templates/etc/opennms.properties.d/`. Grafana comes from `indigo423.grafana` (a fork of `grafana.grafana`) with `grafana_provisioning` enabling the OpenNMS plugin afterwards; `stub_mimir` is a wrapper over that fork's `mimir` role. Every external collection is pinned in `requirements.yml` and floored in `galaxy.yml`.
+`opennms_repositories` writes the APT source (yum repo file on EL 10) and must run before any package install; the dist derives from `opennms_version`, so source and pin cannot name different majors. `opennms_core`, `opennms_minion` and `opennms_sentinel` each include `openjdk`, `opennms_repositories`, `timesync` and `pyroscope_agent` themselves; `timesync` fails the play on clock skew unless `timesync_required: false`. Core's tasks are split by concern (`01-packages`, `10-database-setup`, `20-config`, `21-kafka`, `22-timeseries-plugin`, `50-firewall`), and its OpenNMS properties templates live under `roles/opennms_core/templates/etc/opennms.properties.d/`. Grafana comes from `indigo423.grafana` (a fork of `grafana.grafana`) with `grafana_provisioning` enabling the OpenNMS plugin afterwards; `stub_mimir` is a wrapper over that fork's `mimir` role. Every external collection is pinned in `requirements.yml` and floored in `galaxy.yml`.
 
 ## Scope rule for new roles
 
@@ -36,9 +36,11 @@ Endpoints (database host, Kafka bootstrap servers, `elasticUrl`, remote_write UR
 
 ## Gotchas an agent gets wrong
 
+- Platform-specific work dispatches on `ansible_facts['os_family']` to `tasks/<step>-<family>.yml` and `vars/<family>.yml`. Each dispatching role carries its own copy of `tasks/assert-platform.yml`, which refuses anything but Debian family and EL 10. Variables loaded by `include_vars` outlive the role for that host, so their names carry the role prefix.
+
 - A tag defined only inside a dynamically included file is unreachable; put the tags on the `include_tasks`/`include_role` too, or use `apply:` on `include_role` (#175, #186).
 - `opennms_jvm_conf` and `opennms_env` merge over role defaults; a `PYROSCOPE_*` key restated in both aborts the run.
-- `/etc/default/minion` and `/etc/default/sentinel` are parsed by systemd *and* sourced by a shell; values there are single-quoted and may not contain a single quote. Two escaping defects shipped past lint here, which is why `make check-render` exists.
+- `/etc/default/minion` and `/etc/default/sentinel` are parsed by systemd *and* sourced by a shell; on EL 10 the files are `/etc/sysconfig/*`, which only the shell sources; values there are single-quoted and may not contain a single quote. Two escaping defects shipped past lint here, which is why `make check-render` exists.
 - Mimir must always be told its address; on a host without a private-range interface it will not start otherwise (#158). The unit's start limit is disabled before the package installs (#159).
 - Variables are scoped per role on purpose (`opennms_<role>_pinned_packages`); a shared name silently misconfigured two roles (#182). Removed names fail the run naming the replacement.
 - Endpoint values in the reference inventory carry the literal alternative commented beneath them; keep that pattern when adding one.

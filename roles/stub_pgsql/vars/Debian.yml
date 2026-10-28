@@ -1,0 +1,13 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+# The key check in tasks/main.yml is shared; these pick the family's inputs.
+_pgsql_key_url: "{{ pgsql_key_url }}"
+_pgsql_key_fingerprints: "{{ pgsql_key_fingerprints }}"
+_pgsql_key_fingerprints_var: pgsql_key_fingerprints
+_pgsql_key_sha256: "{{ pgsql_key_sha256 }}"
+
+_pgsql_conf_dir: "/etc/postgresql/{{ pg_version }}/main"
+_pgsql_service: "postgresql@{{ pg_version }}-main.service"
+# The umbrella unit, which restarts every cluster on the host.
+_pgsql_restart_service: postgresql.service

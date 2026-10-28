@@ -1,0 +1,30 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+# The release RPM, for the reasons the Debian side takes the .deb: the package
+# brings the unit, the `pyroscope` user and a working single-node config.
+#
+# Grafana does not sign it, and dnf refuses an unsigned package. The download is
+# verified against the release's SHA-256 list first, so the install below skips
+# the signature check on a file whose content is already known. Debian verifies
+# the .deb the same way.
+- name: Download Grafana Pyroscope {{ pyroscope_version }}
+  ansible.builtin.get_url:
+    url: "{{ pyroscope_rpm_url }}"
+    dest: "/var/tmp/{{ pyroscope_rpm_url | basename }}"
+    checksum: "sha256:{{ pyroscope_checksums_url }}"
+    mode: "0644"
+  tags:
+    - pyroscope
+    - packages
+
+- name: Installing Grafana Pyroscope {{ pyroscope_version }}
+  ansible.builtin.dnf:
+    name: "/var/tmp/{{ pyroscope_rpm_url | basename }}"
+    state: present
+    disable_gpg_check: true
+  notify:
+    - Restart pyroscope
+  tags:
+    - pyroscope
+    - packages

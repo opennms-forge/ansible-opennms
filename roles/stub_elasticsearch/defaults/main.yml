@@ -18,6 +18,9 @@ es_key_sha256: null
 
 es_key_ring_file: /usr/share/keyrings/elasticsearch-keyring.gpg
 es_repo_url: https://artifacts.elastic.co/packages/8.x/apt
+# EL 10. The same key signs the yum repository.
+es_yum_repo_url: https://artifacts.elastic.co/packages/8.x/yum
+es_rpm_key_file: /etc/pki/rpm-gpg/RPM-GPG-KEY-elasticsearch
 arch: amd64
 es_version: 8.18.2
 drift_version: 2.0.7

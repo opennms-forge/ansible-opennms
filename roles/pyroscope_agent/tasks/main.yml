@@ -16,7 +16,7 @@
 # Created only when it is missing, rather than enforced. Core and Sentinel both
 # get an `agent` directory from their package — that is where their own bundled
 # agents live — and the OpenNMS postinst chowns it to the service user, so
-# enforcing an owner here would fight dpkg over a directory this role only needs
+# enforcing an owner here would fight the package over a directory this role only needs
 # to be traversable. 0755 on creation for the same reason: every component's JVM
 # reads out of it.
 - name: Check whether the Pyroscope agent directory exists

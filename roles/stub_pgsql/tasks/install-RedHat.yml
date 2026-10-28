@@ -1,0 +1,21 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+- name: Install PostgreSQL Server {{ pg_version }}
+  ansible.builtin.dnf:
+    name: "postgresql{{ pg_version }}-server-{{ pg_pkg_version }}"
+    state: present
+    update_cache: true
+  tags:
+    - opennms
+    - postgresql
+
+# PGDG packages ship no cluster. Debian's postinst creates one; on EL the
+# setup script does, once, into an empty data directory.
+- name: Initialise the cluster for PostgreSQL {{ pg_version }}
+  ansible.builtin.command:
+    cmd: "/usr/pgsql-{{ pg_version }}/bin/postgresql-{{ pg_version }}-setup initdb"
+    creates: "{{ _pgsql_conf_dir }}/PG_VERSION"
+  tags:
+    - opennms
+    - postgresql

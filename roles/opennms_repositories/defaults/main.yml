@@ -23,7 +23,12 @@ opennms_key_sha256: null
 opennms_key_ring_file: /usr/share/keyrings/opennms-stable-archive-keyring.gpg
 opennms_repo_url: https://debian.opennms.org
 
-# Name of the sources file this role owns, without the .list suffix.
+# EL 10 only. yum.opennms.org serves the same key, so `opennms_key_url` and the
+# fingerprint list cover both families.
+opennms_rpm_key_file: /etc/pki/rpm-gpg/RPM-GPG-KEY-opennms
+opennms_yum_repo_url: https://yum.opennms.org
+
+# Name of the sources file this role owns, without the .list or .repo suffix.
 #
 # Deliberately independent of the dist. Left to Ansible, the filename is derived
 # from the repo line — dist included — so every dist change wrote a *new* file

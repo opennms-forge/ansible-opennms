@@ -36,6 +36,8 @@ storage:
 | `pyroscope_version` | `2.3.1` | Server release. Unrelated to the agent version. |
 | `pyroscope_arch` | `amd64` | Package architecture (`amd64` or `arm64`). |
 | `pyroscope_pkg_url` | GitHub release asset | Download URL for the `.deb`. |
+| `pyroscope_rpm_url` | GitHub release asset | Download URL for the `.rpm` (EL 10). |
+| `pyroscope_checksums_url` | GitHub release asset | The release's SHA-256 list. Both packages are unsigned, so the download is verified against it before install. |
 | `pyroscope_http_port` | `4040` | API and UI port. |
 | `pyroscope_log_level` | `info` | Log level. |
 | `pyroscope_data_dir` | `/var/lib/pyroscope` | Where profiles are stored. |
