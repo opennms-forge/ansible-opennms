@@ -5,8 +5,11 @@
   "customManagers": [
     {
       "customType": "regex",
-      "description": "Update version variables annotated with a '# renovate:' comment in role defaults",
-      "managerFilePatterns": ["/^roles/[^/]+/defaults/main\\.yml$/"],
+      "description": "Update version variables annotated with a '# renovate:' comment in role defaults and the Grafana group vars",
+      "managerFilePatterns": [
+        "/^roles/[^/]+/defaults/main\\.yml$/",
+        "/^inventory/group_vars/grafana/vars\\.yml$/"
+      ],
       "matchStrings": [
         "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+?)(?: extractVersion=(?<extractVersion>\\S+))?\\s*\\n[a-z0-9_]+: (?<currentValue>\\S+)"
       ]
