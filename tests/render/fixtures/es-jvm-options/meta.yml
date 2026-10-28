@@ -1,0 +1,8 @@
+---
+render_role: stub_elasticsearch
+
+# The extra JVM options file: one list item per line, in order, as given. The
+# template rendered `key: value` from an undefined variable before (#244).
+render_files:
+  - name: _ansible.jvm.options
+    src: jvm.options.d/_ansible.jvm.options.j2

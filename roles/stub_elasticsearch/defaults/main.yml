@@ -55,4 +55,7 @@ es_configuration:
   xpack.security.enabled: 'false'
   xpack.security.http.ssl.enabled: 'false'
   xpack.security.transport.ssl.enabled: 'false'
-es_jvm_options: {}
+# Extra lines for jvm.options.d/_ansible.jvm.options, one JVM option per item,
+# written as given: ["-Xms2g", "-Xmx2g"]. Empty writes no file and removes one
+# an earlier run wrote.
+es_jvm_options: []

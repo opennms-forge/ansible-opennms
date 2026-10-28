@@ -46,3 +46,8 @@ _es_effective_configuration: >-
     if (_es_members | length) >= 2
     else (es_configuration | combine(_es_discovery))
   }}
+
+# es_jvm_options with the empty forms an inventory may still carry — the old
+# `{}` default, a bare `es_jvm_options:` (null) or '' — read as no options.
+_es_jvm_options: "{{ es_jvm_options | default([], true) }}"
+_es_jvm_options_file: "{{ es_etc_dir }}/jvm.options.d/_ansible.jvm.options"
