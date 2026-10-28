@@ -8,10 +8,17 @@
     openjdk_version: 21
     openjdk_pkg_version: "21*"
 
+- name: Create Kafka system group
+  ansible.builtin.group:
+    name: "{{ kafka_group }}"
+    system: true
+    state: present
+
 - name: Create Kafka system user
   ansible.builtin.user:
     comment: Ansible managed system account for Kafka
-    name: kafka
+    name: "{{ kafka_user }}"
+    group: "{{ kafka_group }}"
     home: "{{ kafka_home }}"
     system: true
     state: present
@@ -54,13 +61,14 @@
     owner: "{{ kafka_user }}"
     group: "{{ kafka_group }}"
 
-- name: Create Kafka log directory
+- name: Create the Kafka data directories
   ansible.builtin.file:
-    path: /var/log/kafka/combined-logs
+    path: "{{ item }}"
     state: directory
     mode: '0755'
     owner: "{{ kafka_user }}"
     group: "{{ kafka_group }}"
+  loop: "{{ _kafka_data_dirs }}"
 
 - name: Configure the Kafka message broker
   ansible.builtin.template:
@@ -130,27 +138,22 @@
     - kafka
     - config
 
+# Runs once per host. Formatting as root leaves its files root-owned and Kafka
+# cannot start (#50), so the data directories are handed to the Kafka user in
+# the same step. A recursive chown on every run instead fought the files Kafka
+# writes between runs (#242). The marker goes last, so a failed format is
+# retried on the next run.
 - name: Format the Kafka storage directory
   ansible.builtin.shell: |
+    set -e
     cd {{ kafka_home }}
+    bin/kafka-storage.sh format --ignore-formatted -t "{{ _kafka_effective_cluster_id }}" -c config/kraft/server.properties
+    chown -R "{{ kafka_user }}:{{ kafka_group }}" {{ _kafka_data_dirs | map('quote') | join(' ') }}
     printf '%s\n' "{{ _kafka_effective_cluster_id }}" > ansible_cluster_id
     chown "{{ kafka_user }}:{{ kafka_group }}" ansible_cluster_id
-    bin/kafka-storage.sh format --ignore-formatted -t "{{ _kafka_effective_cluster_id }}" -c config/kraft/server.properties
   when: not initialized_cluster_uuid.stat.exists
   register: cluster_uuid_output
   changed_when: cluster_uuid_output.rc == 0
-  tags:
-    - opennms
-    - kafka
-    - config
-
-- name: Set ownership and permissions
-  ansible.builtin.file:
-    path: "{{ kafka_log_dir }}"
-    owner: "{{ kafka_user }}"
-    group: "{{ kafka_group }}"
-    recurse: true
-    mode: "0755"
   tags:
     - opennms
     - kafka
