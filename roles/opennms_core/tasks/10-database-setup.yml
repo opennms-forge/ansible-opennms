@@ -160,6 +160,9 @@
   ansible.builtin.stat:
     path: "{{ opennms_home }}/etc/configured"
   register: initialized_schema
+  # `always`: readers in this file need it under any filter that includes it (#241).
+  tags:
+    - always
 
 - name: Initialize database schema
   become: true
