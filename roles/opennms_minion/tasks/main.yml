@@ -43,6 +43,20 @@
   tags:
     - always
 
+# Before anything is installed: UFW takes port and protocol apart, and
+# firewalld refuses a port without a protocol.
+- name: Fail when opennms_minion_firewall_ports is not a list of port/proto entries
+  ansible.builtin.assert:
+    that:
+      - opennms_minion_firewall_ports | reject('match', '^[0-9]+(-[0-9]+)?/(tcp|udp)$') | list | length == 0
+    fail_msg: >-
+      Every entry in `opennms_minion_firewall_ports` must be `port/proto`, such
+      as 1162/udp or 8000-8010/tcp. These are not:
+      {{ opennms_minion_firewall_ports | reject('match', '^[0-9]+(-[0-9]+)?/(tcp|udp)$') | list }}.
+    quiet: true
+  tags:
+    - always
+
 - name: Verify the host clock is synchronised
   ansible.builtin.include_role:
     name: timesync
@@ -174,6 +188,50 @@
     - minion
     - pyroscope
     - configuration
+
+# Wired like opennms_core's firewall: UFW when it is installed on Debian and
+# Ubuntu, firewalld when it is running on EL 10 (#243). Before the start, so
+# the ports are open when the listeners bind, and a slow readiness probe
+# cannot leave them closed.
+- name: Check if UFW is installed
+  ansible.builtin.command: which ufw
+  register: opennms_minion_ufw_check
+  # A probe: a missing ufw is an answer, not a failure.
+  changed_when: false
+  failed_when: false
+  check_mode: false
+  when: ansible_facts['os_family'] == 'Debian'
+  # `always`: readers with other tags need this result under a tag filter (#241).
+  tags:
+    - always
+
+- name: Include tasks to configure UFW rules
+  ansible.builtin.include_tasks: 50-firewall.yml
+  when:
+    - ansible_facts['os_family'] == 'Debian'
+    - opennms_minion_ufw_check.rc == 0
+  tags:
+    - firewall
+    - minion
+    - opennms
+
+- name: Read the firewalld service state
+  ansible.builtin.service_facts:
+  when: ansible_facts['os_family'] == 'RedHat'
+  tags:
+    - firewall
+    - minion
+    - opennms
+
+- name: Include tasks to configure firewalld rules
+  ansible.builtin.include_tasks: 50-firewall-RedHat.yml
+  when:
+    - ansible_facts['os_family'] == 'RedHat'
+    - (ansible_facts.services['firewalld.service'].state | default('')) == 'running'
+  tags:
+    - firewall
+    - minion
+    - opennms
 
 - name: Enable systemd unit for OpenNMS Minion
   ansible.builtin.service:

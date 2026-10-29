@@ -113,3 +113,12 @@ skip_minion_startup: false
 # times delay seconds, about 5 minutes by default.
 opennms_minion_startup_retries: 30
 opennms_minion_startup_delay: 10
+
+# Ports opened in the host firewall: UFW on Debian and Ubuntu when UFW is
+# installed, firewalld on EL 10 when it is running. `port/proto`, one per
+# listener Minion runs by default: traps, syslog and the single-port flow
+# listener. Change it when you move a listener.
+opennms_minion_firewall_ports:
+  - 1162/udp
+  - 1514/udp
+  - 9999/udp

@@ -185,6 +185,17 @@ After starting `minion.service`, the role polls `http://localhost:8181/minion/re
 | `opennms_minion_startup_delay` | Seconds between polls. Default `10`. |
 | `skip_minion_startup` | Leave Minion stopped and skip the probe. Default `false`. |
 
+## Host firewall
+
+Minion opens its listener ports in the host firewall, the same way `opennms_core` opens its own.
+On Debian and Ubuntu it adds UFW allow rules when UFW is installed.
+On EL 10 it adds firewalld rules in the default zone, permanent and immediate, when firewalld is running.
+A host with neither is left alone.
+
+The ports come from `opennms_minion_firewall_ports`, default `1162/udp` (traps), `1514/udp` (syslog) and `9999/udp` (single-port flows).
+The role does not configure those listeners, so if you move one, change the list to match.
+Rules are only added, as for Core: removing an entry from the list does not remove its rule, so close a port you no longer use yourself.
+
 ## Variables
 
 See [`defaults/main.yml`](defaults/main.yml).

@@ -56,3 +56,13 @@ argument_specs:
         default: 10
         description:
           - Seconds between two polls of Minion's local health probe.
+      opennms_minion_firewall_ports:
+        type: list
+        elements: str
+        default: ["1162/udp", "1514/udp", "9999/udp"]
+        description:
+          - Ports Minion opens in the host firewall, as C(port/proto). UFW on
+            Debian and Ubuntu when UFW is installed, firewalld on EL 10 when it
+            is running.
+          - The defaults are the trap, syslog and single-port flow listeners.
+            Change the list when you move a listener.
