@@ -11,12 +11,13 @@ make check-credentials    # no placeholder passwords in defaults or group_vars
 make check-urls           # every composed download URL in role defaults resolves
 make check-render         # rendered templates match tests/render/expected/ byte for byte
 make check-render-record  # re-record after an intended rendering change; read the diff
-make verify               # the four checks above
+make check-tags           # a tag filter cannot select a task without its registered inputs or an include without its inner tags
+make verify               # the five checks above
 ansible-playbook -i tests/render/fixtures/<name>/hosts.yml tests/check-rendered-config.yml -e fixture=<name>   # one fixture
 ansible-playbook -i inventory/simple-stack.yml opennms-playbook.yml   # colocated test rig
 ```
 
-CI is `.github/workflows/quality-gates.yml`, called by `ci.yml` on every PR and push to main and by `galaxy-release.yml` before publishing. It runs the four Makefile checks plus actionlint and zizmor on the workflows.
+CI is `.github/workflows/quality-gates.yml`, called by `ci.yml` on every PR and push to main and by `galaxy-release.yml` before publishing. It runs the five Makefile checks plus actionlint and zizmor on the workflows.
 
 ## Git
 
@@ -38,7 +39,7 @@ Endpoints (database host, Kafka bootstrap servers, `elasticUrl`, remote_write UR
 
 - Platform-specific work dispatches on `ansible_facts['os_family']` to `tasks/<step>-<family>.yml` and `vars/<family>.yml`. Each dispatching role carries its own copy of `tasks/assert-platform.yml`, which refuses anything but Debian family and EL 10. Variables loaded by `include_vars` outlive the role for that host, so their names carry the role prefix.
 
-- A tag defined only inside a dynamically included file is unreachable; put the tags on the `include_tasks`/`include_role` too, or use `apply:` on `include_role` (#175, #186).
+- A tag defined only inside a dynamically included file is unreachable; put the tags on the `include_tasks`/`include_role` too, or use `apply:` on `include_role` (#175, #186). A probe whose result tasks with other tags read is tagged `always` (#241). `make check-tags` enforces both.
 - `opennms_jvm_conf` and `opennms_env` merge over role defaults; a `PYROSCOPE_*` key restated in both aborts the run.
 - `/etc/default/minion` and `/etc/default/sentinel` are parsed by systemd *and* sourced by a shell; on EL 10 the files are `/etc/sysconfig/*`, which only the shell sources; values there are single-quoted and may not contain a single quote. Two escaping defects shipped past lint here, which is why `make check-render` exists.
 - Mimir must always be told its address; on a host without a private-range interface it will not start otherwise (#158). The unit's start limit is disabled before the package installs (#159).

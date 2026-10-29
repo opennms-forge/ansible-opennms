@@ -26,6 +26,9 @@
 - name: Include OpenNMS repository roles
   ansible.builtin.include_role:
     name: opennms_repositories
+  tags:
+    - opennms
+    - repository
 
 # Private scratch space for the key material; see the same note in
 # opennms_repositories for why a fixed /tmp path is not good enough.

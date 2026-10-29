@@ -1,6 +1,6 @@
 # Copyright 2026 Ronny Trommer <ronny@no42.org>
 # SPDX-License-Identifier: GPL-3.0-or-later
-.PHONY: help deps lint check-credentials check-urls check-render check-render-record verify
+.PHONY: help deps lint check-credentials check-urls check-render check-render-record check-tags verify
 
 help:
 	@echo "Targets:"
@@ -10,7 +10,8 @@ help:
 	@echo "  check-urls           Resolve every composed download URL in role defaults"
 	@echo "  check-render         Compare rendered configuration to the recorded expectations"
 	@echo "  check-render-record  Re-record those expectations after an intended change"
-	@echo "  verify               lint + check-credentials + check-urls + check-render"
+	@echo "  check-tags           Fail when a tag filter can select a task without what it depends on"
+	@echo "  verify               lint + check-credentials + check-urls + check-render + check-tags"
 
 deps:
 	ansible-galaxy collection install -r requirements.yml
@@ -53,4 +54,13 @@ check-render-record:
 		ansible-playbook -i "$$fixture/hosts.yml" tests/check-rendered-config.yml -e "fixture=$$name" -e render_record=true; \
 	done
 
-verify: lint check-credentials check-urls check-render
+# Catches a tag filter that selects a task but skips what it needs: a value
+# registered under narrower tags (#241), or the tasks inside an include whose
+# own tags miss theirs (#175, #186). Valid YAML either way, so lint cannot see
+# it. PyYAML comes with ansible-core, so the default is the interpreter
+# ansible-playbook runs on, read from its shebang; set PYTHON to override.
+PYTHON ?= $(or $(shell sed -n '1s/^\#!//p' "$$(command -v ansible-playbook)" 2>/dev/null),python3)
+check-tags:
+	$(PYTHON) tests/check-tag-reachability.py
+
+verify: lint check-credentials check-urls check-render check-tags

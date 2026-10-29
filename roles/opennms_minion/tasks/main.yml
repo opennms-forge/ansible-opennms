@@ -105,6 +105,7 @@
   tags:
     - icmp
     - opennms
+    - repository
 
 # Written before the packages are installed, so a deliberate `opennms_version`
 # bump rewrites the pin and permits the new version in the same run. Reversing

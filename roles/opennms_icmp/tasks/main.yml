@@ -9,6 +9,9 @@
 - name: Include OpenNMS repository roles
   ansible.builtin.include_role:
     name: opennms_repositories
+  tags:
+    - opennms
+    - repository
 
 - name: Install JICMP for {{ ansible_facts['os_family'] }}
   ansible.builtin.include_tasks: "{{ ansible_facts['os_family'] }}.yml"
