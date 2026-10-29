@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+- `opennms_core`: the firewall ports come from the new `opennms_core_firewall_ports` (default: the web port, `10162/udp`, `9999/udp`) instead of literals. The web port, in that default and in the readiness wait, follows `org.opennms.netmgt.jetty.port` in `opennms_properties_webapp`, so moving Jetty no longer leaves the rule on 8980 or fails the run at the wait. When `org.opennms.netmgt.jetty.https-port` is set, the default list opens it too. Entries are checked for the `port/proto` form, port bounds and range order before `opennms_core` installs anything (closes #249).
+
+### Fixed
+- `opennms_minion`: a port range in `opennms_minion_firewall_ports` (`start-end/proto`) passed the check but reached UFW as `start-end`, which UFW rejects. It is written as `start:end` now, and entries are checked for port bounds and range order.
+
 ## [0.14.0] - 2026-10-29
 
 ### Added

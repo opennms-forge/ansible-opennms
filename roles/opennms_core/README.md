@@ -92,13 +92,22 @@ Once the repository drops the configured version, the installed packages stay wh
 The RPMs are split differently from the Debian packages.
 `opennms-core` carries what Debian ships as `opennms-common` and `opennms-server`, so the role locks `opennms_core_rpm_pinned_packages` rather than `opennms_core_pinned_packages`.
 
-When firewalld is running, the role opens 8980/tcp, 10162/udp and 9999/udp in the default zone, permanently and in the running configuration.
+When firewalld is running, the role opens the ports in `opennms_core_firewall_ports` in the default zone, permanently and in the running configuration.
 It manages no other zone.
 If the interface OpenNMS listens on sits in a different zone, open the ports there yourself.
 
 `perl-XML-Twig` is not installed on EL 10, because only EPEL ships it.
 `bin/provision.pl` and `bin/daemon-stats.pl` need it.
 Install it from EPEL if you use those scripts.
+
+## Host firewall
+
+The role opens the ports in `opennms_core_firewall_ports` with UFW on Debian and Ubuntu when UFW is installed, and with firewalld on EL 10 when it is running.
+The default is the web port, `10162/udp` (traps) and `9999/udp` (single-port flows).
+The web port follows `org.opennms.netmgt.jetty.port` in `opennms_properties_webapp`, so moving Jetty there moves the rule and the readiness wait with it.
+When `org.opennms.netmgt.jetty.https-port` is set there too, the default list opens it as well.
+Setting the list replaces it entirely, the web port included.
+Rules are only added: removing an entry does not remove its rule.
 
 ## Variables
 
@@ -164,7 +173,8 @@ Empty by default; upstream defaults apply for every unmodified service. `Manager
 
 ### Startup readiness
 
-After starting `opennms.service`, the role first polls `http://localhost:8980/opennms/login.jsp` until it returns 200, then runs `bin/opennms -v status` until it exits 0.
+The web port is `org.opennms.netmgt.jetty.port` from `opennms_properties_webapp`, 8980 when unset.
+After starting `opennms.service`, the role first polls `http://localhost:<web port>/opennms/login.jsp` until it returns 200, then runs `bin/opennms -v status` until it exits 0.
 The second gate matters because Jetty answers before Manager has started every service.
 The status command signals the JVM, which writes one line per enabled service to `logs/status-check.txt`, and exits 0 only when every line reads `running`.
 It is retried only while it reports a partially started Core (exit 160).

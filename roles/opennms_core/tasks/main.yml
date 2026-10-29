@@ -59,6 +59,26 @@
   tags:
     - always
 
+# Before anything is installed: UFW takes port and protocol apart, and
+# firewalld refuses a port without a protocol.
+- name: Fail when opennms_core_firewall_ports is not a list of port/proto entries
+  ansible.builtin.assert:
+    that:
+      - item is match('^[0-9]+(-[0-9]+)?/(tcp|udp)$')
+      - _ports | first >= 1
+      - _ports | last <= 65535
+      - _ports | first <= _ports | last
+    fail_msg: >-
+      `opennms_core_firewall_ports` entry `{{ item }}` is not valid. Each entry must be
+      `port/proto` or `start-end/proto` with ports from 1 to 65535 and the
+      start not above the end, such as 8980/tcp or 8000-8010/tcp.
+    quiet: true
+  vars:
+    _ports: "{{ item.split('/')[0].split('-') | map('int') | list }}"
+  loop: "{{ opennms_core_firewall_ports }}"
+  tags:
+    - always
+
 - name: Verify the host clock is synchronised
   ansible.builtin.include_role:
     name: timesync
@@ -229,7 +249,7 @@
 # it never becomes ready.
 - name: Wait for OpenNMS Core to become ready
   ansible.builtin.uri:
-    url: "http://localhost:8980/opennms/login.jsp"
+    url: "http://localhost:{{ _opennms_core_web_port }}/opennms/login.jsp"
     method: GET
     status_code: 200
   register: opennms_core_ready

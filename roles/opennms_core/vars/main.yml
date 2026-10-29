@@ -44,3 +44,12 @@ _opennms_remotewrite_optional_properties:
   external_tags_queue_size: externalTagsQueueSize
   external_tags_threads: externalTagsThreads
   external_tags_preload: externalTagsPreload
+
+# The port Jetty serves the web UI on, from the property the role renders. The
+# dict is replaced rather than merged when an inventory sets it, and may be
+# empty, in which case Jetty listens on 8980. The firewall default and the
+# readiness wait both read it, so moving Jetty moves both (#249).
+_opennms_core_web_port: "{{ (opennms_properties_webapp | default({}, true))['org.opennms.netmgt.jetty.port'] | default(8980, true) | string }}"
+
+# The HTTPS port when the operator enabled it in the same dict, else empty.
+_opennms_core_https_port: "{{ (opennms_properties_webapp | default({}, true))['org.opennms.netmgt.jetty.https-port'] | default('', true) | string }}"
