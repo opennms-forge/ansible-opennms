@@ -1,29 +1,13 @@
 # Copyright 2023 Ronny Trommer <ronny@no42.org>
 # SPDX-License-Identifier: GPL-3.0-or-later
 ---
-- name: Allow access to OpenNMS web application on port 8980/tcp
+# UFW writes a range as start:end.
+- name: Allow OpenNMS listener ports through UFW
   community.general.ufw:
     rule: allow
-    port: '8980'
-    proto: tcp
-  tags:
-    - opennms
-    - firewall
-
-- name: Allow SNMP traps on port 10162/udp
-  community.general.ufw:
-    rule: allow
-    port: '10162'
-    proto: udp
-  tags:
-    - opennms
-    - firewall
-
-- name: Allow NetFlow protocols on single-port listener on port 9999/udp
-  community.general.ufw:
-    rule: allow
-    port: '9999'
-    proto: udp
+    port: "{{ item.split('/')[0] | replace('-', ':') }}"
+    proto: "{{ item.split('/')[1] }}"
+  loop: "{{ opennms_core_firewall_ports }}"
   tags:
     - opennms
     - firewall

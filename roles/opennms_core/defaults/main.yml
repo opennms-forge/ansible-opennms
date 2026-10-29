@@ -192,6 +192,16 @@ opennms_properties_message_broker:
 # See inventory/group_vars/opennms_stack/vars.yml for override examples.
 opennms_elastic_flows: {}
 
+# Ports opened in the host firewall: UFW on Debian and Ubuntu when UFW is
+# installed, firewalld on EL 10 when it is running. `port/proto`, or
+# `start-end/proto` for a range. The web port follows
+# org.opennms.netmgt.jetty.port below, and org.opennms.netmgt.jetty.https-port
+# is added when set. Setting the list replaces it entirely.
+opennms_core_firewall_ports: >-
+  {{ [_opennms_core_web_port ~ '/tcp']
+     + ([_opennms_core_https_port ~ '/tcp'] if _opennms_core_https_port | length > 0 else [])
+     + ['10162/udp', '9999/udp'] }}
+
 opennms_properties_webapp:
   opennms.web.base-url: http://%x%c/
   # org.opennms.netmgt.jetty.host: 0.0.0.0

@@ -9,10 +9,7 @@
     permanent: true
     immediate: true
     state: enabled
-  loop:
-    - 8980/tcp
-    - 10162/udp
-    - 9999/udp
+  loop: "{{ opennms_core_firewall_ports }}"
   tags:
     - opennms
     - firewall

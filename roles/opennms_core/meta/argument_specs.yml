@@ -68,6 +68,16 @@ argument_specs:
             on its own version line, such as C(jrrd2) or C(iplike), ends up with
             no installation candidate rather than a pin. Measured.
           - Debian and Ubuntu only. EL 10 reads C(opennms_core_rpm_pinned_packages).
+      opennms_core_firewall_ports:
+        type: list
+        elements: str
+        description:
+          - Ports Core opens in the host firewall, as C(port/proto) or
+            C(start-end/proto). UFW on Debian and Ubuntu when UFW is installed,
+            firewalld on EL 10 when it is running.
+          - The default is the web port from C(org.opennms.netmgt.jetty.port)
+            in C(opennms_properties_webapp) (8980 when unset), C(10162/udp)
+            and C(9999/udp). Setting the list replaces it entirely.
       opennms_core_rpm_pinned_packages:
         type: list
         elements: str

@@ -48,12 +48,18 @@
 - name: Fail when opennms_minion_firewall_ports is not a list of port/proto entries
   ansible.builtin.assert:
     that:
-      - opennms_minion_firewall_ports | reject('match', '^[0-9]+(-[0-9]+)?/(tcp|udp)$') | list | length == 0
+      - item is match('^[0-9]+(-[0-9]+)?/(tcp|udp)$')
+      - _ports | first >= 1
+      - _ports | last <= 65535
+      - _ports | first <= _ports | last
     fail_msg: >-
-      Every entry in `opennms_minion_firewall_ports` must be `port/proto`, such
-      as 1162/udp or 8000-8010/tcp. These are not:
-      {{ opennms_minion_firewall_ports | reject('match', '^[0-9]+(-[0-9]+)?/(tcp|udp)$') | list }}.
+      `opennms_minion_firewall_ports` entry `{{ item }}` is not valid. Each entry must be
+      `port/proto` or `start-end/proto` with ports from 1 to 65535 and the
+      start not above the end, such as 1162/udp or 8000-8010/tcp.
     quiet: true
+  vars:
+    _ports: "{{ item.split('/')[0].split('-') | map('int') | list }}"
+  loop: "{{ opennms_minion_firewall_ports }}"
   tags:
     - always
 
