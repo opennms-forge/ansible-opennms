@@ -1,0 +1,15 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+# The ports 50-firewall.yml opens with UFW, in the default zone. Permanent and
+# immediate, so they hold now and after a reload.
+- name: Allow Minion listener ports through firewalld
+  ansible.posix.firewalld:
+    port: "{{ item }}"
+    permanent: true
+    immediate: true
+    state: enabled
+  loop: "{{ opennms_minion_firewall_ports }}"
+  tags:
+    - opennms
+    - firewall
