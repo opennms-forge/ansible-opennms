@@ -7,6 +7,8 @@
   vars:
     openjdk_version: 21
     openjdk_pkg_version: "21*"
+  tags:
+    - java
 
 - name: Create Kafka system group
   ansible.builtin.group:

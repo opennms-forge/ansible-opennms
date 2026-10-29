@@ -30,6 +30,8 @@ jobs:
         run: make check-credentials
       - name: Run ansible-lint
         run: make lint
+      - name: Check tag reachability
+        run: make check-tags
 
   download-urls:
     # Renders every *_url variable in role defaults through the same Jinja the
