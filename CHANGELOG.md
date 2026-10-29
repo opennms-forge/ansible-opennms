@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.14.1] - 2026-10-29
+
 ### Added
 - `make check-tags`, part of `make verify` and the CI quality gates, fails when a tag filter can select a task without what it depends on: a value registered under narrower tags (#241), or the tasks inside an include whose tags miss theirs (#175, #186) (closes #250).
 - `opennms_core`: the firewall ports come from the new `opennms_core_firewall_ports` (default: the web port, `10162/udp`, `9999/udp`) instead of literals. The web port, in that default and in the readiness wait, follows `org.opennms.netmgt.jetty.port` in `opennms_properties_webapp`, so moving Jetty no longer leaves the rule on 8980 or fails the run at the wait. When `org.opennms.netmgt.jetty.https-port` is set, the default list opens it too. Entries are checked for the `port/proto` form, port bounds and range order before `opennms_core` installs anything (closes #249).
@@ -343,6 +345,7 @@ and `vm-single` are unaffected.
 - Renovate configuration for automated Ansible Galaxy collection updates.
 - CI on standard GitHub-hosted runners with SHA-pinned actions and Dependabot.
 
+[0.14.1]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.14.1
 [0.14.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.14.0
 [0.13.1]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.13.1
 [0.13.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.13.0
