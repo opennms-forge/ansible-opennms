@@ -56,6 +56,13 @@ opennms_sentinel_pyroscope: {}
 # agent in $OPENNMS_HOME/agent, inside the Sentinel home instead.
 opennms_sentinel_pyroscope_jar: "{{ opennms_sentinel_home }}/agent/pyroscope-agent.jar"
 
+# Prometheus JMX exporter - off by default. Set the port it should listen on,
+# such as 9299, and the role installs the pinned exporter from
+# `prom_jmx_exporter` into {{ opennms_sentinel_home }}/agent and loads it into the
+# Karaf JVM through EXTRA_JAVA_OPTS. 0 is off. On a host that also runs Core or
+# another component, give each its own port.
+opennms_sentinel_jmx_exporter_port: 0
+
 opennms_sentinel_controller:
   id: "{{ ansible_facts['machine_id'] if ansible_facts['machine_id'] is defined else inventory_hostname }}"
   location: ANSIBLE_UNSET_SENTINEL_LOCATION

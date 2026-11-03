@@ -157,23 +157,49 @@ opennms_minion_pyroscope:
   PYROSCOPE_SERVER_ADDRESS: http://pyroscope.example.org:4040
 ```
 
-That installs the jar at `{{ opennms_minion_home }}/agent/pyroscope-agent.jar` and writes a managed block into `/etc/default/minion` (`/etc/sysconfig/minion` on EL 10):
+That installs the jar at `{{ opennms_minion_home }}/agent/pyroscope-agent.jar` and writes two managed blocks into `/etc/default/minion` (`/etc/sysconfig/minion` on EL 10). The `java-agents` block loads the agent, and is shared with the [JMX Prometheus exporter](#jmx-prometheus-exporter):
 
 ```
 # BEGIN ANSIBLE MANAGED BLOCK: pyroscope
-EXTRA_JAVA_OPTS='-javaagent:/opt/minion/agent/pyroscope-agent.jar'
 PYROSCOPE_APPLICATION_NAME='Horizon-Minion'
 PYROSCOPE_SERVER_ADDRESS='http://pyroscope.example.org:4040'
 # END ANSIBLE MANAGED BLOCK: pyroscope
+# BEGIN ANSIBLE MANAGED BLOCK: java-agents
+EXTRA_JAVA_OPTS='-javaagent:/opt/minion/agent/pyroscope-agent.jar'
+# END ANSIBLE MANAGED BLOCK: java-agents
 ```
 
 The agent takes no command-line arguments — everything is read from the environment, so any other `PYROSCOPE_*` key from [upstream's list](https://github.com/grafana/pyroscope-java) goes in the same dict. Values are written single-quoted, because this file is both parsed by systemd and sourced as shell by `container.init`; a JSON value such as `PYROSCOPE_HTTP_HEADERS` would otherwise break both. Neither consumer expands anything inside single quotes, so spaces, double quotes and `$` all pass through as written. A value containing a single quote is rejected with an explicit error — there is no escape for one inside single quotes in shell.
 
 Three details worth knowing:
 
-- **The block owns `EXTRA_JAVA_OPTS`.** It is written as a plain assignment, so an `EXTRA_JAVA_OPTS` you had set in this file is replaced. Put your own JVM flags in `JAVA_OPTS` instead: `container.init` folds it into `EXTRA_JAVA_OPTS` alongside the agent, so both survive. That is also why the role stays off `JAVA_OPTS` itself — it is the knob the pristine file documents for heap and friends.
-- **There is no enable flag.** Loading the agent is what enables it, so an empty dict means no jar is downloaded and no JVM option is set. Emptying it again removes the whole block and restarts the Minion.
+- **The `java-agents` block owns `EXTRA_JAVA_OPTS`.** It is written as a plain assignment, so an `EXTRA_JAVA_OPTS` you had set in this file is replaced. Put your own JVM flags in `JAVA_OPTS` instead: `container.init` folds it into `EXTRA_JAVA_OPTS` alongside the agent, so both survive. That is also why the role stays off `JAVA_OPTS` itself. It is the knob the pristine file documents for heap and friends.
+- **There is no enable flag.** Loading the agent is what enables it, so an empty dict means no jar is downloaded and no JVM option is set. Emptying it again removes the whole block and the agent's option, and restarts the Minion.
 - **Do not add `PYROSCOPE_AGENT_ENABLED`.** Core carries it in `opennms_jvm_conf` because `bin/opennms` reads it as a number. Here it reaches the agent, which parses it as a boolean — so the `1` that means "on" for Core reads as `false`, and the agent disables itself right after attaching with a single INFO line to say so.
+
+## JMX Prometheus exporter
+
+Off by default.
+Set the port the exporter should listen on:
+
+```yaml
+opennms_minion_jmx_exporter_port: 9299
+```
+
+The role installs the pinned [`prom_jmx_exporter`](../prom_jmx_exporter/README.md) jar and config in `{{ opennms_minion_home }}/agent`, adds its `-javaagent` option to the `java-agents` block, opens the port in the host firewall, and restarts the Minion.
+Metrics are then at `http://<minion>:9299/metrics`.
+With Pyroscope enabled as well, both agents share one `EXTRA_JAVA_OPTS` line:
+
+```
+# BEGIN ANSIBLE MANAGED BLOCK: java-agents
+EXTRA_JAVA_OPTS='-javaagent:/opt/minion/agent/pyroscope-agent.jar -javaagent:/opt/minion/agent/jmx_prometheus_javaagent.jar=9299:/opt/minion/agent/jmx-prometheus-exporter.yaml'
+# END ANSIBLE MANAGED BLOCK: java-agents
+```
+
+One line, because systemd keeps only the last `EXTRA_JAVA_OPTS` in this file and does not expand `$EXTRA_JAVA_OPTS`.
+Setting the port back to `0` removes the option and restarts the Minion once.
+The jar stays on disk, unloaded.
+On a host that also runs Core or another component, give each its own port.
 
 ## Startup readiness
 
@@ -193,6 +219,7 @@ On EL 10 it adds firewalld rules in the default zone, permanent and immediate, w
 A host with neither is left alone.
 
 The ports come from `opennms_minion_firewall_ports`, default `1162/udp` (traps), `1514/udp` (syslog) and `9999/udp` (single-port flows).
+When `opennms_minion_jmx_exporter_port` is set, the default list adds it as TCP. Setting the list replaces it entirely.
 The role does not configure those listeners, so if you move one, change the list to match.
 Rules are only added, as for Core: removing an entry from the list does not remove its rule, so close a port you no longer use yourself.
 

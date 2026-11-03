@@ -1,0 +1,4 @@
+---
+render_canary: fixture
+
+opennms_minion_jmx_exporter_port: 9299

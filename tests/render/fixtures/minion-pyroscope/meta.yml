@@ -8,3 +8,7 @@ render_role: opennms_minion
 render_files:
   - name: pyroscope-env
     src: pyroscope-env.j2
+
+  # Pyroscope alone: the java-agents block holds only its -javaagent option.
+  - name: java-agents-env
+    src: java-agents-env.j2

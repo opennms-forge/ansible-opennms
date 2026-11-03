@@ -1,0 +1,1 @@
+EXTRA_JAVA_OPTS='-javaagent:/opt/sentinel/agent/pyroscope-agent.jar -javaagent:/opt/sentinel/agent/jmx_prometheus_javaagent.jar=9299:/opt/sentinel/agent/jmx-prometheus-exporter.yaml'

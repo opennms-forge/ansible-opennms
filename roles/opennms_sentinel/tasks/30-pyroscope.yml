@@ -13,10 +13,21 @@
     pyroscope_agent_jar: "{{ opennms_sentinel_pyroscope_jar }}"
     pyroscope_agent_notify:
       - Restart sentinel
+    # The java-agents block that loads this jar runs under all of these tags,
+    # so the install must too.
+    apply:
+      tags:
+        - configuration
+        - jmx-prometheus-exporter
+        - sentinel
+        - opennms
+        - pyroscope
   when: opennms_sentinel_pyroscope | length > 0
   tags:
-    - opennms
+    - configuration
+    - jmx-prometheus-exporter
     - sentinel
+    - opennms
     - pyroscope
 
 - name: Verify no Pyroscope value carries a single quote
@@ -36,11 +47,9 @@
     - pyroscope
     - configuration
 
-# EXTRA_JAVA_OPTS, not JAVA_OPTS. Upstream's container.init sources this file and
-# then does `EXTRA_JAVA_OPTS="$JAVA_OPTS $EXTRA_JAVA_OPTS"; unset JAVA_OPTS`, so
-# either name reaches the Karaf JVM — but JAVA_OPTS is the operator knob the
-# pristine file documents for heap and friends, and claiming it here would
-# silently drop whatever they had set.
+# The -javaagent option that loads the agent is written by 31-java-agents.yml,
+# which lists every enabled agent on one EXTRA_JAVA_OPTS line. This block holds
+# only the PYROSCOPE_* keys.
 #
 # No `export`: systemd parses this file as an EnvironmentFile of KEY=value pairs,
 # and that is also what puts the PYROSCOPE_* keys into the JVM's environment,

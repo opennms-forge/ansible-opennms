@@ -59,10 +59,19 @@ argument_specs:
       opennms_minion_firewall_ports:
         type: list
         elements: str
-        default: ["1162/udp", "1514/udp", "9999/udp"]
         description:
           - Ports Minion opens in the host firewall, as C(port/proto). UFW on
             Debian and Ubuntu when UFW is installed, firewalld on EL 10 when it
             is running.
-          - The defaults are the trap, syslog and single-port flow listeners.
+          - The defaults are the trap, syslog and single-port flow listeners
+            (C(1162/udp), C(1514/udp), C(9999/udp)), plus
+            C(opennms_minion_jmx_exporter_port) as TCP when it is set.
             Change the list when you move a listener.
+      opennms_minion_jmx_exporter_port:
+        type: int
+        default: 0
+        description:
+          - Port the JMX Prometheus exporter listens on. C(0) leaves it off.
+          - When set, the role installs the exporter from C(prom_jmx_exporter)
+            in C(opennms_minion_home)/agent and loads it through C(EXTRA_JAVA_OPTS)
+            in the C(java-agents) block of the Minion sysconfig file.

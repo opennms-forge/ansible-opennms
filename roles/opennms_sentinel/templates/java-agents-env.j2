@@ -1,0 +1,11 @@
+{# Copyright 2026 Ronny Trommer <ronny@no42.org>
+   SPDX-License-Identifier: GPL-3.0-or-later #}
+{# Body of the java-agents block in the Sentinel sysconfig file: one EXTRA_JAVA_OPTS
+   line holding every enabled agent. systemd parses this file as an
+   EnvironmentFile and keeps only the last assignment of a key, with no
+   $VAR expansion, so a second block setting EXTRA_JAVA_OPTS would silently
+   unload the first agent.
+
+   Single-quoted for the reason pyroscope-env.j2 gives: the file is also sourced
+   as shell. The paths come from this role's vars and carry no single quote. #}
+EXTRA_JAVA_OPTS='{{ _opennms_sentinel_java_agents | join(' ') }}'

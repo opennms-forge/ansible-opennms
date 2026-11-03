@@ -1,0 +1,57 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+# Installed only when a port is set. The same variable decides whether the
+# block below loads the agent, so the jar and the JVM option cannot disagree.
+- name: Install the JMX Prometheus exporter
+  ansible.builtin.include_role:
+    name: prom_jmx_exporter
+  vars:
+    prom_jmx_exporter_jar: "{{ _opennms_minion_jmx_exporter_jar }}"
+    prom_jmx_exporter_config_file: "{{ _opennms_minion_jmx_exporter_config_file }}"
+    prom_jmx_exporter_notify:
+      - Restart minion
+    # The block below runs under every one of these tags, so the jar must too,
+    # or a tag filter loads a jar that was never downloaded.
+    apply:
+      tags:
+        - configuration
+        - jmx-prometheus-exporter
+        - minion
+        - opennms
+        - pyroscope
+  when: opennms_minion_jmx_exporter_port | int > 0
+  tags:
+    - configuration
+    - jmx-prometheus-exporter
+    - minion
+    - opennms
+    - pyroscope
+
+# EXTRA_JAVA_OPTS, not JAVA_OPTS. Upstream's container.init sources this file and
+# then does `EXTRA_JAVA_OPTS="$JAVA_OPTS $EXTRA_JAVA_OPTS"; unset JAVA_OPTS`, so
+# either name reaches the Karaf JVM. JAVA_OPTS is the operator knob the pristine
+# file documents for heap and friends. Claiming it here would silently drop
+# whatever they had set.
+#
+# One block for every agent, because systemd keeps only the last
+# EXTRA_JAVA_OPTS assignment in this file and expands no $EXTRA_JAVA_OPTS. It
+# is absent when no agent is enabled, so turning the last one off removes the
+# JVM option. The body comes from a template so tests/render/ can check it.
+- name: Load the enabled Java agents into the Minion JVM
+  ansible.builtin.blockinfile:
+    path: "{{ _opennms_minion_sysconfig_file }}"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK: java-agents"
+    block: "{{ lookup('template', 'java-agents-env.j2') }}"
+    state: "{{ 'present' if _opennms_minion_java_agents | length > 0 else 'absent' }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Restart minion
+  tags:
+    - opennms
+    - minion
+    - jmx-prometheus-exporter
+    - pyroscope
+    - configuration

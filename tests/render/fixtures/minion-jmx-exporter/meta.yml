@@ -1,0 +1,7 @@
+---
+render_role: opennms_minion
+
+# The exporter alone: one -javaagent option carrying the port and the config path.
+render_files:
+  - name: java-agents-env
+    src: java-agents-env.j2

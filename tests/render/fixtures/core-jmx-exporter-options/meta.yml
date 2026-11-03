@@ -1,0 +1,8 @@
+---
+render_role: opennms_core
+
+# The exporter turned on next to operator JVM options: theirs come first and
+# survive, and the -javaagent option is appended after them.
+render_files:
+  - name: opennms.conf
+    src: etc/opennms.conf.j2

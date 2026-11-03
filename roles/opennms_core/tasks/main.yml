@@ -79,6 +79,42 @@
   tags:
     - always
 
+# Transition guards for the exporter moving into `prom_jmx_exporter` (#258).
+# The owner, group and home knobs are gone, because each component now keeps
+# the root-owned jar in its own agent directory. A hand-written -javaagent
+# would point at a jar this role no longer downloads, or load the exporter
+# twice and stop the JVM on the second bind of the port.
+- name: Fail when the exporter is configured the removed way
+  ansible.builtin.assert:
+    that:
+      - prom_jmx_exporter_owner is not defined
+      - prom_jmx_exporter_group is not defined
+      - prom_jmx_exporter_home is not defined
+      - "'jmx_prometheus_javaagent' not in (opennms_jvm_conf | default({}, true)).get('ADDITIONAL_MANAGER_OPTIONS', '') | string"
+    fail_msg: >-
+      The JMX Prometheus exporter is now loaded by setting
+      `opennms_core_jmx_exporter_port`, for example to 9299. Remove the
+      `-javaagent` option for it from
+      `opennms_jvm_conf.ADDITIONAL_MANAGER_OPTIONS`, and drop
+      `prom_jmx_exporter_owner`, `prom_jmx_exporter_group` and
+      `prom_jmx_exporter_home`: the jar and config now live root-owned in
+      {{ opennms_home }}/agent.
+    quiet: true
+  tags:
+    - always
+
+- name: Fail when opennms_core_jmx_exporter_port is not a port
+  ansible.builtin.assert:
+    that:
+      - opennms_core_jmx_exporter_port | string is match('^[0-9]+$')
+      - opennms_core_jmx_exporter_port | int <= 65535
+    fail_msg: >-
+      `opennms_core_jmx_exporter_port` is `{{ opennms_core_jmx_exporter_port }}`.
+      It must be an integer from 1 to 65535, or 0 to leave the exporter off.
+    quiet: true
+  tags:
+    - always
+
 - name: Verify the host clock is synchronised
   ansible.builtin.include_role:
     name: timesync
@@ -143,10 +179,32 @@
     - tools
     - web
 
-- name: Include tasks to install JMX Prometheus exporter
-  ansible.builtin.include_tasks: 02-jmx-prometheus-exporter.yml
+# Only when a port is set. opennms.conf loads the agent from the same port
+# variable, so the jar and the JVM option cannot disagree about being on.
+- name: Install the JMX Prometheus exporter
+  ansible.builtin.include_role:
+    name: prom_jmx_exporter
+  vars:
+    prom_jmx_exporter_jar: "{{ _opennms_core_jmx_exporter_jar }}"
+    prom_jmx_exporter_config_file: "{{ _opennms_core_jmx_exporter_config_file }}"
+    prom_jmx_exporter_notify:
+      - Restart opennms
+    # Every tag opennms.conf renders under, applied to the inner tasks too, so
+    # no tag filter writes the -javaagent option without installing the jar.
+    apply:
+      tags:
+        - configuration
+        - core
+        - jmx-prometheus-exporter
+        - openjdk
+        - opennms
+  when: opennms_core_jmx_exporter_port | int > 0
   tags:
+    - configuration
+    - core
     - jmx-prometheus-exporter
+    - openjdk
+    - opennms
 
 - name: Include tasks to install the Pyroscope Java agent
   ansible.builtin.include_tasks: 03-pyroscope-agent.yml

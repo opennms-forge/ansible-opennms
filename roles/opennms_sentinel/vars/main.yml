@@ -28,3 +28,19 @@ _sentinel_bootstrap_servers: >-
 opennms_component: sentinel
 _opennms_apt_preferences_file: /etc/apt/preferences.d/99-opennms-{{ opennms_component }}.pref
 _opennms_unattended_blacklist_file: /etc/apt/apt.conf.d/51-opennms-{{ opennms_component }}-blacklist
+
+# Where the JMX Prometheus exporter jar and its config land when
+# `opennms_sentinel_jmx_exporter_port` is set, and the JVM option that loads it.
+# In the component's own agent directory, next to the Pyroscope jar, so
+# colocated components never share a file. `vars/` rather than defaults: the
+# JVM option is built from these paths, so there is no reason to choose them.
+_opennms_sentinel_jmx_exporter_jar: "{{ opennms_sentinel_home }}/agent/jmx_prometheus_javaagent.jar"
+_opennms_sentinel_jmx_exporter_config_file: "{{ opennms_sentinel_home }}/agent/jmx-prometheus-exporter.yaml"
+_opennms_sentinel_jmx_exporter_option: "-javaagent:{{ _opennms_sentinel_jmx_exporter_jar }}={{ opennms_sentinel_jmx_exporter_port }}:{{ _opennms_sentinel_jmx_exporter_config_file }}"
+
+# Every Java agent loaded into the Karaf JVM, in load order. One list, because
+# systemd keeps only the last EXTRA_JAVA_OPTS assignment in the sysconfig file
+# and expands no $EXTRA_JAVA_OPTS, so each agent cannot add its own line.
+_opennms_sentinel_java_agents: >-
+  {{ (['-javaagent:' ~ opennms_sentinel_pyroscope_jar] if opennms_sentinel_pyroscope | length > 0 else [])
+     + ([_opennms_sentinel_jmx_exporter_option] if opennms_sentinel_jmx_exporter_port | int > 0 else []) }}
