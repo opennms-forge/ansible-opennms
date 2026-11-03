@@ -261,6 +261,7 @@
     - sentinel
     - pyroscope
     - configuration
+    - jmx-prometheus-exporter
 
 - name: Install the JMX Prometheus exporter and load the Java agents
   ansible.builtin.include_tasks: 31-java-agents.yml

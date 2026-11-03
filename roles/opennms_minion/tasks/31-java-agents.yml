@@ -11,17 +11,28 @@
     prom_jmx_exporter_config_file: "{{ _opennms_minion_jmx_exporter_config_file }}"
     prom_jmx_exporter_notify:
       - Restart minion
+    # The block below runs under every one of these tags, so the jar must too,
+    # or a tag filter loads a jar that was never downloaded.
+    apply:
+      tags:
+        - configuration
+        - jmx-prometheus-exporter
+        - minion
+        - opennms
+        - pyroscope
   when: opennms_minion_jmx_exporter_port | int > 0
   tags:
-    - opennms
-    - minion
+    - configuration
     - jmx-prometheus-exporter
+    - minion
+    - opennms
+    - pyroscope
 
 # EXTRA_JAVA_OPTS, not JAVA_OPTS. Upstream's container.init sources this file and
 # then does `EXTRA_JAVA_OPTS="$JAVA_OPTS $EXTRA_JAVA_OPTS"; unset JAVA_OPTS`, so
-# either name reaches the Karaf JVM — but JAVA_OPTS is the operator knob the
-# pristine file documents for heap and friends, and claiming it here would
-# silently drop whatever they had set.
+# either name reaches the Karaf JVM. JAVA_OPTS is the operator knob the pristine
+# file documents for heap and friends. Claiming it here would silently drop
+# whatever they had set.
 #
 # One block for every agent, because systemd keeps only the last
 # EXTRA_JAVA_OPTS assignment in this file and expands no $EXTRA_JAVA_OPTS. It

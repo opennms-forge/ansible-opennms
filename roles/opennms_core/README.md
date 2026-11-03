@@ -162,18 +162,22 @@ The built-in defaults are the three profiling keys: `PYROSCOPE_AGENT_ENABLED: 0`
 
 ### JMX Prometheus exporter
 
-Off by default. Set the port the exporter should listen on:
+Off by default.
+Set the port the exporter should listen on:
 
 ```yaml
 opennms_core_jmx_exporter_port: 9299
 ```
 
-The role installs the pinned [`prom_jmx_exporter`](../prom_jmx_exporter/README.md) jar and config in `/opt/opennms/agent`, appends its `-javaagent` option to `ADDITIONAL_MANAGER_OPTIONS` in `opennms.conf`, and restarts OpenNMS. Metrics are then at `http://<core>:9299/metrics`.
+The role installs the pinned [`prom_jmx_exporter`](../prom_jmx_exporter/README.md) jar and config in `/opt/opennms/agent`, appends its `-javaagent` option to `ADDITIONAL_MANAGER_OPTIONS` in `opennms.conf`, and restarts OpenNMS.
+Metrics are then at `http://<core>:9299/metrics`.
 Any `ADDITIONAL_MANAGER_OPTIONS` you set in `opennms_jvm_conf` are kept, and the exporter option follows them.
-Setting the port back to `0` removes the option and restarts OpenNMS once. The jar stays on disk, unloaded.
+Setting the port back to `0` removes the option and restarts OpenNMS once.
+The jar stays on disk, unloaded.
 On a host that also runs Minion or Sentinel, give each component its own port.
 
-Do not load the exporter through `opennms_jvm_conf` yourself. A `-javaagent` option for `jmx_prometheus_javaagent` in `ADDITIONAL_MANAGER_OPTIONS` fails the run, and so do the removed `prom_jmx_exporter_owner`, `prom_jmx_exporter_group` and `prom_jmx_exporter_home`.
+Do not load the exporter through `opennms_jvm_conf` yourself.
+A `-javaagent` option for `jmx_prometheus_javaagent` in `ADDITIONAL_MANAGER_OPTIONS` fails the run, and so do the removed `prom_jmx_exporter_owner`, `prom_jmx_exporter_group` and `prom_jmx_exporter_home`.
 
 ### Service toggles
 

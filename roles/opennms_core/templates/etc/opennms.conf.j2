@@ -9,7 +9,7 @@
 {#- The JMX exporter option goes after any ADDITIONAL_MANAGER_OPTIONS the
     operator set, so turning the exporter on never drops theirs. #}
 {%- if opennms_core_jmx_exporter_port | int > 0 %}
-{%- set _jvm_merged = _jvm_merged | combine({'ADDITIONAL_MANAGER_OPTIONS': ((_jvm_merged.ADDITIONAL_MANAGER_OPTIONS | default('')) ~ ' ' ~ _opennms_core_jmx_exporter_option) | trim}) %}
+{%- set _jvm_merged = _jvm_merged | combine({'ADDITIONAL_MANAGER_OPTIONS': ((_jvm_merged.ADDITIONAL_MANAGER_OPTIONS | default('', true)) ~ ' ' ~ _opennms_core_jmx_exporter_option) | trim}) %}
 {%- endif %}
 {%- set _jvm_keys = _jvm_merged.keys() | list %}
 {%- set _env_keys = _env_merged.keys() | list %}

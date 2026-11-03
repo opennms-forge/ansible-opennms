@@ -10,7 +10,10 @@ Part of the [`indigo423.opennms`](https://galaxy.ansible.com/ui/repo/published/i
 
 It downloads the jar, verifies its checksum, renders the config, and puts both where the caller says.
 
-It does **no** JVM wiring and knows nothing about services. Core loads the agent through `ADDITIONAL_MANAGER_OPTIONS` in `opennms.conf`. Minion and Sentinel load it through `EXTRA_JAVA_OPTS` in their sysconfig file. That knowledge stays in the component roles.
+It does **no** JVM wiring and knows nothing about services.
+Core loads the agent through `ADDITIONAL_MANAGER_OPTIONS` in `opennms.conf`.
+Minion and Sentinel load it through `EXTRA_JAVA_OPTS` in their sysconfig file.
+That knowledge stays in the component roles.
 
 ## Variables
 
@@ -24,11 +27,15 @@ It does **no** JVM wiring and knows nothing about services. Core loads the agent
 | `prom_jmx_exporter_config_file` | *(none)* | Absolute destination of the config. Asserted, not defaulted. |
 | `prom_jmx_exporter_notify` | `[]` | Handlers to fire when the jar or config changes. |
 
-One config serves all three components. A bean pattern that matches nothing on a component exports nothing there.
+One config serves all three components.
+A bean pattern that matches nothing on a component exports nothing there.
 
-Both files are installed `root:root 0644`. Neither is a secret, and each component's JVM runs as its own user. The destination directories are created `root:root 0755` only when missing, because Core's package owns `$OPENNMS_HOME/agent`.
+Both files are installed `root:root 0644`.
+Neither is a secret, and each component's JVM runs as its own user.
+The destination directories are created `root:root 0755` only when missing, because Core's package owns `$OPENNMS_HOME/agent`.
 
-A version bump needs a new `prom_jmx_exporter_sha256`. Upstream publishes a `jmx_prometheus_javaagent-<version>.jar.sha256` asset, and `renovate.json` notes it in the bump PR.
+A version bump needs a new `prom_jmx_exporter_sha256`.
+Upstream publishes a `jmx_prometheus_javaagent-<version>.jar.sha256` asset, and `renovate.json` notes it in the bump PR.
 
 ## Example
 

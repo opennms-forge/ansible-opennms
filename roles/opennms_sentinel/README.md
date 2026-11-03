@@ -117,7 +117,7 @@ The agent takes no command-line arguments — everything is read from the enviro
 
 Three details worth knowing:
 
-- **The `java-agents` block owns `EXTRA_JAVA_OPTS`.** It is written as a plain assignment, so an `EXTRA_JAVA_OPTS` you had set in this file is replaced. Put your own JVM flags in `JAVA_OPTS` instead: `container.init` folds it into `EXTRA_JAVA_OPTS` alongside the agent, so both survive. That is also why the role stays off `JAVA_OPTS` itself — it is the knob the pristine file documents for heap and friends.
+- **The `java-agents` block owns `EXTRA_JAVA_OPTS`.** It is written as a plain assignment, so an `EXTRA_JAVA_OPTS` you had set in this file is replaced. Put your own JVM flags in `JAVA_OPTS` instead: `container.init` folds it into `EXTRA_JAVA_OPTS` alongside the agent, so both survive. That is also why the role stays off `JAVA_OPTS` itself. It is the knob the pristine file documents for heap and friends.
 - **There is no enable flag.** Loading the agent is what enables it, so an empty dict means no jar is downloaded and no JVM option is set. Emptying it again removes the whole block and the agent's option, and restarts the Sentinel.
 - **Do not add `PYROSCOPE_AGENT_ENABLED`.** Core carries it in `opennms_jvm_conf` because `bin/opennms` reads it as a number. Here it reaches the agent, which parses it as a boolean — so the `1` that means "on" for Core reads as `false`, and the agent disables itself right after attaching with a single INFO line to say so.
 
@@ -125,13 +125,15 @@ When several Sentinels share a flow workload, give them the same `PYROSCOPE_APPL
 
 ## JMX Prometheus exporter
 
-Off by default. Set the port the exporter should listen on:
+Off by default.
+Set the port the exporter should listen on:
 
 ```yaml
 opennms_sentinel_jmx_exporter_port: 9299
 ```
 
-The role installs the pinned [`prom_jmx_exporter`](../prom_jmx_exporter/README.md) jar and config in `{{ opennms_sentinel_home }}/agent`, adds its `-javaagent` option to the `java-agents` block, and restarts the Sentinel. Metrics are then at `http://<sentinel>:9299/metrics`.
+The role installs the pinned [`prom_jmx_exporter`](../prom_jmx_exporter/README.md) jar and config in `{{ opennms_sentinel_home }}/agent`, adds its `-javaagent` option to the `java-agents` block, and restarts the Sentinel.
+Metrics are then at `http://<sentinel>:9299/metrics`.
 With Pyroscope enabled as well, both agents share one `EXTRA_JAVA_OPTS` line:
 
 ```
@@ -141,7 +143,8 @@ EXTRA_JAVA_OPTS='-javaagent:/opt/sentinel/agent/pyroscope-agent.jar -javaagent:/
 ```
 
 One line, because systemd keeps only the last `EXTRA_JAVA_OPTS` in this file and does not expand `$EXTRA_JAVA_OPTS`.
-Setting the port back to `0` removes the option and restarts the Sentinel once. The jar stays on disk, unloaded.
+Setting the port back to `0` removes the option and restarts the Sentinel once.
+The jar stays on disk, unloaded.
 On a host that also runs Core or another component, give each its own port.
 
 ## Variables

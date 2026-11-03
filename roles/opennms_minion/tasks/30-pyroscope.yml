@@ -13,10 +13,21 @@
     pyroscope_agent_jar: "{{ opennms_minion_pyroscope_jar }}"
     pyroscope_agent_notify:
       - Restart minion
+    # The java-agents block that loads this jar runs under all of these tags,
+    # so the install must too.
+    apply:
+      tags:
+        - configuration
+        - jmx-prometheus-exporter
+        - minion
+        - opennms
+        - pyroscope
   when: opennms_minion_pyroscope | length > 0
   tags:
-    - opennms
+    - configuration
+    - jmx-prometheus-exporter
     - minion
+    - opennms
     - pyroscope
 
 - name: Verify no Pyroscope value carries a single quote
