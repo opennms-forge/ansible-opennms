@@ -53,3 +53,12 @@ _opennms_core_web_port: "{{ (opennms_properties_webapp | default({}, true))['org
 
 # The HTTPS port when the operator enabled it in the same dict, else empty.
 _opennms_core_https_port: "{{ (opennms_properties_webapp | default({}, true))['org.opennms.netmgt.jetty.https-port'] | default('', true) | string }}"
+
+# Where the JMX Prometheus exporter jar and its config land when
+# `opennms_core_jmx_exporter_port` is set, and the JVM option that loads it.
+# In the component's own agent directory, next to the Pyroscope jar, so
+# colocated components never share a file. `vars/` rather than defaults: the
+# JVM option is built from these paths, so there is no reason to choose them.
+_opennms_core_jmx_exporter_jar: "{{ opennms_home }}/agent/jmx_prometheus_javaagent.jar"
+_opennms_core_jmx_exporter_config_file: "{{ opennms_home }}/agent/jmx-prometheus-exporter.yaml"
+_opennms_core_jmx_exporter_option: "-javaagent:{{ _opennms_core_jmx_exporter_jar }}={{ opennms_core_jmx_exporter_port }}:{{ _opennms_core_jmx_exporter_config_file }}"

@@ -36,11 +36,9 @@
     - pyroscope
     - configuration
 
-# EXTRA_JAVA_OPTS, not JAVA_OPTS. Upstream's container.init sources this file and
-# then does `EXTRA_JAVA_OPTS="$JAVA_OPTS $EXTRA_JAVA_OPTS"; unset JAVA_OPTS`, so
-# either name reaches the Karaf JVM — but JAVA_OPTS is the operator knob the
-# pristine file documents for heap and friends, and claiming it here would
-# silently drop whatever they had set.
+# The -javaagent option that loads the agent is written by 31-java-agents.yml,
+# which lists every enabled agent on one EXTRA_JAVA_OPTS line. This block holds
+# only the PYROSCOPE_* keys.
 #
 # No `export`, for the same reason the JAVA_HOME line omits it: systemd parses
 # this file as an EnvironmentFile of KEY=value pairs. That is also what puts the

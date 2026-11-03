@@ -1,0 +1,7 @@
+---
+render_role: opennms_sentinel
+
+# Sentinel's copy of minion-java-agents. The two should differ only in the home directory.
+render_files:
+  - name: java-agents-env
+    src: java-agents-env.j2

@@ -1,0 +1,67 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+- name: Verify the exporter destinations were supplied
+  ansible.builtin.assert:
+    that:
+      - prom_jmx_exporter_jar | length > 0
+      - prom_jmx_exporter_config_file | length > 0
+    fail_msg: >-
+      `prom_jmx_exporter_jar` and `prom_jmx_exporter_config_file` must be set to
+      the absolute paths this role should install the JMX exporter and its
+      config to. They have no default because the component role including it
+      owns the paths.
+    quiet: true
+  tags:
+    - jmx-prometheus-exporter
+
+# Created only when missing, as pyroscope_agent does with the same directory:
+# Core's package owns $OPENNMS_HOME/agent and its postinst chowns it, so
+# enforcing an owner here would fight the package.
+- name: Check whether the exporter directories exist
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  loop: "{{ [prom_jmx_exporter_jar | dirname, prom_jmx_exporter_config_file | dirname] | unique }}"
+  register: prom_jmx_exporter_dirs
+  tags:
+    - jmx-prometheus-exporter
+
+- name: Create the exporter directories
+  ansible.builtin.file:
+    path: "{{ item.item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop: "{{ prom_jmx_exporter_dirs.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+  when: not item.stat.exists
+  tags:
+    - jmx-prometheus-exporter
+
+# root-owned and world-readable, like the Pyroscope jar. Neither file is a
+# secret, and every component's JVM runs as a different user that must read
+# them.
+- name: Install the JMX Prometheus exporter {{ prom_jmx_exporter_version }}
+  ansible.builtin.get_url:
+    url: "{{ prom_jmx_exporter_url }}"
+    dest: "{{ prom_jmx_exporter_jar }}"
+    checksum: "{{ prom_jmx_exporter_sha256 }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: "{{ prom_jmx_exporter_notify }}"
+  tags:
+    - jmx-prometheus-exporter
+
+- name: Render the JMX Prometheus exporter configuration
+  ansible.builtin.template:
+    src: config.yml.j2
+    dest: "{{ prom_jmx_exporter_config_file }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: "{{ prom_jmx_exporter_notify }}"
+  tags:
+    - jmx-prometheus-exporter

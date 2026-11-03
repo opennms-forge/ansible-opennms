@@ -14,3 +14,7 @@ render_files:
   # Minion's, and the same values exercise it.
   - name: pyroscope-env
     src: pyroscope-env.j2
+
+  # Pyroscope alone, Sentinel's copy of the minion-pyroscope java-agents block.
+  - name: java-agents-env
+    src: java-agents-env.j2

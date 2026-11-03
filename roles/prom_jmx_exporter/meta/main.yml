@@ -1,0 +1,28 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+galaxy_info:
+  role_name: prom_jmx_exporter
+  author: Ronny Trommer
+  description: Installs a pinned Prometheus JMX exporter Java agent and its config for the OpenNMS Horizon components to load.
+  license: GPL-3.0-or-later
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+        - trixie
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+    - name: EL
+      versions:
+        - "10"
+  galaxy_tags:
+    - opennms
+    - prometheus
+    - jmx
+    - java
+
+dependencies: []

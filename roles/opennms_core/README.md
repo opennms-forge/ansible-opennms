@@ -106,6 +106,7 @@ The role opens the ports in `opennms_core_firewall_ports` with UFW on Debian and
 The default is the web port, `10162/udp` (traps) and `9999/udp` (single-port flows).
 The web port follows `org.opennms.netmgt.jetty.port` in `opennms_properties_webapp`, so moving Jetty there moves the rule and the readiness wait with it.
 When `org.opennms.netmgt.jetty.https-port` is set there too, the default list opens it as well.
+When `opennms_core_jmx_exporter_port` is set, the default list opens it as TCP.
 Setting the list replaces it entirely, the web port included.
 Rules are only added: removing an entry does not remove its rule.
 
@@ -158,6 +159,21 @@ opennms_jvm_conf:
 The built-in defaults are the three profiling keys: `PYROSCOPE_AGENT_ENABLED: 0`, `PYROSCOPE_APPLICATION_NAME: Horizon-Core`, `PYROSCOPE_SERVER_ADDRESS: http://localhost:4040`. See [`pyroscope_agent`](../pyroscope_agent/README.md) for the agent itself.
 
 **Only those three profiling keys belong here.** Entries in this dict are rendered *without* `export`, so they stay shell-local to `bin/opennms`, which then exports the application name and server address by name on its own. Any further agent setting — `PYROSCOPE_UPLOAD_INTERVAL`, `PYROSCOPE_AUTH_TOKEN`, `PYROSCOPE_HTTP_HEADERS` — has to go in `opennms_env` instead, or the agent never sees it. Do not restate the three above there: the template refuses to render a key defined in two of the three dicts.
+
+### JMX Prometheus exporter
+
+Off by default. Set the port the exporter should listen on:
+
+```yaml
+opennms_core_jmx_exporter_port: 9299
+```
+
+The role installs the pinned [`prom_jmx_exporter`](../prom_jmx_exporter/README.md) jar and config in `/opt/opennms/agent`, appends its `-javaagent` option to `ADDITIONAL_MANAGER_OPTIONS` in `opennms.conf`, and restarts OpenNMS. Metrics are then at `http://<core>:9299/metrics`.
+Any `ADDITIONAL_MANAGER_OPTIONS` you set in `opennms_jvm_conf` are kept, and the exporter option follows them.
+Setting the port back to `0` removes the option and restarts OpenNMS once. The jar stays on disk, unloaded.
+On a host that also runs Minion or Sentinel, give each component its own port.
+
+Do not load the exporter through `opennms_jvm_conf` yourself. A `-javaagent` option for `jmx_prometheus_javaagent` in `ADDITIONAL_MANAGER_OPTIONS` fails the run, and so do the removed `prom_jmx_exporter_owner`, `prom_jmx_exporter_group` and `prom_jmx_exporter_home`.
 
 ### Service toggles
 
@@ -233,6 +249,14 @@ The role fails the run on a key that is in neither table, so a misspelling canno
 ```
 
 ## Migration from earlier role versions
+
+### JMX Prometheus exporter
+
+Earlier versions always installed the exporter in `/opt/prom-jmx-exporter`, and you loaded it with `-javaagent` in `opennms_jvm_conf.ADDITIONAL_MANAGER_OPTIONS`.
+Remove that option and set `opennms_core_jmx_exporter_port` to the port you used, usually 9299.
+The old `/opt/prom-jmx-exporter` directory is no longer read and can be deleted.
+
+### Datasources
 
 Earlier versions of this role rendered `/opt/opennms/etc/opennms-datasources.xml` from a Jinja template. The current version instead trusts the pristine XML shipped by the `opennms-server` deb package and drives runtime values through env vars and SCV.
 

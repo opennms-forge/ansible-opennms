@@ -1,0 +1,6 @@
+---
+render_canary: fixture
+
+opennms_sentinel_jmx_exporter_port: 9299
+opennms_sentinel_pyroscope:
+  PYROSCOPE_APPLICATION_NAME: Horizon-Sentinel

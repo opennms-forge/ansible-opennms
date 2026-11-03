@@ -16,8 +16,10 @@
    PYROSCOPE_HTTP_HEADERS, which takes JSON for multi-tenant setups, is the
    everyday case. Neither consumer expands anything inside single quotes, so JSON,
    spaces and `$` all pass through with no escaping to get wrong. The one value
-   they cannot carry is a single quote, which the task asserts against. #}
-EXTRA_JAVA_OPTS='-javaagent:{{ opennms_minion_pyroscope_jar }}'
+   they cannot carry is a single quote, which the task asserts against.
+
+   The -javaagent option is not here. It lives in the java-agents block, which
+   lists every enabled agent on one EXTRA_JAVA_OPTS line. #}
 {% for key, value in opennms_minion_pyroscope.items() %}
 {{ key }}='{{ value }}'
 {% endfor %}

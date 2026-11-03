@@ -77,7 +77,18 @@ argument_specs:
             firewalld on EL 10 when it is running.
           - The default is the web port from C(org.opennms.netmgt.jetty.port)
             in C(opennms_properties_webapp) (8980 when unset), C(10162/udp)
-            and C(9999/udp). Setting the list replaces it entirely.
+            and C(9999/udp), plus C(opennms_core_jmx_exporter_port) as TCP
+            when it is set. Setting the list replaces it entirely.
+      opennms_core_jmx_exporter_port:
+        type: int
+        default: 0
+        description:
+          - Port the JMX Prometheus exporter listens on. C(0) leaves it off.
+          - When set, the role installs the exporter from C(prom_jmx_exporter)
+            in C(/opt/opennms/agent) and appends its C(-javaagent) option to
+            C(ADDITIONAL_MANAGER_OPTIONS) in C(opennms.conf).
+          - Do not load the exporter through C(opennms_jvm_conf) as well. The
+            role refuses it.
       opennms_core_rpm_pinned_packages:
         type: list
         elements: str

@@ -1,0 +1,1 @@
+EXTRA_JAVA_OPTS='-javaagent:/opt/minion/agent/jmx_prometheus_javaagent.jar=9299:/opt/minion/agent/jmx-prometheus-exporter.yaml'

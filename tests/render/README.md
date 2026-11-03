@@ -34,8 +34,13 @@ tests/
 | Fixture | Renders | Pins |
 |---|---|---|
 | `colocated` | `opennms_core` → `opennms.conf` | quoting and backslash escaping; that `opennms_jvm_conf` merges over its defaults rather than replacing them |
-| `minion-pyroscope` | `opennms_minion` → `pyroscope-env` | the stanza both defects shipped in: single quoting that survives systemd *and* a sourcing shell |
-| `distributed` | `opennms_sentinel` → Kafka sink cfg, `pyroscope-env` | the one existing inventory-derived address — three brokers joined, sorted despite being declared out of order — and Sentinel's copy of the Pyroscope stanza |
+| `minion-pyroscope` | `opennms_minion` → `pyroscope-env`, `java-agents-env` | the stanza both defects shipped in: single quoting that survives systemd *and* a sourcing shell; with Pyroscope alone, `EXTRA_JAVA_OPTS` holds only its agent |
+| `distributed` | `opennms_sentinel` → Kafka sink cfg, `pyroscope-env`, `java-agents-env` | the one existing inventory-derived address — three brokers joined, sorted despite being declared out of order — and Sentinel's copy of the Pyroscope stanza |
+| `minion-jmx-exporter` | `opennms_minion` → `java-agents-env` | the exporter alone: one `-javaagent` option with the port and config path |
+| `minion-java-agents` | `opennms_minion` → `java-agents-env` | both agents on one `EXTRA_JAVA_OPTS` line, Pyroscope first |
+| `sentinel-java-agents` | `opennms_sentinel` → `java-agents-env` | Sentinel's copy of `minion-java-agents`; the two differ only in the home directory |
+| `core-jmx-exporter` | `opennms_core` → `opennms.conf` | the exporter on with no operator options: `ADDITIONAL_MANAGER_OPTIONS` holds only its `-javaagent` |
+| `core-jmx-exporter-options` | `opennms_core` → `opennms.conf` | operator `ADDITIONAL_MANAGER_OPTIONS` kept, with the exporter option appended after them |
 | `kafka-single` | `stub_kafka` → `server.properties` | that a single-member group still renders the pre-clustering single-node form |
 | `kafka-cluster` | `stub_kafka` → `server.properties` | the cluster form: sorted quorum voters with stable node ids, replication 3, min.isr 2 |
 | `mimir-single` | `stub_mimir` → `mimir-dicts.yml` | the dicts handed to `indigo423.grafana.mimir` for one node: memberlist carrying only the advertise address, in-memory rings, replication 1, filesystem storage, an address in every ring, multitenancy off |

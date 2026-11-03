@@ -32,6 +32,13 @@ opennms_minion_pyroscope: {}
 # agent in $OPENNMS_HOME/agent, inside the Minion home instead.
 opennms_minion_pyroscope_jar: "{{ opennms_minion_home }}/agent/pyroscope-agent.jar"
 
+# Prometheus JMX exporter - off by default. Set the port it should listen on,
+# such as 9299, and the role installs the pinned exporter from
+# `prom_jmx_exporter` into {{ opennms_minion_home }}/agent and loads it into the
+# Karaf JVM through EXTRA_JAVA_OPTS. 0 is off. On a host that also runs Core or
+# another component, give each its own port.
+opennms_minion_jmx_exporter_port: 0
+
 opennms_minion_controller:
   id: "{{ ansible_facts['machine_id'] if ansible_facts['machine_id'] is defined else inventory_hostname }}"
   location: ANSIBLE_UNSET_MINION_LOCATION
@@ -117,8 +124,8 @@ opennms_minion_startup_delay: 10
 # Ports opened in the host firewall: UFW on Debian and Ubuntu when UFW is
 # installed, firewalld on EL 10 when it is running. `port/proto`, one per
 # listener Minion runs by default: traps, syslog and the single-port flow
-# listener. Change it when you move a listener.
-opennms_minion_firewall_ports:
-  - 1162/udp
-  - 1514/udp
-  - 9999/udp
+# listener, plus opennms_minion_jmx_exporter_port as TCP when it is set. Change
+# it when you move a listener. Setting the list replaces it entirely.
+opennms_minion_firewall_ports: >-
+  {{ ['1162/udp', '1514/udp', '9999/udp']
+     + ([opennms_minion_jmx_exporter_port ~ '/tcp'] if opennms_minion_jmx_exporter_port | int > 0 else []) }}

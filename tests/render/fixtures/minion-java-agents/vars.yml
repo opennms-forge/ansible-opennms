@@ -1,0 +1,6 @@
+---
+render_canary: fixture
+
+opennms_minion_jmx_exporter_port: 9299
+opennms_minion_pyroscope:
+  PYROSCOPE_APPLICATION_NAME: Horizon-Minion

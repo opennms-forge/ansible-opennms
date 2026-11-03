@@ -1,0 +1,4 @@
+---
+render_canary: fixture
+
+opennms_core_jmx_exporter_port: 9299

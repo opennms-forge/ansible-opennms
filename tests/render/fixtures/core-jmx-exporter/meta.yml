@@ -1,0 +1,9 @@
+---
+render_role: opennms_core
+
+# The exporter turned on with no operator JVM options: ADDITIONAL_MANAGER_OPTIONS
+# appears holding only the -javaagent option, with the jar and config in
+# Core's own agent directory.
+render_files:
+  - name: opennms.conf
+    src: etc/opennms.conf.j2

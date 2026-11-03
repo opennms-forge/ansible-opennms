@@ -69,3 +69,11 @@ argument_specs:
         description:
           - Leave Sentinel stopped. Skips the start and the C(Restart sentinel) handler.
           - A value that is not a boolean, such as C(skip), fails the role.
+      opennms_sentinel_jmx_exporter_port:
+        type: int
+        default: 0
+        description:
+          - Port the JMX Prometheus exporter listens on. C(0) leaves it off.
+          - When set, the role installs the exporter from C(prom_jmx_exporter)
+            in C(opennms_sentinel_home)/agent and loads it through C(EXTRA_JAVA_OPTS)
+            in the C(java-agents) block of the Sentinel sysconfig file.

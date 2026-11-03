@@ -48,6 +48,18 @@
   tags:
     - always
 
+- name: Fail when opennms_sentinel_jmx_exporter_port is not a port
+  ansible.builtin.assert:
+    that:
+      - opennms_sentinel_jmx_exporter_port | string is match('^[0-9]+$')
+      - opennms_sentinel_jmx_exporter_port | int <= 65535
+    fail_msg: >-
+      `opennms_sentinel_jmx_exporter_port` is `{{ opennms_sentinel_jmx_exporter_port }}`.
+      It must be an integer from 1 to 65535, or 0 to leave the exporter off.
+    quiet: true
+  tags:
+    - always
+
 - name: Verify the host clock is synchronised
   ansible.builtin.include_role:
     name: timesync
@@ -247,6 +259,15 @@
   tags:
     - opennms
     - sentinel
+    - pyroscope
+    - configuration
+
+- name: Install the JMX Prometheus exporter and load the Java agents
+  ansible.builtin.include_tasks: 31-java-agents.yml
+  tags:
+    - opennms
+    - sentinel
+    - jmx-prometheus-exporter
     - pyroscope
     - configuration
 

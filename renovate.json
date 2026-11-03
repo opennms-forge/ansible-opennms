@@ -23,7 +23,7 @@
     {
       "matchDepNames": ["prometheus/jmx_exporter"],
       "prBodyNotes": [
-        "**Before merging:** update `prom_jmx_exporter_sha256` in `roles/opennms_core/defaults/main.yml` to the new jar's checksum (the release publishes a `jmx_prometheus_javaagent-<version>.jar.sha256` asset)."
+        "**Before merging:** update `prom_jmx_exporter_sha256` in `roles/prom_jmx_exporter/defaults/main.yml` to the new jar's checksum (the release publishes a `jmx_prometheus_javaagent-<version>.jar.sha256` asset)."
       ]
     },
     {
