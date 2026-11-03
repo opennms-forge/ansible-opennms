@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-11-03
+
+### Added
+- `opennms_core`, `opennms_minion`, `opennms_sentinel`: the JMX Prometheus exporter is loaded by one port variable per role, `opennms_<component>_jmx_exporter_port`. `0`, the default, leaves it off and downloads nothing. A port installs the pinned exporter in the component's `agent/` directory and loads it into the JVM: Core appends it to `ADDITIONAL_MANAGER_OPTIONS` in `opennms.conf` after the operator's options, Minion and Sentinel write it into `EXTRA_JAVA_OPTS`. Core and Minion open the port as TCP in their default firewall list (closes #258).
+- `prom_jmx_exporter`: new role holding the exporter's version, checksum and config, which moved from `opennms_core` under the same names. Like `pyroscope_agent`, it does no JVM wiring.
+
+### Changed
+- `opennms_minion`, `opennms_sentinel`: `EXTRA_JAVA_OPTS` moved out of the `pyroscope` block into a new `java-agents` block that lists every enabled agent on one line, because systemd keeps only the last assignment. The `pyroscope` block holds only the `PYROSCOPE_*` keys.
+- **Breaking** `opennms_core`: the exporter is no longer installed unless `opennms_core_jmx_exporter_port` is set. A `-javaagent` for it in `opennms_jvm_conf.ADDITIONAL_MANAGER_OPTIONS` fails the run and names the new variable.
+- Grafana 13.3.0, VictoriaMetrics 1.155.0, Grafana Pyroscope server 2.4.2.
+
+### Removed
+- **Breaking** `prom_jmx_exporter_owner`, `prom_jmx_exporter_group`, `prom_jmx_exporter_home`. The jar and config are root-owned in each component's `agent/` directory; setting any of the three fails the run. `/opt/prom-jmx-exporter` is no longer read.
+
+### Fixed
+- `opennms_minion`, `opennms_sentinel`: a tag filter such as `--tags configuration` could write the Pyroscope `-javaagent` option without installing the jar. The agent installs now run under every tag of the task that loads them.
+
 ## [0.14.1] - 2026-10-29
 
 ### Added
@@ -345,6 +362,7 @@ and `vm-single` are unaffected.
 - Renovate configuration for automated Ansible Galaxy collection updates.
 - CI on standard GitHub-hosted runners with SHA-pinned actions and Dependabot.
 
+[0.15.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.15.0
 [0.14.1]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.14.1
 [0.14.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.14.0
 [0.13.1]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.13.1
