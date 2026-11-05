@@ -237,10 +237,15 @@ The role sets no HSTS header.
 Put the PEM files on the target host and point the role at them.
 
 ```yaml
-opennms_tls_cert_path: /etc/ssl/opennms/fullchain.pem
+opennms_tls_cert_path: /etc/ssl/opennms/cert.pem
 opennms_tls_key_path: /etc/ssl/opennms/privkey.pem
-# opennms_tls_chain_path: /etc/ssl/opennms/chain.pem
+opennms_tls_chain_path: /etc/ssl/opennms/chain.pem
 ```
+
+`opennms_tls_cert_path` must hold the server certificate only.
+The keystore keeps just the first certificate of that file, so a `fullchain.pem` there loses its intermediates.
+Put the intermediates in `opennms_tls_chain_path`.
+The key must be an unencrypted PEM file.
 
 The role only reads these files and never writes to them.
 It builds `jetty.p12` from them and fails when the key does not match the certificate.

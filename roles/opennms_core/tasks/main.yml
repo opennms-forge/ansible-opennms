@@ -267,6 +267,7 @@
     - configuration
     - elasticsearch
     - opennms
+    - tls
     - webapp
 
 - name: Configure Kafka as message broker

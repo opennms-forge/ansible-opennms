@@ -56,6 +56,7 @@
   tags:
     - opennms
     - configuration
+    - tls
     - webapp
 
 - name: Configure Elasticsearch flow persistence for OpenNMS {{ opennms_distribution }}

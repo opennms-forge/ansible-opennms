@@ -25,6 +25,21 @@
   tags:
     - always
 
+# A renewal window as long as the lifetime makes every new certificate due for
+# renewal, so every run would replace it and restart OpenNMS.
+- name: Refuse a renewal window that covers the whole certificate lifetime
+  ansible.builtin.assert:
+    that:
+      - opennms_tls_selfsigned_renew_days | int < opennms_tls_selfsigned_days | int
+    fail_msg: >-
+      opennms_tls_selfsigned_renew_days ({{ opennms_tls_selfsigned_renew_days }})
+      must be less than opennms_tls_selfsigned_days ({{ opennms_tls_selfsigned_days }}).
+      Otherwise every run replaces the certificate and restarts OpenNMS.
+    quiet: true
+  when: opennms_web_https_enabled | bool
+  tags:
+    - always
+
 # OpenNMS ships the whole HTTPS connector inside an XML comment, so the role
 # renders its own etc/jetty.xml to turn it on. That would overwrite a jetty.xml
 # the operator edited. This runs before any package is installed, so on a fresh
