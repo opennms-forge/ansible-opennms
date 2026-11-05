@@ -341,7 +341,7 @@
 # certificate does not validate, so only the answer is checked.
 - name: Wait for the OpenNMS Core HTTPS listener
   ansible.builtin.uri:
-    url: "https://localhost:{{ opennms_web_https_port }}/opennms/login.jsp"
+    url: "https://{{ _opennms_web_https_probe_host }}:{{ opennms_web_https_port }}/opennms/login.jsp"
     method: GET
     validate_certs: false
     status_code: 200
