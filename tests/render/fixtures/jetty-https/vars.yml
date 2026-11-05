@@ -1,0 +1,9 @@
+---
+# Role variable overrides for this fixture. Loaded last, which is what makes
+# them win over the role's defaults; the play asserts the canary to prove it.
+render_canary: fixture
+
+# At run time the role slurps this from the package's etc/examples/jetty.xml.
+# The fixture reads a verbatim upstream copy instead. lookup('file') strips the
+# trailing newline, the template restores exactly one.
+_opennms_jetty_pristine_content: "{{ lookup('file', playbook_dir ~ '/render/fixtures/jetty-https/jetty.pristine.xml') }}"

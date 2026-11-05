@@ -1,0 +1,12 @@
+---
+# Which role this fixture renders, and which of its templates. Loaded before the
+# role's defaults, because the paths to those are built from it.
+render_role: opennms_core
+
+# etc/jetty.xml is the shipped file with its HTTPS connector uncommented. The
+# expectation is the pristine copy next to this fixture with exactly three
+# changes: the marker on the "Add HTTPS support" comment, and the two comment
+# delimiter lines around the connector removed.
+render_files:
+  - name: jetty.xml
+    src: etc/jetty.xml.j2

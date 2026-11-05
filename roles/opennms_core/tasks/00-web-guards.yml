@@ -24,3 +24,62 @@
          + _web_keys | select('match', '^org\.opennms\.netmgt\.jetty\.https-') | list }}
   tags:
     - always
+
+# OpenNMS ships the whole HTTPS connector inside an XML comment, so the role
+# renders its own etc/jetty.xml to turn it on. That would overwrite a jetty.xml
+# the operator edited. This runs before any package is installed, so on a fresh
+# host neither file exists and the guard passes. A file that matches the
+# package's example holds no changes and is taken over.
+- name: Look for an existing etc/jetty.xml
+  ansible.builtin.stat:
+    path: "{{ opennms_home }}/etc/jetty.xml"
+  register: _jetty_current
+  tags:
+    - always
+
+- name: Look for the packaged example jetty.xml
+  ansible.builtin.stat:
+    path: "{{ _opennms_jetty_pristine }}"
+  register: _jetty_example
+  when: _jetty_current.stat.exists
+  tags:
+    - always
+
+- name: Read the existing etc/jetty.xml
+  ansible.builtin.slurp:
+    src: "{{ opennms_home }}/etc/jetty.xml"
+  register: _jetty_current_content
+  when: _jetty_current.stat.exists
+  tags:
+    - always
+
+- name: Read the packaged example jetty.xml
+  ansible.builtin.slurp:
+    src: "{{ _opennms_jetty_pristine }}"
+  register: _jetty_example_content
+  when: _jetty_current.stat.exists and _jetty_example.stat.exists
+  tags:
+    - always
+
+- name: Refuse to overwrite an etc/jetty.xml the role does not manage
+  ansible.builtin.assert:
+    that:
+      - _jetty_taken_over
+    fail_msg: >-
+      {{ opennms_home }}/etc/jetty.xml has changes this role did not make, and
+      the role would replace it to enable HTTPS. Uncomment the HTTPS connector
+      in it and add the text "{{ _opennms_jetty_managed_marker }}" to the
+      "Add HTTPS support" comment, or set opennms_web_https_enabled: false, or
+      set opennms_web_http_host to a non-loopback address.
+    quiet: true
+  vars:
+    _jetty_text: "{{ (_jetty_current_content.content | default('')) | b64decode }}"
+    _jetty_example_text: "{{ (_jetty_example_content.content | default('')) | b64decode }}"
+    _jetty_taken_over: >-
+      {{ not _jetty_current.stat.exists
+         or not (opennms_web_https_enabled | bool)
+         or not _opennms_web_http_loopback
+         or _opennms_jetty_managed_marker in _jetty_text
+         or (_jetty_example.stat.exists | default(false) and _jetty_text == _jetty_example_text) }}
+  tags:
+    - always
