@@ -1,0 +1,6 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+render_canary: fixture
+ansible_fqdn: core-01
+ansible_hostname: core-01

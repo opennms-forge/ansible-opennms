@@ -1,0 +1,8 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+render_role: opennms_core
+
+render_files:
+  - name: _ansible.webapp-tls.properties
+    src: etc/opennms.properties.d/_ansible.webapp-tls.properties.j2

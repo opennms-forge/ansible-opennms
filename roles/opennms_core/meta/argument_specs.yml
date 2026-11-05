@@ -75,10 +75,108 @@ argument_specs:
           - Ports Core opens in the host firewall, as C(port/proto) or
             C(start-end/proto). UFW on Debian and Ubuntu when UFW is installed,
             firewalld on EL 10 when it is running.
-          - The default is the web port from C(org.opennms.netmgt.jetty.port)
-            in C(opennms_properties_webapp) (8980 when unset), C(10162/udp)
-            and C(9999/udp), plus C(opennms_core_jmx_exporter_port) as TCP
-            when it is set. Setting the list replaces it entirely.
+          - The default is C(opennms_web_http_port), C(opennms_web_https_port)
+            when HTTPS is enabled, C(10162/udp) and C(9999/udp), plus
+            C(opennms_core_jmx_exporter_port) as TCP when it is set. Setting the list replaces it entirely.
+      opennms_web_https_enabled:
+        type: bool
+        default: true
+        description:
+          - Serve the web UI over HTTPS. When false only the plaintext listener runs.
+      opennms_web_https_host:
+        type: str
+        default: 0.0.0.0
+        description:
+          - Address the HTTPS listener binds to.
+      opennms_web_https_port:
+        type: int
+        default: 8443
+        description:
+          - Port of the HTTPS listener.
+      opennms_web_http_host:
+        type: str
+        default: 127.0.0.1
+        description:
+          - Address the plaintext listener binds to. Loopback by default; a non-loopback value exposes plaintext.
+      opennms_web_http_port:
+        type: int
+        default: 8980
+        description:
+          - Port of the plaintext listener. Also used by the readiness check and the firewall default.
+      opennms_web_base_url:
+        type: str
+        default: "{{ 'https' if opennms_web_https_enabled | bool else 'http' }}://%x%c/"
+        description:
+          - Value of C(opennms.web.base-url).
+      opennms_tls_dir:
+        type: str
+        default: "{{ opennms_home }}/etc/tls"
+        description:
+          - Directory for the keystore, the password file and the self-signed material.
+      opennms_tls_cert_path:
+        type: str
+        default: ""
+        description:
+          - Path on the target of your own certificate (PEM). Empty generates a self-signed one.
+      opennms_tls_key_path:
+        type: str
+        default: ""
+        description:
+          - Path on the target of the private key for C(opennms_tls_cert_path).
+      opennms_tls_chain_path:
+        type: str
+        default: ""
+        description:
+          - Path on the target of an optional intermediate chain (PEM).
+      opennms_tls_keystore_password:
+        type: str
+        default: ""
+        description:
+          - SENSITIVE. Keystore password. Empty generates a random one and keeps it in a file under C(opennms_tls_dir).
+      opennms_tls_selfsigned_common_name:
+        type: str
+        default: "{{ ansible_fqdn }}"
+        description:
+          - Common name of the self-signed certificate.
+      opennms_tls_selfsigned_subject_alt_names:
+        type: list
+        elements: str
+        default: []
+        description:
+          - Subject alternative names of the self-signed certificate, such as C(DNS:nms.example.org). Empty derives them from the host facts.
+      opennms_tls_selfsigned_key_type:
+        type: str
+        choices:
+          - ECC
+          - RSA
+        default: ECC
+        description:
+          - Key type of the self-signed certificate.
+      opennms_tls_selfsigned_days:
+        type: int
+        default: 825
+        description:
+          - Validity of the self-signed certificate in days.
+      opennms_tls_selfsigned_renew_days:
+        type: int
+        default: 30
+        description:
+          - Regenerate the self-signed certificate when fewer days than this remain.
+      opennms_tls_selfsigned_organization:
+        type: str
+        default: ""
+        description:
+          - Organization (O) of the self-signed certificate. Empty omits it.
+      opennms_tls_selfsigned_organizational_unit:
+        type: str
+        default: ""
+        description:
+          - Organizational unit (OU) of the self-signed certificate. Empty omits it.
+      opennms_tls_selfsigned_country:
+        type: str
+        default: ""
+        description:
+          - Two-letter country (C) of the self-signed certificate. Empty omits it.
       opennms_core_jmx_exporter_port:
         type: int
         default: 0

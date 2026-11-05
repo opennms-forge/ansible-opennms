@@ -45,14 +45,44 @@ _opennms_remotewrite_optional_properties:
   external_tags_threads: externalTagsThreads
   external_tags_preload: externalTagsPreload
 
-# The port Jetty serves the web UI on, from the property the role renders. The
-# dict is replaced rather than merged when an inventory sets it, and may be
-# empty, in which case Jetty listens on 8980. The firewall default and the
-# readiness wait both read it, so moving Jetty moves both (#249).
-_opennms_core_web_port: "{{ (opennms_properties_webapp | default({}, true))['org.opennms.netmgt.jetty.port'] | default(8980, true) | string }}"
+# The plaintext port Jetty serves, from opennms_web_http_port. The firewall
+# default and the readiness wait both read it, so moving Jetty moves both
+# (#249).
+_opennms_core_web_port: "{{ opennms_web_http_port | string }}"
 
-# The HTTPS port when the operator enabled it in the same dict, else empty.
-_opennms_core_https_port: "{{ (opennms_properties_webapp | default({}, true))['org.opennms.netmgt.jetty.https-port'] | default('', true) | string }}"
+# The HTTPS port when HTTPS is enabled, else empty.
+_opennms_core_https_port: "{{ (opennms_web_https_port | string) if opennms_web_https_enabled | bool else '' }}"
+
+# TLS files the role manages under opennms_tls_dir.
+_opennms_tls_keystore: "{{ opennms_tls_dir }}/jetty.p12"
+_opennms_tls_password_file: "{{ opennms_tls_dir }}/keystore.pass"
+_opennms_tls_selfsigned_key: "{{ opennms_tls_dir }}/jetty-selfsigned.key"
+_opennms_tls_selfsigned_cert: "{{ opennms_tls_dir }}/jetty-selfsigned.crt"
+_opennms_tls_byo: "{{ opennms_tls_cert_path | length > 0 }}"
+_opennms_web_http_loopback: "{{ opennms_web_http_host in ['127.0.0.1', 'localhost', '::1'] }}"
+
+# Subject alternative names of the self-signed certificate when the inventory
+# lists none. The default address is added only when facts have it.
+_opennms_tls_default_sans: >-
+  {{ (['DNS:' ~ ansible_fqdn, 'DNS:' ~ ansible_hostname]
+      + (['IP:' ~ ansible_default_ipv4.address] if ansible_default_ipv4.address is defined else [])
+      + ['DNS:localhost', 'IP:127.0.0.1'])
+     | select | unique | list }}
+_opennms_tls_sans: >-
+  {{ opennms_tls_selfsigned_subject_alt_names
+     if opennms_tls_selfsigned_subject_alt_names | length > 0
+     else _opennms_tls_default_sans }}
+
+# Marker the managed jetty.xml carries, and the pristine copy it derives from.
+_opennms_jetty_managed_marker: "HTTPS enabled by indigo423.opennms.opennms_core"
+_opennms_jetty_pristine: "{{ opennms_home }}/etc/examples/jetty.xml"
+
+# Keys the role renders itself. A key of the same name, or any
+# org.opennms.netmgt.jetty.https-* key, in opennms_properties_webapp is refused.
+_opennms_web_owned_keys:
+  - opennms.web.base-url
+  - org.opennms.netmgt.jetty.host
+  - org.opennms.netmgt.jetty.port
 
 # Where the JMX Prometheus exporter jar and its config land when
 # `opennms_core_jmx_exporter_port` is set, and the JVM option that loads it.

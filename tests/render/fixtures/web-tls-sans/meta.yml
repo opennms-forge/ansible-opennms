@@ -1,0 +1,10 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+render_role: opennms_core
+
+# Renders _opennms_tls_sans through a one-line template. The harness prefixes
+# roles/opennms_core/templates/, hence the relative climb.
+render_files:
+  - name: sans.txt
+    src: ../../../tests/render/fixtures/web-tls-sans/sans.j2

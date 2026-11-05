@@ -14,6 +14,11 @@
   tags:
     - always
 
+- name: Refuse web keys that moved to role variables
+  ansible.builtin.include_tasks: 00-web-guards.yml
+  tags:
+    - always
+
 - name: Refuse an unsupported platform
   ansible.builtin.include_tasks: assert-platform.yml
   tags:

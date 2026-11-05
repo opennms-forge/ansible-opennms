@@ -1,0 +1,26 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+# The bind, port, base URL and HTTPS keys moved to role variables. A key left in
+# the old dict would be rendered by a second file and fight the new one, so the
+# run fails naming the variable to use instead.
+- name: Refuse web keys in opennms_properties_webapp that now have variables
+  ansible.builtin.assert:
+    that:
+      - _web_owned_found | length == 0
+    fail_msg: >-
+      opennms_properties_webapp no longer takes these keys: {{ _web_owned_found | join(', ') }}.
+      Use opennms_web_base_url for opennms.web.base-url,
+      opennms_web_http_host for org.opennms.netmgt.jetty.host,
+      opennms_web_http_port for org.opennms.netmgt.jetty.port,
+      opennms_web_https_host, opennms_web_https_port and opennms_web_https_enabled
+      for the org.opennms.netmgt.jetty.https-host and https-port keys,
+      and opennms_tls_* for the keystore, its type and its passwords.
+    quiet: true
+  vars:
+    _web_keys: "{{ (opennms_properties_webapp | default({}, true)).keys() | list }}"
+    _web_owned_found: >-
+      {{ _web_keys | select('in', _opennms_web_owned_keys) | list
+         + _web_keys | select('match', '^org\.opennms\.netmgt\.jetty\.https-') | list }}
+  tags:
+    - always
