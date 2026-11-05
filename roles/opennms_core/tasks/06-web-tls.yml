@@ -291,8 +291,8 @@
 
 # etc/jetty.xml is deployed when it is absent, carries the role's marker, or
 # is identical to the packaged example. Anything else is the operator's file,
-# which 00-web-guards.yml only lets through when HTTPS is off or plaintext is
-# exposed, and is left alone.
+# which 00-web-guards.yml only lets through when HTTPS is off, and is left
+# alone.
 - name: Look for the packaged example jetty.xml
   ansible.builtin.stat:
     path: "{{ _opennms_jetty_pristine }}"

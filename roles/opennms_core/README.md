@@ -347,8 +347,10 @@ Two guards stop the run before anything is installed.
   The dict now defaults to `{}` and takes the remaining Jetty keys such as `org.opennms.netmgt.jetty.ajp-port`, so you no longer copy the whole default dict.
 - `{{ opennms_home }}/etc/jetty.xml` has changes the role did not make, and the role would replace it to enable HTTPS.
   A file identical to `etc/examples/jetty.xml`, or one that carries the marker text, is taken over.
-  To keep your file, uncomment the HTTPS connector in it and add "HTTPS enabled by indigo423.opennms.opennms_core" to the "Add HTTPS support" comment.
-  Or set `opennms_web_https_enabled: false`, or set `opennms_web_http_host` to a non-loopback address, and the role leaves the file alone.
+  To let the role replace your file, delete it or add "HTTPS enabled by indigo423.opennms.opennms_core" to it.
+  The role then renders its own `etc/examples/jetty.xml` over it.
+  To keep your file, set `opennms_web_https_enabled: false`.
+  Add `opennms_web_http_host: 0.0.0.0` to expose plaintext 8980.
 
 ### JMX Prometheus exporter
 

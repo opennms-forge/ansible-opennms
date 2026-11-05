@@ -30,6 +30,7 @@
 # the operator edited. This runs before any package is installed, so on a fresh
 # host neither file exists and the guard passes. A file that matches the
 # package's example holds no changes and is taken over.
+# With HTTPS on the role owns the file, so a non-loopback bind does not excuse it.
 - name: Look for an existing etc/jetty.xml
   ansible.builtin.stat:
     path: "{{ opennms_home }}/etc/jetty.xml"
@@ -67,10 +68,10 @@
       - _jetty_taken_over
     fail_msg: >-
       {{ opennms_home }}/etc/jetty.xml has changes this role did not make, and
-      the role would replace it to enable HTTPS. Uncomment the HTTPS connector
-      in it and add the text "{{ _opennms_jetty_managed_marker }}" to the
-      "Add HTTPS support" comment, or set opennms_web_https_enabled: false, or
-      set opennms_web_http_host to a non-loopback address.
+      the role would replace it to enable HTTPS. Set opennms_web_https_enabled:
+      false to keep your file (add opennms_web_http_host: 0.0.0.0 to expose
+      plaintext 8980). Or let the role replace it: delete the file, or add the
+      text "{{ _opennms_jetty_managed_marker }}" to it.
     quiet: true
   vars:
     _jetty_text: "{{ (_jetty_current_content.content | default('')) | b64decode }}"
@@ -78,7 +79,6 @@
     _jetty_taken_over: >-
       {{ not _jetty_current.stat.exists
          or not (opennms_web_https_enabled | bool)
-         or not _opennms_web_http_loopback
          or _opennms_jetty_managed_marker in _jetty_text
          or (_jetty_example.stat.exists | default(false) and _jetty_text == _jetty_example_text) }}
   tags:
