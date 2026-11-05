@@ -242,6 +242,17 @@
     - openjdk
     - opennms
 
+# After opennms.conf and before 20-config.yml, which renders the keystore
+# password this settles. `configuration` reaches the password tasks for a run
+# filtered to the configuration files.
+- name: Include tasks to build the web UI keystore and jetty.xml
+  ansible.builtin.include_tasks: 06-web-tls.yml
+  tags:
+    - configuration
+    - opennms
+    - tls
+    - webapp
+
 - name: Include tasks to setup the database
   ansible.builtin.include_tasks: 10-database-setup.yml
   tags:
