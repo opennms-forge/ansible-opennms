@@ -61,6 +61,12 @@ _opennms_tls_selfsigned_cert: "{{ opennms_tls_dir }}/jetty-selfsigned.crt"
 _opennms_tls_byo: "{{ opennms_tls_cert_path | length > 0 }}"
 _opennms_web_http_loopback: "{{ opennms_web_http_host in ['127.0.0.1', 'localhost', '::1'] }}"
 
+# Where the readiness wait reaches the plaintext listener. A wildcard or
+# loopback bind answers on 127.0.0.1. A specific address such as 10.0.0.5 does
+# not listen on loopback, so the probe uses that address. An IPv6 literal other
+# than :: or ::1 would need brackets in the URL and is not supported here.
+_opennms_web_http_probe_host: "{{ '127.0.0.1' if (_opennms_web_http_loopback or opennms_web_http_host in ['0.0.0.0', '::']) else opennms_web_http_host }}"
+
 # Subject alternative names of the self-signed certificate when the inventory
 # lists none. The default address is added only when facts have it.
 _opennms_tls_default_sans: >-

@@ -324,7 +324,7 @@
 # it never becomes ready.
 - name: Wait for OpenNMS Core to become ready
   ansible.builtin.uri:
-    url: "http://localhost:{{ _opennms_core_web_port }}/opennms/login.jsp"
+    url: "http://{{ _opennms_web_http_probe_host }}:{{ _opennms_core_web_port }}/opennms/login.jsp"
     method: GET
     status_code: 200
   register: opennms_core_ready
@@ -332,6 +332,25 @@
   retries: "{{ opennms_startup_retries }}"
   delay: "{{ opennms_startup_delay }}"
   when:
+    - not (skip_startup | bool)
+  tags:
+    - core
+    - systemd
+
+# The HTTPS connector comes up with the plaintext one. The self-signed
+# certificate does not validate, so only the answer is checked.
+- name: Wait for the OpenNMS Core HTTPS listener
+  ansible.builtin.uri:
+    url: "https://localhost:{{ opennms_web_https_port }}/opennms/login.jsp"
+    method: GET
+    validate_certs: false
+    status_code: 200
+  register: opennms_core_https_ready
+  until: opennms_core_https_ready.status | default(0) == 200
+  retries: 6
+  delay: 5
+  when:
+    - opennms_web_https_enabled | bool
     - not (skip_startup | bool)
   tags:
     - core

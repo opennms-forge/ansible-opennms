@@ -178,7 +178,7 @@ opennms_elastic_flows: {}
 # opennms_web_https_port is added when HTTPS is enabled, and so is
 # opennms_core_jmx_exporter_port. Setting the list replaces it entirely.
 opennms_core_firewall_ports: >-
-  {{ [_opennms_core_web_port ~ '/tcp']
+  {{ ([] if _opennms_web_http_loopback else [_opennms_core_web_port ~ '/tcp'])
      + ([_opennms_core_https_port ~ '/tcp'] if _opennms_core_https_port | length > 0 else [])
      + ['10162/udp', '9999/udp']
      + ([opennms_core_jmx_exporter_port ~ '/tcp'] if opennms_core_jmx_exporter_port | int > 0 else []) }}
