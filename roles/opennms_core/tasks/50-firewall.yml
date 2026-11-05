@@ -11,3 +11,32 @@
   tags:
     - opennms
     - firewall
+
+# Upgraded hosts still carry the rules an earlier run opened. Remove the web
+# port a loopback bind no longer serves and the HTTPS port when HTTPS is off,
+# unless the inventory lists it in opennms_core_firewall_ports on purpose.
+- name: Close the plaintext web port in UFW when Jetty binds to loopback
+  community.general.ufw:
+    rule: allow
+    port: "{{ _opennms_core_web_port }}"
+    proto: tcp
+    delete: true
+  when:
+    - _opennms_web_http_loopback | bool
+    - (_opennms_core_web_port ~ '/tcp') not in opennms_core_firewall_ports
+  tags:
+    - opennms
+    - firewall
+
+- name: Close the HTTPS web port in UFW when HTTPS is disabled
+  community.general.ufw:
+    rule: allow
+    port: "{{ opennms_web_https_port }}"
+    proto: tcp
+    delete: true
+  when:
+    - not (opennms_web_https_enabled | bool)
+    - (opennms_web_https_port | string ~ '/tcp') not in opennms_core_firewall_ports
+  tags:
+    - opennms
+    - firewall

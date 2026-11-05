@@ -26,6 +26,8 @@
       - pgsql_yum_repo_url
       - es_repo_url
       - es_yum_repo_url
+      # A Jetty property template (https://%x%c/), not a download.
+      - opennms_web_base_url
   tasks:
     # `find` rather than the fileglob lookup: fileglob only globs the basename,
     # so `roles/*/defaults/main.yml` silently matches nothing.

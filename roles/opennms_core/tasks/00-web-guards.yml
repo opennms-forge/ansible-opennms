@@ -1,0 +1,100 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+# The bind, port, base URL and HTTPS keys moved to role variables. A key left in
+# the old dict would be rendered by a second file and fight the new one, so the
+# run fails naming the variable to use instead.
+- name: Refuse web keys in opennms_properties_webapp that now have variables
+  ansible.builtin.assert:
+    that:
+      - _web_owned_found | length == 0
+    fail_msg: >-
+      opennms_properties_webapp no longer takes these keys: {{ _web_owned_found | join(', ') }}.
+      Use opennms_web_base_url for opennms.web.base-url,
+      opennms_web_http_host for org.opennms.netmgt.jetty.host,
+      opennms_web_http_port for org.opennms.netmgt.jetty.port,
+      opennms_web_https_host, opennms_web_https_port and opennms_web_https_enabled
+      for the org.opennms.netmgt.jetty.https-host and https-port keys,
+      and opennms_tls_* for the keystore, its type and its passwords.
+    quiet: true
+  vars:
+    _web_keys: "{{ (opennms_properties_webapp | default({}, true)).keys() | list }}"
+    _web_owned_found: >-
+      {{ _web_keys | select('in', _opennms_web_owned_keys) | list
+         + _web_keys | select('match', '^org\.opennms\.netmgt\.jetty\.https-') | list }}
+  tags:
+    - always
+
+# A renewal window as long as the lifetime makes every new certificate due for
+# renewal, so every run would replace it and restart OpenNMS.
+- name: Refuse a renewal window that covers the whole certificate lifetime
+  ansible.builtin.assert:
+    that:
+      - opennms_tls_selfsigned_renew_days | int < opennms_tls_selfsigned_days | int
+    fail_msg: >-
+      opennms_tls_selfsigned_renew_days ({{ opennms_tls_selfsigned_renew_days }})
+      must be less than opennms_tls_selfsigned_days ({{ opennms_tls_selfsigned_days }}).
+      Otherwise every run replaces the certificate and restarts OpenNMS.
+    quiet: true
+  when: opennms_web_https_enabled | bool
+  tags:
+    - always
+
+# OpenNMS ships the whole HTTPS connector inside an XML comment, so the role
+# renders its own etc/jetty.xml to turn it on. That would overwrite a jetty.xml
+# the operator edited. This runs before any package is installed, so on a fresh
+# host neither file exists and the guard passes. A file that matches the
+# package's example holds no changes and is taken over.
+# With HTTPS on the role owns the file, so a non-loopback bind does not excuse it.
+- name: Look for an existing etc/jetty.xml
+  ansible.builtin.stat:
+    path: "{{ opennms_home }}/etc/jetty.xml"
+  register: _jetty_current
+  tags:
+    - always
+
+- name: Look for the packaged example jetty.xml
+  ansible.builtin.stat:
+    path: "{{ _opennms_jetty_pristine }}"
+  register: _jetty_example
+  when: _jetty_current.stat.exists
+  tags:
+    - always
+
+- name: Read the existing etc/jetty.xml
+  ansible.builtin.slurp:
+    src: "{{ opennms_home }}/etc/jetty.xml"
+  register: _jetty_current_content
+  when: _jetty_current.stat.exists
+  tags:
+    - always
+
+- name: Read the packaged example jetty.xml
+  ansible.builtin.slurp:
+    src: "{{ _opennms_jetty_pristine }}"
+  register: _jetty_example_content
+  when: _jetty_current.stat.exists and _jetty_example.stat.exists
+  tags:
+    - always
+
+- name: Refuse to overwrite an etc/jetty.xml the role does not manage
+  ansible.builtin.assert:
+    that:
+      - _jetty_taken_over
+    fail_msg: >-
+      {{ opennms_home }}/etc/jetty.xml has changes this role did not make, and
+      the role would replace it to enable HTTPS. Set opennms_web_https_enabled:
+      false to keep your file (add opennms_web_http_host: 0.0.0.0 to expose
+      plaintext 8980). Or let the role replace it: delete the file, or add the
+      text "{{ _opennms_jetty_managed_marker }}" to it.
+    quiet: true
+  vars:
+    _jetty_text: "{{ (_jetty_current_content.content | default('')) | b64decode }}"
+    _jetty_example_text: "{{ (_jetty_example_content.content | default('')) | b64decode }}"
+    _jetty_taken_over: >-
+      {{ not _jetty_current.stat.exists
+         or not (opennms_web_https_enabled | bool)
+         or _opennms_jetty_managed_marker in _jetty_text
+         or (_jetty_example.stat.exists | default(false) and _jetty_text == _jetty_example_text) }}
+  tags:
+    - always

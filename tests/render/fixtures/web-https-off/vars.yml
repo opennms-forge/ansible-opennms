@@ -1,0 +1,6 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+render_canary: fixture
+_opennms_tls_keystore_password_effective: fixture-pass
+opennms_web_https_enabled: false

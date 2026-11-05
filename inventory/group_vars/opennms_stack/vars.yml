@@ -75,18 +75,10 @@
 # are not exported, and bin/opennms exports only the application name and
 # server address by name.
 
-# If you need set any of these settings here, you need to pull the whole dictionary from the opennms_core defaults
-# We don't combine the dictionary here with the defaults
-# See: https://github.com/opennms-forge/ansible-opennms/issues/4
+# The web bind, ports, base URL and HTTPS keys have their own variables
+# (opennms_web_*, opennms_tls_*). See roles/opennms_core/README.md, "Web UI and TLS".
+# opennms_properties_webapp takes only the remaining keys, and its default is empty.
 # opennms_properties_webapp:
-  # opennms.web.base-url: http://%x%c/
-  # org.opennms.netmgt.jetty.host: 0.0.0.0
-  # org.opennms.netmgt.jetty.port: 8980
-  # org.opennms.netmgt.jetty.https-keystore: /opt/opennms/etc/jetty.keystore
-  # org.opennms.netmgt.jetty.https-keystorepassword: changeit
-  # org.opennms.netmgt.jetty.https-keypassword: changeit
-  # org.opennms.netmgt.jetty.https-host: 127.0.0.1
-  # org.opennms.netmgt.jetty.https-port: 8443
   # org.opennms.netmgt.jetty.ajp-port: 8981
   # org.opennms.netmgt.jetty.sendServerVersion: false
   # org.opennms.netmgt.jetty.enableRequestLogging: false

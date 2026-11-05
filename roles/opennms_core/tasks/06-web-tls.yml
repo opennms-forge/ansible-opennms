@@ -1,0 +1,422 @@
+# Copyright 2026 Ronny Trommer <ronny@no42.org>
+# SPDX-License-Identifier: GPL-3.0-or-later
+---
+# Builds the PKCS12 keystore Jetty serves HTTPS from, from a self-signed or a
+# user-supplied key and certificate, and deploys etc/jetty.xml with the HTTPS
+# connector enabled. Runs before 20-config.yml, which renders the keystore
+# password this file settles into the Jetty properties.
+#
+# The directory and password tasks also carry `configuration`, because
+# 20-config.yml renders the password under that tag.
+
+- name: Install the Python cryptography library the keystore tasks need
+  ansible.builtin.package:
+    name: python3-cryptography
+    state: present
+  when: opennms_web_https_enabled | bool
+  tags:
+    - opennms
+    - tls
+    - webapp
+
+- name: Create the TLS directory
+  ansible.builtin.file:
+    path: "{{ opennms_tls_dir }}"
+    state: directory
+    owner: opennms
+    group: opennms
+    mode: "0700"
+  when: opennms_web_https_enabled | bool
+  tags:
+    - configuration
+    - opennms
+    - tls
+    - webapp
+
+# Written once. `force: false` keeps the first password on every later run, so
+# the keystore is not rebuilt for a new one.
+- name: Generate the keystore password
+  ansible.builtin.copy:
+    content: "{{ lookup('ansible.builtin.password', '/dev/null', length=32, chars=['ascii_letters', 'digits']) }}"
+    dest: "{{ _opennms_tls_password_file }}"
+    force: false
+    owner: opennms
+    group: opennms
+    mode: "0600"
+  when:
+    - opennms_web_https_enabled | bool
+    - opennms_tls_keystore_password | length == 0
+  no_log: true
+  tags:
+    - configuration
+    - opennms
+    - tls
+    - webapp
+
+- name: Read the generated keystore password
+  ansible.builtin.slurp:
+    src: "{{ _opennms_tls_password_file }}"
+  register: _tls_password_file
+  when:
+    - opennms_web_https_enabled | bool
+    - opennms_tls_keystore_password | length == 0
+  no_log: true
+  tags:
+    - configuration
+    - opennms
+    - tls
+    - webapp
+
+- name: Settle the keystore password
+  ansible.builtin.set_fact:
+    _opennms_tls_keystore_password_effective: >-
+      {{ opennms_tls_keystore_password
+         if opennms_tls_keystore_password | length > 0
+         else _tls_password_file.content | b64decode }}
+  when: opennms_web_https_enabled | bool
+  no_log: true
+  tags:
+    - configuration
+    - opennms
+    - tls
+    - webapp
+
+# Bring your own: the files are read, never written.
+- name: Fail when a certificate is supplied without its key
+  ansible.builtin.assert:
+    that:
+      - opennms_tls_key_path | length > 0
+    fail_msg: >-
+      opennms_tls_cert_path is set to {{ opennms_tls_cert_path }}, but
+      opennms_tls_key_path is empty. Set both, or neither for a self-signed
+      certificate.
+    quiet: true
+  when:
+    - opennms_web_https_enabled | bool
+    - _opennms_tls_byo | bool
+  tags:
+    - opennms
+    - tls
+    - webapp
+
+- name: Look for the supplied certificate, key and chain
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  register: _tls_byo_files
+  loop: "{{ [opennms_tls_cert_path, opennms_tls_key_path, opennms_tls_chain_path] | select | list }}"
+  when:
+    - opennms_web_https_enabled | bool
+    - _opennms_tls_byo | bool
+  tags:
+    - opennms
+    - tls
+    - webapp
+
+- name: Fail when a supplied TLS file is missing
+  ansible.builtin.assert:
+    that:
+      - _tls_byo_missing | length == 0
+    fail_msg: "These TLS files do not exist on the host: {{ _tls_byo_missing | join(', ') }}"
+    quiet: true
+  vars:
+    _tls_byo_missing: "{{ _tls_byo_files.results | rejectattr('stat.exists') | map(attribute='item') | list }}"
+  when:
+    - opennms_web_https_enabled | bool
+    - _opennms_tls_byo | bool
+  tags:
+    - opennms
+    - tls
+    - webapp
+
+- name: Read the supplied certificate
+  community.crypto.x509_certificate_info:
+    path: "{{ opennms_tls_cert_path }}"
+  register: _tls_byo_cert
+  when:
+    - opennms_web_https_enabled | bool
+    - _opennms_tls_byo | bool
+  tags:
+    - opennms
+    - tls
+    - webapp
+
+- name: Read the supplied key
+  community.crypto.openssl_privatekey_info:
+    path: "{{ opennms_tls_key_path }}"
+  register: _tls_byo_key
+  when:
+    - opennms_web_https_enabled | bool
+    - _opennms_tls_byo | bool
+  no_log: true
+  tags:
+    - opennms
+    - tls
+    - webapp
+
+- name: Fail when the supplied key does not match the certificate
+  ansible.builtin.assert:
+    that:
+      - _tls_byo_cert.public_key == _tls_byo_key.public_key
+    fail_msg: "key at {{ opennms_tls_key_path }} does not match certificate at {{ opennms_tls_cert_path }}"
+    quiet: true
+  when:
+    - opennms_web_https_enabled | bool
+    - _opennms_tls_byo | bool
+  tags:
+    - opennms
+    - tls
+    - webapp
+
+# Self-signed. The key is regenerated when the key type changes, and the
+# certificate when its key, subject or SANs change.
+- name: Generate the self-signed private key
+  community.crypto.openssl_privatekey:
+    path: "{{ _opennms_tls_selfsigned_key }}"
+    type: "{{ opennms_tls_selfsigned_key_type }}"
+    curve: secp256r1
+    size: 3072
+    owner: opennms
+    group: opennms
+    mode: "0600"
+  when:
+    - opennms_web_https_enabled | bool
+    - not _opennms_tls_byo | bool
+  no_log: true
+  tags:
+    - opennms
+    - tls
+    - webapp
+
+# A pipe holds no state, so its fresh CSR is not a change. The certificate
+# task below decides whether anything differs.
+- name: Build the self-signed certificate request
+  community.crypto.openssl_csr_pipe:
+    privatekey_path: "{{ _opennms_tls_selfsigned_key }}"
+    common_name: "{{ opennms_tls_selfsigned_common_name }}"
+    subject_alt_name: "{{ _opennms_tls_sans }}"
+    organization_name: "{{ opennms_tls_selfsigned_organization | default(omit, true) }}"
+    organizational_unit_name: "{{ opennms_tls_selfsigned_organizational_unit | default(omit, true) }}"
+    country_name: "{{ opennms_tls_selfsigned_country | default(omit, true) }}"
+  register: _tls_selfsigned_csr
+  changed_when: false
+  when:
+    - opennms_web_https_enabled | bool
+    - not _opennms_tls_byo | bool
+  tags:
+    - opennms
+    - tls
+    - webapp
+
+- name: Look for the self-signed certificate
+  ansible.builtin.stat:
+    path: "{{ _opennms_tls_selfsigned_cert }}"
+  register: _tls_selfsigned_cert_file
+  when:
+    - opennms_web_https_enabled | bool
+    - not _opennms_tls_byo | bool
+  tags:
+    - opennms
+    - tls
+    - webapp
+
+- name: Check the self-signed certificate against the renewal window
+  community.crypto.x509_certificate_info:
+    path: "{{ _opennms_tls_selfsigned_cert }}"
+    valid_at:
+      renew: "+{{ opennms_tls_selfsigned_renew_days }}d"
+  register: _tls_selfsigned_cert_info
+  when:
+    - opennms_web_https_enabled | bool
+    - not _opennms_tls_byo | bool
+    - _tls_selfsigned_cert_file.stat.exists
+  tags:
+    - opennms
+    - tls
+    - webapp
+
+# The module ignores timestamps when comparing, so two cases force a new
+# certificate: it ends inside the renewal window, or its lifetime is not
+# opennms_tls_selfsigned_days any more.
+- name: Generate the self-signed certificate
+  community.crypto.x509_certificate:
+    path: "{{ _opennms_tls_selfsigned_cert }}"
+    provider: selfsigned
+    privatekey_path: "{{ _opennms_tls_selfsigned_key }}"
+    csr_content: "{{ _tls_selfsigned_csr.csr }}"
+    selfsigned_not_after: "+{{ opennms_tls_selfsigned_days }}d"
+    force: "{{ _tls_selfsigned_renew }}"
+    owner: opennms
+    group: opennms
+    mode: "0644"
+  vars:
+    _tls_selfsigned_days_now: >-
+      {{ (((_tls_selfsigned_cert_info.not_after | to_datetime('%Y%m%d%H%M%SZ'))
+           - (_tls_selfsigned_cert_info.not_before | to_datetime('%Y%m%d%H%M%SZ'))).total_seconds() / 86400)
+         | round | int
+         if _tls_selfsigned_cert_info is not skipped else 0 }}
+    _tls_selfsigned_renew: >-
+      {{ _tls_selfsigned_cert_info is not skipped
+         and (not _tls_selfsigned_cert_info.valid_at.renew
+              or _tls_selfsigned_days_now | int != opennms_tls_selfsigned_days | int) }}
+  when:
+    - opennms_web_https_enabled | bool
+    - not _opennms_tls_byo | bool
+  tags:
+    - opennms
+    - tls
+    - webapp
+
+# Rebuilt when the key, certificate, chain or password change.
+- name: Build the Jetty keystore
+  community.crypto.openssl_pkcs12:
+    action: export
+    path: "{{ _opennms_tls_keystore }}"
+    friendly_name: jetty
+    passphrase: "{{ _opennms_tls_keystore_password_effective }}"
+    privatekey_path: "{{ opennms_tls_key_path if _opennms_tls_byo | bool else _opennms_tls_selfsigned_key }}"
+    certificate_path: "{{ opennms_tls_cert_path if _opennms_tls_byo | bool else _opennms_tls_selfsigned_cert }}"
+    other_certificates: "{{ [opennms_tls_chain_path] if _opennms_tls_byo | bool and opennms_tls_chain_path | length > 0 else omit }}"
+    other_certificates_parse_all: true
+    owner: opennms
+    group: opennms
+    mode: "0600"
+  when: opennms_web_https_enabled | bool
+  no_log: true
+  notify:
+    - Restart opennms
+  tags:
+    - opennms
+    - tls
+    - webapp
+
+# etc/jetty.xml is deployed when it is absent, carries the role's marker, or
+# is identical to the packaged example. Anything else is the operator's file,
+# which 00-web-guards.yml only lets through when HTTPS is off, and is left
+# alone.
+- name: Look for the packaged example jetty.xml
+  ansible.builtin.stat:
+    path: "{{ _opennms_jetty_pristine }}"
+  register: _tls_jetty_example
+  tags:
+    - opennms
+    - tls
+    - webapp
+
+- name: Fail when the packaged example jetty.xml is missing
+  ansible.builtin.assert:
+    that:
+      - _tls_jetty_example.stat.exists
+    fail_msg: >-
+      {{ _opennms_jetty_pristine }} is missing. The role builds etc/jetty.xml
+      from it. Reinstall the OpenNMS packages to restore it.
+    quiet: true
+  when: opennms_web_https_enabled | bool
+  tags:
+    - opennms
+    - tls
+    - webapp
+
+- name: Read the packaged example jetty.xml
+  ansible.builtin.slurp:
+    src: "{{ _opennms_jetty_pristine }}"
+  register: _tls_jetty_example_content
+  when: _tls_jetty_example.stat.exists
+  tags:
+    - opennms
+    - tls
+    - webapp
+
+- name: Look for etc/jetty.xml
+  ansible.builtin.stat:
+    path: "{{ opennms_home }}/etc/jetty.xml"
+  register: _tls_jetty_current
+  tags:
+    - opennms
+    - tls
+    - webapp
+
+- name: Read etc/jetty.xml
+  ansible.builtin.slurp:
+    src: "{{ opennms_home }}/etc/jetty.xml"
+  register: _tls_jetty_current_content
+  when: _tls_jetty_current.stat.exists
+  tags:
+    - opennms
+    - tls
+    - webapp
+
+- name: Decide whether the role owns etc/jetty.xml
+  ansible.builtin.set_fact:
+    _tls_jetty_owned: >-
+      {{ not _tls_jetty_current.stat.exists
+         or _opennms_jetty_managed_marker in _tls_jetty_text
+         or (_tls_jetty_example.stat.exists
+             and _tls_jetty_text == (_tls_jetty_example_content.content | b64decode)) }}
+  vars:
+    _tls_jetty_text: "{{ (_tls_jetty_current_content.content | default('')) | b64decode }}"
+  tags:
+    - opennms
+    - tls
+    - webapp
+
+# Rendered into a variable and checked before it is written: regex_replace
+# returns its input unchanged on no match, so a reformatted upstream file would
+# otherwise deploy without the connector.
+- name: Render etc/jetty.xml with the HTTPS connector enabled
+  ansible.builtin.set_fact:
+    _tls_jetty_rendered: "{{ lookup('ansible.builtin.template', 'etc/jetty.xml.j2') }}"
+  vars:
+    _opennms_jetty_pristine_content: "{{ _tls_jetty_example_content.content | b64decode }}"
+  when:
+    - opennms_web_https_enabled | bool
+    - _tls_jetty_owned | bool
+  tags:
+    - opennms
+    - tls
+    - webapp
+
+- name: Fail when the HTTPS connector cannot be enabled in the example jetty.xml
+  ansible.builtin.assert:
+    that:
+      - _opennms_jetty_managed_marker in _tls_jetty_rendered
+    fail_msg: "pristine jetty.xml format changed, the role cannot enable HTTPS"
+    quiet: true
+  when:
+    - opennms_web_https_enabled | bool
+    - _tls_jetty_owned | bool
+  tags:
+    - opennms
+    - tls
+    - webapp
+
+- name: Deploy etc/jetty.xml with the HTTPS connector enabled
+  ansible.builtin.copy:
+    content: "{{ _tls_jetty_rendered }}"
+    dest: "{{ opennms_home }}/etc/jetty.xml"
+    owner: opennms
+    group: opennms
+    mode: "0644"
+  when:
+    - opennms_web_https_enabled | bool
+    - _tls_jetty_owned | bool
+  notify:
+    - Restart opennms
+  tags:
+    - opennms
+    - tls
+    - webapp
+
+- name: Remove the role's etc/jetty.xml when HTTPS is disabled
+  ansible.builtin.file:
+    path: "{{ opennms_home }}/etc/jetty.xml"
+    state: absent
+  when:
+    - not opennms_web_https_enabled | bool
+    - _tls_jetty_current.stat.exists
+    - _opennms_jetty_managed_marker in (_tls_jetty_current_content.content | b64decode)
+  notify:
+    - Restart opennms
+  tags:
+    - opennms
+    - tls
+    - webapp

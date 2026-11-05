@@ -1,0 +1,11 @@
+{# Copyright 2026 Ronny Trommer <ronny@no42.org>
+   SPDX-License-Identifier: GPL-3.0-or-later
+
+   The shipped jetty.xml with its HTTPS connector uncommented. OpenNMS keeps the
+   whole connector inside one XML comment, so there is no property that turns it
+   on. The shipped block holds no nested comment, so the first closing delimiter
+   after it ends it. The marker tells the guard in tasks/00-web-guards.yml that
+   this role owns the file. #}
+{{ _opennms_jetty_pristine_content
+   | regex_replace('(<!-- Add HTTPS support) -->\s*\n\s*<!--\n([\s\S]*?)\n\s*-->\n', '\\1: ' ~ _opennms_jetty_managed_marker ~ ' -->\n\\2\n')
+   | trim }}

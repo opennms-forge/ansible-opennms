@@ -174,25 +174,47 @@ opennms_elastic_flows: {}
 
 # Ports opened in the host firewall: UFW on Debian and Ubuntu when UFW is
 # installed, firewalld on EL 10 when it is running. `port/proto`, or
-# `start-end/proto` for a range. The web port follows
-# org.opennms.netmgt.jetty.port below, and org.opennms.netmgt.jetty.https-port
-# is added when set, and so is opennms_core_jmx_exporter_port. Setting the list
-# replaces it entirely.
+# `start-end/proto` for a range. The web port follows opennms_web_http_port,
+# opennms_web_https_port is added when HTTPS is enabled, and so is
+# opennms_core_jmx_exporter_port. Setting the list replaces it entirely.
 opennms_core_firewall_ports: >-
-  {{ [_opennms_core_web_port ~ '/tcp']
+  {{ ([] if _opennms_web_http_loopback else [_opennms_core_web_port ~ '/tcp'])
      + ([_opennms_core_https_port ~ '/tcp'] if _opennms_core_https_port | length > 0 else [])
      + ['10162/udp', '9999/udp']
      + ([opennms_core_jmx_exporter_port ~ '/tcp'] if opennms_core_jmx_exporter_port | int > 0 else []) }}
 
-opennms_properties_webapp:
-  opennms.web.base-url: http://%x%c/
-  # org.opennms.netmgt.jetty.host: 0.0.0.0
-  org.opennms.netmgt.jetty.port: 8980
-  # org.opennms.netmgt.jetty.https-keystore: /opt/opennms/etc/jetty.keystore
-  # org.opennms.netmgt.jetty.https-keystorepassword: changeit
-  # org.opennms.netmgt.jetty.https-keypassword: changeit
-  # org.opennms.netmgt.jetty.https-host: 127.0.0.1
-  # org.opennms.netmgt.jetty.https-port: 8443
+# Web UI listeners. The role renders opennms.web.base-url and the Jetty bind and
+# TLS keys from these, so they must not appear in opennms_properties_webapp
+# (tasks/00-web-guards.yml rejects them there).
+opennms_web_https_enabled: true
+opennms_web_https_host: 0.0.0.0
+opennms_web_https_port: 8443
+# Plaintext stays on loopback so only a local reverse proxy or the role's own
+# readiness check reaches it.
+opennms_web_http_host: 127.0.0.1
+opennms_web_http_port: 8980
+opennms_web_base_url: "{{ 'https' if opennms_web_https_enabled | bool else 'http' }}://%x%c/"
+
+# TLS material. Set opennms_tls_cert_path and opennms_tls_key_path to supply
+# your own certificate; leave them empty for a self-signed one.
+opennms_tls_dir: "{{ opennms_home }}/etc/tls"
+opennms_tls_cert_path: ""
+opennms_tls_key_path: ""
+opennms_tls_chain_path: ""
+# Empty generates a random password on first run and keeps it in a file.
+opennms_tls_keystore_password: ""
+opennms_tls_selfsigned_common_name: "{{ ansible_fqdn }}"
+opennms_tls_selfsigned_subject_alt_names: []
+opennms_tls_selfsigned_key_type: ECC
+opennms_tls_selfsigned_days: 825
+opennms_tls_selfsigned_renew_days: 30
+opennms_tls_selfsigned_organization: ""
+opennms_tls_selfsigned_organizational_unit: ""
+opennms_tls_selfsigned_country: ""
+
+# Extra OpenNMS web properties. The bind, port, base URL and HTTPS keys are
+# owned by the opennms_web_* and opennms_tls_* variables above.
+opennms_properties_webapp: {}
   # org.opennms.netmgt.jetty.ajp-port: 8981
   # org.opennms.netmgt.jetty.sendServerVersion: false
   # org.opennms.netmgt.jetty.enableRequestLogging: false

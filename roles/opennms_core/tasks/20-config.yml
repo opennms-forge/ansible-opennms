@@ -31,6 +31,34 @@
     - configuration
     - webapp
 
+- name: Remove the webapp properties file when opennms_properties_webapp is empty
+  ansible.builtin.file:
+    path: "{{ opennms_home }}/etc/opennms.properties.d/_ansible.webapp.properties"
+    state: absent
+  when: opennms_properties_webapp | default({}, true) | length == 0
+  notify:
+    - Restart opennms
+  tags:
+    - opennms
+    - configuration
+    - webapp
+
+- name: Configure web listeners and TLS for OpenNMS {{ opennms_distribution }}
+  ansible.builtin.template:
+    src: etc/opennms.properties.d/_ansible.webapp-tls.properties.j2
+    dest: "{{ opennms_home }}/etc/opennms.properties.d/_ansible.webapp-tls.properties"
+    owner: opennms
+    group: opennms
+    mode: "0600"
+  no_log: true
+  notify:
+    - Restart opennms
+  tags:
+    - opennms
+    - configuration
+    - tls
+    - webapp
+
 - name: Configure Elasticsearch flow persistence for OpenNMS {{ opennms_distribution }}
   ansible.builtin.template:
     src: etc/org.opennms.features.flows.persistence.elastic.cfg.j2

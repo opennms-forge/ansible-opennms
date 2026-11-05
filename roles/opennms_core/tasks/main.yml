@@ -14,6 +14,11 @@
   tags:
     - always
 
+- name: Refuse web keys that moved to role variables
+  ansible.builtin.include_tasks: 00-web-guards.yml
+  tags:
+    - always
+
 - name: Refuse an unsupported platform
   ansible.builtin.include_tasks: assert-platform.yml
   tags:
@@ -237,6 +242,17 @@
     - openjdk
     - opennms
 
+# After opennms.conf and before 20-config.yml, which renders the keystore
+# password this settles. `configuration` reaches the password tasks for a run
+# filtered to the configuration files.
+- name: Include tasks to build the web UI keystore and jetty.xml
+  ansible.builtin.include_tasks: 06-web-tls.yml
+  tags:
+    - configuration
+    - opennms
+    - tls
+    - webapp
+
 - name: Include tasks to setup the database
   ansible.builtin.include_tasks: 10-database-setup.yml
   tags:
@@ -251,6 +267,7 @@
     - configuration
     - elasticsearch
     - opennms
+    - tls
     - webapp
 
 - name: Configure Kafka as message broker
@@ -308,7 +325,7 @@
 # it never becomes ready.
 - name: Wait for OpenNMS Core to become ready
   ansible.builtin.uri:
-    url: "http://localhost:{{ _opennms_core_web_port }}/opennms/login.jsp"
+    url: "http://{{ _opennms_web_http_probe_host }}:{{ _opennms_core_web_port }}/opennms/login.jsp"
     method: GET
     status_code: 200
   register: opennms_core_ready
@@ -316,6 +333,25 @@
   retries: "{{ opennms_startup_retries }}"
   delay: "{{ opennms_startup_delay }}"
   when:
+    - not (skip_startup | bool)
+  tags:
+    - core
+    - systemd
+
+# The HTTPS connector comes up with the plaintext one. The self-signed
+# certificate does not validate, so only the answer is checked.
+- name: Wait for the OpenNMS Core HTTPS listener
+  ansible.builtin.uri:
+    url: "https://{{ _opennms_web_https_probe_host }}:{{ opennms_web_https_port }}/opennms/login.jsp"
+    method: GET
+    validate_certs: false
+    status_code: 200
+  register: opennms_core_https_ready
+  until: opennms_core_https_ready.status | default(0) == 200
+  retries: 6
+  delay: 5
+  when:
+    - opennms_web_https_enabled | bool
     - not (skip_startup | bool)
   tags:
     - core
