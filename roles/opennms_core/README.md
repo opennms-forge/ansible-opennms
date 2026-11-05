@@ -103,12 +103,14 @@ Install it from EPEL if you use those scripts.
 ## Host firewall
 
 The role opens the ports in `opennms_core_firewall_ports` with UFW on Debian and Ubuntu when UFW is installed, and with firewalld on EL 10 when it is running.
-The default is the web port, `10162/udp` (traps) and `9999/udp` (single-port flows).
-The web port follows `org.opennms.netmgt.jetty.port` in `opennms_properties_webapp`, so moving Jetty there moves the rule and the readiness wait with it.
-When `org.opennms.netmgt.jetty.https-port` is set there too, the default list opens it as well.
+The default is the HTTPS port `8443/tcp` when HTTPS is on, `10162/udp` (traps) and `9999/udp` (single-port flows).
+The plaintext web port (`opennms_web_http_port`) is added only when `opennms_web_http_host` is not a loopback address.
+On a loopback bind the role removes the old plaintext rule, so an upgraded host stops exposing 8980.
+It keeps the rule when you list the port in `opennms_core_firewall_ports`.
+With `opennms_web_https_enabled: false` it removes the HTTPS rule the same way.
 When `opennms_core_jmx_exporter_port` is set, the default list opens it as TCP.
-Setting the list replaces it entirely, the web port included.
-Rules are only added: removing an entry does not remove its rule.
+Setting the list replaces it entirely, the web ports included.
+Apart from those two removals, rules are only added: removing an entry does not remove its rule.
 
 ## Variables
 
@@ -191,10 +193,83 @@ opennms_services:
 
 Empty by default; upstream defaults apply for every unmodified service. `Manager` and `Eventd` are not toggleable.
 
+### Web UI and TLS
+
+The role serves the web UI over HTTPS on port 8443 and binds plaintext HTTP on port 8980 to `127.0.0.1`.
+Only a local reverse proxy or the role's own readiness check reaches the plaintext port.
+Without a certificate of your own, the role generates a self-signed one.
+Browsers warn about it until you trust it or supply your own.
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `opennms_web_https_enabled` | `true` | Serve HTTPS. `false` leaves only the plaintext listener. |
+| `opennms_web_https_host` | `0.0.0.0` | HTTPS bind address. |
+| `opennms_web_https_port` | `8443` | HTTPS port. |
+| `opennms_web_http_host` | `127.0.0.1` | Plaintext bind address. A non-loopback address makes it reachable from the network. |
+| `opennms_web_http_port` | `8980` | Plaintext port. |
+| `opennms_web_base_url` | `https://%x%c/` | `opennms.web.base-url`. `http://%x%c/` when HTTPS is off. |
+| `opennms_tls_dir` | `{{ opennms_home }}/etc/tls` | Directory for the generated files. |
+| `opennms_tls_cert_path` | empty | PEM certificate on the target host. Setting it switches to your own certificate. |
+| `opennms_tls_key_path` | empty | PEM private key on the target host. Required with the certificate. |
+| `opennms_tls_chain_path` | empty | Optional PEM chain added to the keystore. |
+| `opennms_tls_keystore_password` | empty | Empty generates a random password on the first run and keeps it in `keystore.pass`. |
+| `opennms_tls_selfsigned_common_name` | `ansible_fqdn` | Subject common name. |
+| `opennms_tls_selfsigned_subject_alt_names` | empty | Replaces the default list when set. The default is the FQDN, the short hostname, the default IPv4 address, `localhost` and `127.0.0.1`. Entries read `DNS:name` or `IP:address`. |
+| `opennms_tls_selfsigned_key_type` | `ECC` | `ECC` (P-256) or `RSA`. |
+| `opennms_tls_selfsigned_days` | `825` | Validity in days. |
+| `opennms_tls_selfsigned_renew_days` | `30` | The role regenerates the certificate when fewer days remain. |
+| `opennms_tls_selfsigned_organization`, `_organizational_unit`, `_country` | empty | Optional subject fields. |
+
+The generated files live in `opennms_tls_dir`, which is `0700` and owned by `opennms`.
+They are `jetty-selfsigned.key`, `jetty-selfsigned.crt`, `jetty.p12` and `keystore.pass`.
+The role keeps the self-signed certificate between runs.
+It regenerates it when a self-signed setting changes or when fewer than `opennms_tls_selfsigned_renew_days` days remain.
+Renewal happens only when the role runs.
+There is no timer.
+
+The role renders `etc/jetty.xml` from `{{ opennms_home }}/etc/examples/jetty.xml` with the HTTPS block uncommented.
+The file carries the text "HTTPS enabled by indigo423.opennms.opennms_core".
+A change to the keystore or to `jetty.xml` restarts OpenNMS, because Jetty does not reload keystores.
+The role sets no HSTS header.
+
+#### Your own certificate
+
+Put the PEM files on the target host and point the role at them.
+
+```yaml
+opennms_tls_cert_path: /etc/ssl/opennms/fullchain.pem
+opennms_tls_key_path: /etc/ssl/opennms/privkey.pem
+# opennms_tls_chain_path: /etc/ssl/opennms/chain.pem
+```
+
+The role only reads these files and never writes to them.
+It builds `jetty.p12` from them and fails when the key does not match the certificate.
+
+#### Let's Encrypt
+
+The role does not request or renew certificates.
+There are two routes.
+
+- Run a reverse proxy such as Caddy or nginx with certbot in front of `127.0.0.1:8980`, and set `opennms_web_https_enabled: false`.
+  Set `opennms_web_base_url` to the public URL the proxy serves.
+- Let certbot or acme.sh write PEM files to the paths above, and add a deploy hook that reruns this role.
+  The rerun rebuilds the keystore and restarts OpenNMS.
+
+#### Grafana
+
+The sample `onms_hzn_base_url: http://localhost:8980` keeps working when Grafana runs on the same host, because the plaintext port stays on loopback.
+A Grafana on another host uses `https://<core>:8443`.
+It must trust the certificate or skip verification, because the role does not distribute a self-signed certificate.
+
+#### Limits
+
+- IPv6 literals other than `::` and `::1` are not supported as bind addresses, because the readiness waits probe the configured address.
+- The role handles HTTPS for the Core web UI only, not Minion, Sentinel or the Karaf shell.
+
 ### Startup readiness
 
-The web port is `org.opennms.netmgt.jetty.port` from `opennms_properties_webapp`, 8980 when unset.
-After starting `opennms.service`, the role first polls `http://localhost:<web port>/opennms/login.jsp` until it returns 200, then runs `bin/opennms -v status` until it exits 0.
+The web ports are `opennms_web_http_port` and, when HTTPS is on, `opennms_web_https_port`.
+After starting `opennms.service`, the role first polls `/opennms/login.jsp` on the plaintext and HTTPS listeners until each returns 200, then runs `bin/opennms -v status` until it exits 0.
 The second gate matters because Jetty answers before Manager has started every service.
 The status command signals the JVM, which writes one line per enabled service to `logs/status-check.txt`, and exits 0 only when every line reads `running`.
 It is retried only while it reports a partially started Core (exit 160).
@@ -253,6 +328,27 @@ The role fails the run on a key that is in neither table, so a misspelling canno
 ```
 
 ## Migration from earlier role versions
+
+### Web UI on HTTPS
+
+Earlier versions served plaintext on 0.0.0.0:8980.
+The current version serves HTTPS on 8443 and binds plaintext to 127.0.0.1.
+Clients that used `http://<core>:8980` must switch to `https://<core>:8443`, and a firewall rule or load balancer that pointed at 8980 needs the new port.
+To restore the old behaviour, set `opennms_web_http_host: 0.0.0.0` and, if you do not want HTTPS, `opennms_web_https_enabled: false`.
+The role also needs the `community.crypto` collection.
+Run `make deps` or `ansible-galaxy collection install -r requirements.yml`.
+
+Two guards stop the run before anything is installed.
+
+- `opennms_properties_webapp` holds a key the role now renders from variables.
+  The guarded keys are `opennms.web.base-url`, `org.opennms.netmgt.jetty.host`, `org.opennms.netmgt.jetty.port` and every `org.opennms.netmgt.jetty.https-*` key.
+  The failure message names the variable to use instead.
+  Move each value to `opennms_web_base_url`, `opennms_web_http_host`, `opennms_web_http_port`, `opennms_web_https_host`, `opennms_web_https_port`, `opennms_web_https_enabled` or `opennms_tls_*`, and delete the key.
+  The dict now defaults to `{}` and takes the remaining Jetty keys such as `org.opennms.netmgt.jetty.ajp-port`, so you no longer copy the whole default dict.
+- `{{ opennms_home }}/etc/jetty.xml` has changes the role did not make, and the role would replace it to enable HTTPS.
+  A file identical to `etc/examples/jetty.xml`, or one that carries the marker text, is taken over.
+  To keep your file, uncomment the HTTPS connector in it and add "HTTPS enabled by indigo423.opennms.opennms_core" to the "Add HTTPS support" comment.
+  Or set `opennms_web_https_enabled: false`, or set `opennms_web_http_host` to a non-loopback address, and the role leaves the file alone.
 
 ### JMX Prometheus exporter
 

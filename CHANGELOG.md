@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+- **BREAKING** `opennms_core`: the web UI is served over HTTPS on 8443 by default, with a generated self-signed certificate or one you supply through `opennms_tls_cert_path` and `opennms_tls_key_path`. Plaintext 8980 binds to `127.0.0.1` and the host firewall opens it only for a non-loopback `opennms_web_http_host`. An upgraded host loses its old 8980 rule unless `opennms_core_firewall_ports` lists it. `opennms_web_http_host: 0.0.0.0` restores the old reachability, and `opennms_web_https_enabled: false` turns HTTPS off. `opennms_properties_webapp` defaults to `{}`. The run fails when it holds `opennms.web.base-url`, `org.opennms.netmgt.jetty.host`, `org.opennms.netmgt.jetty.port` or any `org.opennms.netmgt.jetty.https-*` key, and the message names the new variable. It also fails when `etc/jetty.xml` has changes the role did not make and the role would replace it. Any keystore or `jetty.xml` change restarts OpenNMS.
+- `community.crypto` is a new collection dependency. Run `make deps`.
+
 ## [0.15.0] - 2026-11-03
 
 ### Added
