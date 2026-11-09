@@ -3,10 +3,10 @@ collections:
   - name: ansible.posix
     version: "2.2.2"
   - name: community.postgresql
-    version: "5.1.0"
+    version: "5.1.1"
   - name: community.crypto
-    version: "3.5.0"
+    version: "3.5.1"
   - name: community.general
-    version: "13.5.0"
+    version: "13.5.1"
   - name: indigo423.grafana
-    version: "7.4.1"
+    version: "7.5.0"
