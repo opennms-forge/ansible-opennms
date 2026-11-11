@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.16.1] - 2026-11-11
+
+### Changed
+- Grafana Pyroscope server 2.4.3 (#264).
+- Grafana Mimir 3.2.4, through `indigo423.grafana` 7.5.0. `community.crypto` 3.5.1, `community.general` 13.5.1, `community.postgresql` 5.1.1 (#263). Run `make deps`.
+
 ## [0.16.0] - 2026-11-05
 
 ### Changed
@@ -368,6 +374,7 @@ and `vm-single` are unaffected.
 - Renovate configuration for automated Ansible Galaxy collection updates.
 - CI on standard GitHub-hosted runners with SHA-pinned actions and Dependabot.
 
+[0.16.1]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.16.1
 [0.16.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.16.0
 [0.15.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.15.0
 [0.14.1]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.14.1
