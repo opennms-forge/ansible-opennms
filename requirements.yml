@@ -3,7 +3,7 @@ collections:
   - name: ansible.posix
     version: "2.2.2"
   - name: community.postgresql
-    version: "5.1.1"
+    version: "5.1.2"
   - name: community.crypto
     version: "3.5.1"
   - name: community.general
