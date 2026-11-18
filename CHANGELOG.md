@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.16.2] - 2026-11-18
+
+### Changed
+- Grafana 13.3.1 (#267).
+- `community.postgresql` 5.1.2 (#266). Run `make deps`.
+
 ### Security
 - `opennms_core`, `opennms_minion`, `opennms_sentinel`, `stub_kafka`: the JVMs start with `-XX:-UseBASE64Intrinsics`, the workaround for CVE-2026-114938 (Java4Shell) on x86-64 hosts with AVX-512 VBMI. Core gets it in front of `ADDITIONAL_MANAGER_OPTIONS`, Minion and Sentinel in `EXTRA_JAVA_OPTS`, Kafka through `KAFKA_OPTS` in its unit. The next run restarts each service once. On a Minion or Sentinel the `java-agents` block now exists even with no agent enabled. It replaces an `EXTRA_JAVA_OPTS` you set in the sysconfig file yourself, so move those flags to `JAVA_OPTS`. Set `opennms_<component>_base64_intrinsics: true` or `kafka_base64_intrinsics: true` on a fixed JDK (17.0.21.1, 21.0.13.1, 25.0.5.1 or newer). A Kafka unit change now restarts Kafka.
 
@@ -377,6 +383,7 @@ and `vm-single` are unaffected.
 - Renovate configuration for automated Ansible Galaxy collection updates.
 - CI on standard GitHub-hosted runners with SHA-pinned actions and Dependabot.
 
+[0.16.2]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.16.2
 [0.16.1]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.16.1
 [0.16.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.16.0
 [0.15.0]: https://github.com/opennms-forge/ansible-opennms/releases/tag/v0.15.0
