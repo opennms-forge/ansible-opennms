@@ -162,6 +162,20 @@ The built-in defaults are the three profiling keys: `PYROSCOPE_AGENT_ENABLED: 0`
 
 **Only those three profiling keys belong here.** Entries in this dict are rendered *without* `export`, so they stay shell-local to `bin/opennms`, which then exports the application name and server address by name on its own. Any further agent setting — `PYROSCOPE_UPLOAD_INTERVAL`, `PYROSCOPE_AUTH_TOKEN`, `PYROSCOPE_HTTP_HEADERS` — has to go in `opennms_env` instead, or the agent never sees it. Do not restate the three above there: the template refuses to render a key defined in two of the three dicts.
 
+### Base64 intrinsics
+
+Off by default.
+The role puts `-XX:-UseBASE64Intrinsics` in front of `ADDITIONAL_MANAGER_OPTIONS` in `opennms.conf`, so an option you set there yourself still wins.
+That is the workaround for CVE-2026-114938, a heap overflow in HotSpot's AVX-512 Base64 decoder on x86-64.
+The option is harmless on ARM64 and on CPUs without AVX-512 VBMI.
+Once the host runs a fixed JDK (17.0.21.1, 21.0.13.1, 25.0.5.1 or newer), turn the intrinsics back on:
+
+```yaml
+opennms_core_base64_intrinsics: true
+```
+
+Changing the value restarts OpenNMS.
+
 ### JMX Prometheus exporter
 
 Off by default.

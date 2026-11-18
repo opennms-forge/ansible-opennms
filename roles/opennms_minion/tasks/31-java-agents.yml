@@ -34,16 +34,16 @@
 # file documents for heap and friends. Claiming it here would silently drop
 # whatever they had set.
 #
-# One block for every agent, because systemd keeps only the last
+# One block for every option the role sets, because systemd keeps only the last
 # EXTRA_JAVA_OPTS assignment in this file and expands no $EXTRA_JAVA_OPTS. It
-# is absent when no agent is enabled, so turning the last one off removes the
-# JVM option. The body comes from a template so tests/render/ can check it.
-- name: Load the enabled Java agents into the Minion JVM
+# is absent when the Base64 intrinsics are on and no agent is enabled, so
+# turning the last one off removes the JVM option. The body comes from a template so tests/render/ can check it.
+- name: Write the role's options for the Minion JVM
   ansible.builtin.blockinfile:
     path: "{{ _opennms_minion_sysconfig_file }}"
     marker: "# {mark} ANSIBLE MANAGED BLOCK: java-agents"
     block: "{{ lookup('template', 'java-agents-env.j2') }}"
-    state: "{{ 'present' if _opennms_minion_java_agents | length > 0 else 'absent' }}"
+    state: "{{ 'present' if _opennms_minion_jvm_options | length > 0 else 'absent' }}"
     owner: root
     group: root
     mode: "0644"

@@ -118,10 +118,24 @@ The agent takes no command-line arguments — everything is read from the enviro
 Three details worth knowing:
 
 - **The `java-agents` block owns `EXTRA_JAVA_OPTS`.** It is written as a plain assignment, so an `EXTRA_JAVA_OPTS` you had set in this file is replaced. Put your own JVM flags in `JAVA_OPTS` instead: `container.init` folds it into `EXTRA_JAVA_OPTS` alongside the agent, so both survive. That is also why the role stays off `JAVA_OPTS` itself. It is the knob the pristine file documents for heap and friends.
-- **There is no enable flag.** Loading the agent is what enables it, so an empty dict means no jar is downloaded and no JVM option is set. Emptying it again removes the whole block and the agent's option, and restarts the Sentinel.
+- **There is no enable flag.** Loading the agent is what enables it, so an empty dict means no jar is downloaded and no agent option is set. Emptying it again removes the agent's option, and restarts the Sentinel.
 - **Do not add `PYROSCOPE_AGENT_ENABLED`.** Core carries it in `opennms_jvm_conf` because `bin/opennms` reads it as a number. Here it reaches the agent, which parses it as a boolean — so the `1` that means "on" for Core reads as `false`, and the agent disables itself right after attaching with a single INFO line to say so.
 
 When several Sentinels share a flow workload, give them the same `PYROSCOPE_APPLICATION_NAME`: Pyroscope aggregates by application, and the instances are interchangeable consumers of one Kafka group.
+
+## Base64 intrinsics
+
+Off by default.
+The role writes `-XX:-UseBASE64Intrinsics` into `EXTRA_JAVA_OPTS` in the `java-agents` block of the sysconfig file, ahead of any agent.
+That is the workaround for CVE-2026-114938, a heap overflow in HotSpot's AVX-512 Base64 decoder on x86-64.
+The option is harmless on ARM64 and on CPUs without AVX-512 VBMI.
+Once the host runs a fixed JDK (17.0.21.1, 21.0.13.1, 25.0.5.1 or newer), turn the intrinsics back on:
+
+```yaml
+opennms_sentinel_base64_intrinsics: true
+```
+
+Changing the value restarts the Sentinel.
 
 ## JMX Prometheus exporter
 

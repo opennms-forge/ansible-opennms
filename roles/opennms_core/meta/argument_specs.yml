@@ -187,6 +187,14 @@ argument_specs:
             C(ADDITIONAL_MANAGER_OPTIONS) in C(opennms.conf).
           - Do not load the exporter through C(opennms_jvm_conf) as well. The
             role refuses it.
+      opennms_core_base64_intrinsics:
+        type: bool
+        default: false
+        description:
+          - Whether the JVM keeps HotSpot's Base64 intrinsics.
+          - C(false) puts C(-XX:-UseBASE64Intrinsics) in front of
+            C(ADDITIONAL_MANAGER_OPTIONS) in C(opennms.conf), the workaround
+            for CVE-2026-114938. Set it to C(true) on a fixed JDK.
       opennms_core_rpm_pinned_packages:
         type: list
         elements: str

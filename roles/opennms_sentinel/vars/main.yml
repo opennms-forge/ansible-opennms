@@ -38,9 +38,11 @@ _opennms_sentinel_jmx_exporter_jar: "{{ opennms_sentinel_home }}/agent/jmx_prome
 _opennms_sentinel_jmx_exporter_config_file: "{{ opennms_sentinel_home }}/agent/jmx-prometheus-exporter.yaml"
 _opennms_sentinel_jmx_exporter_option: "-javaagent:{{ _opennms_sentinel_jmx_exporter_jar }}={{ opennms_sentinel_jmx_exporter_port }}:{{ _opennms_sentinel_jmx_exporter_config_file }}"
 
-# Every Java agent loaded into the Karaf JVM, in load order. One list, because
-# systemd keeps only the last EXTRA_JAVA_OPTS assignment in the sysconfig file
-# and expands no $EXTRA_JAVA_OPTS, so each agent cannot add its own line.
-_opennms_sentinel_java_agents: >-
-  {{ (['-javaagent:' ~ opennms_sentinel_pyroscope_jar] if opennms_sentinel_pyroscope | length > 0 else [])
+# Every option the role passes to the Karaf JVM: the Base64 workaround, then
+# the Java agents in load order. One list, because systemd keeps only the last
+# EXTRA_JAVA_OPTS assignment in the sysconfig file and expands no
+# $EXTRA_JAVA_OPTS, so each option cannot add its own line.
+_opennms_sentinel_jvm_options: >-
+  {{ ([] if opennms_sentinel_base64_intrinsics | bool else ['-XX:-UseBASE64Intrinsics'])
+     + (['-javaagent:' ~ opennms_sentinel_pyroscope_jar] if opennms_sentinel_pyroscope | length > 0 else [])
      + ([_opennms_sentinel_jmx_exporter_option] if opennms_sentinel_jmx_exporter_port | int > 0 else []) }}

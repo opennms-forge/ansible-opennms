@@ -6,6 +6,9 @@ After=network.target auditd.service
 [Service]
 Type=simple
 User={{ kafka_user }}
+{% if not (kafka_base64_intrinsics | bool) %}
+Environment=KAFKA_OPTS=-XX:-UseBASE64Intrinsics
+{% endif %}
 ExecStart=/bin/sh -c '{{ kafka_home }}/bin/kafka-server-start.sh {{ kafka_home }}/config/kraft/server.properties > /var/log/kafka/kafka.log 2>&1'
 ExecStop={{ kafka_home }}/bin/kafka-server-stop.sh
 Restart=on-abnormal

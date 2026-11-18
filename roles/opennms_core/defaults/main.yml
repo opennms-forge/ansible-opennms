@@ -153,6 +153,12 @@ _opennms_jvm_conf_defaults:
 # are kept, and the exporter option is appended after them.
 opennms_jvm_conf: {}
 
+# HotSpot's Base64 intrinsics - off by default. The role puts
+# -XX:-UseBASE64Intrinsics in front of ADDITIONAL_MANAGER_OPTIONS, the
+# workaround for CVE-2026-114938 on x86-64 hosts with AVX-512 VBMI. Set it to
+# true once the host runs a fixed JDK (17.0.21.1, 21.0.13.1, 25.0.5.1).
+opennms_core_base64_intrinsics: false
+
 opennms_properties_timeseries:
   org.opennms.rrd.strategyClass: org.opennms.netmgt.rrd.rrdtool.MultithreadedJniRrdStrategy
   org.opennms.rrd.interfaceJar: /usr/share/java/jrrd2.jar

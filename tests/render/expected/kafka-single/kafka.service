@@ -1,0 +1,13 @@
+[Unit]
+After=network.target auditd.service
+
+[Service]
+Type=simple
+User=kafka
+Environment=KAFKA_OPTS=-XX:-UseBASE64Intrinsics
+ExecStart=/bin/sh -c '/opt/kafka_2.13-4.4.0/bin/kafka-server-start.sh /opt/kafka_2.13-4.4.0/config/kraft/server.properties > /var/log/kafka/kafka.log 2>&1'
+ExecStop=/opt/kafka_2.13-4.4.0/bin/kafka-server-stop.sh
+Restart=on-abnormal
+
+[Install]
+WantedBy=multi-user.target
