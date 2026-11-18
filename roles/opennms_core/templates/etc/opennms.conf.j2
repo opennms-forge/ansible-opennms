@@ -6,6 +6,11 @@
 ######
 {% set _env_merged = _opennms_env_defaults | combine(opennms_env | default({}, true)) %}
 {%- set _jvm_merged = _opennms_jvm_conf_defaults | combine(opennms_jvm_conf | default({}, true)) %}
+{#- The Base64 option goes in front, so an operator's own -XX:+UseBASE64Intrinsics
+    in ADDITIONAL_MANAGER_OPTIONS still wins: HotSpot keeps the last one. #}
+{%- if not (opennms_core_base64_intrinsics | bool) %}
+{%- set _jvm_merged = _jvm_merged | combine({'ADDITIONAL_MANAGER_OPTIONS': ('-XX:-UseBASE64Intrinsics ' ~ (_jvm_merged.ADDITIONAL_MANAGER_OPTIONS | default('', true))) | trim}) %}
+{%- endif %}
 {#- The JMX exporter option goes after any ADDITIONAL_MANAGER_OPTIONS the
     operator set, so turning the exporter on never drops theirs. #}
 {%- if opennms_core_jmx_exporter_port | int > 0 %}

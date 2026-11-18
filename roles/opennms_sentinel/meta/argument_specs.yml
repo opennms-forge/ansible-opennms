@@ -69,6 +69,14 @@ argument_specs:
         description:
           - Leave Sentinel stopped. Skips the start and the C(Restart sentinel) handler.
           - A value that is not a boolean, such as C(skip), fails the role.
+      opennms_sentinel_base64_intrinsics:
+        type: bool
+        default: false
+        description:
+          - Whether the JVM keeps HotSpot's Base64 intrinsics.
+          - C(false) puts C(-XX:-UseBASE64Intrinsics) into C(EXTRA_JAVA_OPTS)
+            in the C(java-agents) block of the Sentinel sysconfig file, the
+            workaround for CVE-2026-114938. Set it to C(true) on a fixed JDK.
       opennms_sentinel_jmx_exporter_port:
         type: int
         default: 0

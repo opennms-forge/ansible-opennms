@@ -1,0 +1,8 @@
+---
+render_canary: fixture
+
+# A fixed JDK: the workaround is turned off and the operator's own option is
+# the only one left.
+opennms_core_base64_intrinsics: true
+opennms_jvm_conf:
+  ADDITIONAL_MANAGER_OPTIONS: -XX:+UseStringDeduplication

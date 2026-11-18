@@ -67,6 +67,14 @@ argument_specs:
             (C(1162/udp), C(1514/udp), C(9999/udp)), plus
             C(opennms_minion_jmx_exporter_port) as TCP when it is set.
             Change the list when you move a listener.
+      opennms_minion_base64_intrinsics:
+        type: bool
+        default: false
+        description:
+          - Whether the JVM keeps HotSpot's Base64 intrinsics.
+          - C(false) puts C(-XX:-UseBASE64Intrinsics) into C(EXTRA_JAVA_OPTS)
+            in the C(java-agents) block of the Minion sysconfig file, the
+            workaround for CVE-2026-114938. Set it to C(true) on a fixed JDK.
       opennms_minion_jmx_exporter_port:
         type: int
         default: 0

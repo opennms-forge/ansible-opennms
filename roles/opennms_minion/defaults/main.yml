@@ -39,6 +39,12 @@ opennms_minion_pyroscope_jar: "{{ opennms_minion_home }}/agent/pyroscope-agent.j
 # another component, give each its own port.
 opennms_minion_jmx_exporter_port: 0
 
+# HotSpot's Base64 intrinsics - off by default. The role puts
+# -XX:-UseBASE64Intrinsics into EXTRA_JAVA_OPTS, the workaround for
+# CVE-2026-114938 on x86-64 hosts with AVX-512 VBMI. Set it to true once the
+# host runs a fixed JDK (17.0.21.1, 21.0.13.1, 25.0.5.1).
+opennms_minion_base64_intrinsics: false
+
 opennms_minion_controller:
   id: "{{ ansible_facts['machine_id'] if ansible_facts['machine_id'] is defined else inventory_hostname }}"
   location: ANSIBLE_UNSET_MINION_LOCATION

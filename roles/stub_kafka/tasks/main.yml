@@ -168,6 +168,7 @@
     mode: '0644'
   notify:
     - Reload systemd
+    - Restart kafka
   tags:
     - opennms
     - kafka

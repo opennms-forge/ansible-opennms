@@ -1,0 +1,7 @@
+---
+render_role: opennms_minion
+
+# Both agents on one EXTRA_JAVA_OPTS line, Pyroscope first. systemd keeps only the last assignment, so two lines would load one agent.
+render_files:
+  - name: java-agents-env
+    src: java-agents-env.j2

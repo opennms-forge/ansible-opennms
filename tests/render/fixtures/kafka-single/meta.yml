@@ -4,3 +4,5 @@ render_role: stub_kafka
 render_files:
   - name: server.properties
     src: server.properties.j2
+  - name: kafka.service
+    src: kafka.service.j2
